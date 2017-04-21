@@ -1,4 +1,4 @@
-# Unity tracker
+# JavaScript tracker
 
 This code belongs to e-UCM research group and sends analytics information to a server; or, if the server is currently unavailable, stores them locally until it becomes available again.
 
@@ -41,7 +41,7 @@ For tracker to send traces to the server, `tracker.Start()` has to be called. If
 ```js
 var tracker = new TrackerAsset();
 
-tracker.settings.host = "https://rage.e-ucm.es/;
+tracker.settings.host = "https://rage.e-ucm.es/";
 tracker.settings.trackingCode = "58e3779b1043c7006d76d0e07sj9hnzljjo1dcxr";
 
 //Login is optional. If not logged, anonymous actor is retrieved on start
@@ -67,14 +67,14 @@ There are two methods used for sending traces:
 1. Using `TrackerAsset.ActionTrace(verb,target_type,target_id)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `TrackerAsset.setVar(key, val)`.
 
 ```js
-  //simple trace
+	//simple trace
 	tracker.GameObject.Used("GameObjectID2", tracker.GameObject.GameObjectType.Item);
-  
-  //trace with extensions
-  tracker.setVar("extension1", "value1");
-  var t =tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
 
-  //Very complex trace
+	//trace with extensions
+	tracker.setVar("extension1", "value1");
+	var t =tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
+
+	//Very complex trace
 	tracker.setResponse("AnotherResponse");
 	tracker.setScore(123.456);
 	tracker.setSuccess(false);
@@ -84,7 +84,10 @@ There are two methods used for sending traces:
 	tracker.setVar("extension3", 3);
 	tracker.setVar("extension4", 4.56);
 	return tracker.ActionTrace("selected", "zone", "ObjectID3");
-});
+
+	//Sending the traces
+	tracker.Flush();
+
 ```
 
 ### User Guide
@@ -118,17 +121,17 @@ Usage example for the tracking of an in-game quest. We decided to use a completa
 
 	// Completable
 	// Initialized
-  tracker.Completable.Initialized("MyGameQuestId", tracker.Completable.CompletableType.Quest);
+  	tracker.Completable.Initialized("MyGameQuestId", tracker.Completable.CompletableType.Quest);
 	
 	// Progressed
-  var progress = 0.8;
-  tracker.Completable.Progressed("MyGameQuestId", tracker.Completable.CompletableType.Quest, progress);
+  	var progress = 0.8;
+  	tracker.Completable.Progressed("MyGameQuestId", tracker.Completable.CompletableType.Quest, progress);
 	
 	// Progressed
 	var success = true;
-  var score = 0.75;
+  	var score = 0.75;
 	var t = tracker.Completable.Completed("MyGameQuestId",tracker.Completable.CompletableType.Quest, success,score);
-
+	
 ```
 
 ##### Accessible
@@ -139,10 +142,10 @@ Usage example for the tracking the player's movement through some in-game screen
 	
 	// Accessible
 	// The player accessed the 'MainMenu' screen
-  tracker.Accessible.Accessed("MainMenu", tracker.Accessible.AccessibleType.Screen);
+  	tracker.Accessible.Accessed("MainMenu", tracker.Accessible.AccessibleType.Screen);
 	
 	// The player skipped a cutscene
-  tracker.Accessible.Skipped("Intro", tracker.Accessible.AccessibleType.Cutscene);
+  	tracker.Accessible.Skipped("Intro", tracker.Accessible.AccessibleType.Cutscene);
 
 ```
 
@@ -154,10 +157,10 @@ Usage example for the tracking the player's choices during a conversation:
 	
 	// Alternative
 	// The player selected the 'Ivan' answer for the question 'What's his name?'
-  tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.AlternativeType.Question);
+  	tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.AlternativeType.Question);
 	
 	// The player unlocked 'Combat Mode' for the menu 'Menues/Start'
-  tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
+  	tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
 	
 ```
 
@@ -169,12 +172,10 @@ Usage example for the tracking the player's with a NPC villager and using a heal
 	
 	// Game Object
 	// The player interacted with a Non Playable Character
-  tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.Npc);
-	
-	//...
+  	tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.Npc);
 	
 	// The player used a health potion
-  tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
+  	tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
 	
 ```
 
@@ -184,4 +185,3 @@ Note that in order to track other type of user interactions it is required to pe
 If the storage type is `net`, the tracker will try to connect to a `Collector` [endpoint](https://github.com/e-ucm/rage-analytics/wiki/Back-end-collector), exposed by the [rage-analytics Backend](https://github.com/e-ucm/rage-analytics-backend). 
 
 More information about the tracker can be found in the [official documentation of rage-analytics] (https://github.com/e-ucm/rage-analytics/wiki/Tracker).
-
