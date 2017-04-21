@@ -1,0 +1,19 @@
+{
+  "name": "js-tracker",
+  "version": "0.1.0",
+  "description": "Client Side Tracker Asset written in JavaScript",
+  "main": "src/tk-widget.js",
+  "repository": "https://github.com/synpheros/JS-Tracker",
+  "author": "Ivan J Perez",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start karma.conf.js"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "jasmine-core": "^2.2.0",
+    "jquery": "*",
+    "lodash.clonedeep": "^4.5.0",
+    "webpack": "^2.3.2"
+  }
+}
