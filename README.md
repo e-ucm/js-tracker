@@ -60,7 +60,7 @@ tracker.Login("student","password", function(data,error){
   }
 });
 ```
-### Tracker Login and Start
+### Sending Traces to the Analytics Server
 
 There are two methods used for sending traces:
 1. Using the xAPI for serious games interfaces (Accessible, Alternative, Completable and GameObject).
@@ -110,7 +110,7 @@ The main typed of game objects supported are **-links to unity-tracker (c#)-**:
 * [Completable](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/CompletableTracker.cs) - for Game, Session, Level, Quest, Stage, Combat, StoryNode, Race or any other generic Completable. Methods: `Initialized`, `Progressed` and `Completed`.
 * [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/AccessibleTracker.cs) - for Screen, Area, Zone, Cutscene or any other generic Accessible. Methods: `Accessed` and `Skipped`.
 * [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/AlternativeTracker.cs) - for Question, Menu, Dialog, Path, Arena or any other generic Alternative. Methods: `Selected` and `Unlocked`.
-* [TrackedGameObject](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/GameObjectTracker.cs) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
+* [GameObject](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/GameObjectTracker.cs) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
 
 ##### Completable
 
@@ -157,7 +157,7 @@ tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.Alt
 tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
 ```
 
-##### Tracked Game Object
+##### Game Object
 
 Usage example for the tracking the player's with a NPC villager and using a health potion (item):
 
@@ -170,7 +170,7 @@ tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.
 tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
 ```
 
-Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects **-links to unity-tracker-**([Completable](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs), [TrackedGameObject](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs) is the best choice
+Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects **-links to unity-tracker-**([Completable](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs), [GameObject](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs) is the best choice
 
 ### Tracker and Collector Flow
 If the storage type is `net`, the tracker will try to connect to a `Collector` [endpoint](https://github.com/e-ucm/rage-analytics/wiki/Back-end-collector), exposed by the [rage-analytics Backend](https://github.com/e-ucm/rage-analytics-backend). 
