@@ -67,27 +67,26 @@ There are two methods used for sending traces:
 1. Using `TrackerAsset.ActionTrace(verb,target_type,target_id)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `TrackerAsset.setVar(key, val)`.
 
 ```js
-	//simple trace
-	tracker.GameObject.Used("GameObjectID2", tracker.GameObject.GameObjectType.Item);
+//simple trace
+tracker.GameObject.Used("GameObjectID2", tracker.GameObject.GameObjectType.Item);
 
-	//trace with extensions
-	tracker.setVar("extension1", "value1");
-	var t =tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
+//trace with extensions
+tracker.setVar("extension1", "value1");
+var t =tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
 
-	//Very complex trace
-	tracker.setResponse("AnotherResponse");
-	tracker.setScore(123.456);
-	tracker.setSuccess(false);
-	tracker.setCompletion(true);
-	tracker.setVar("extension1", "value1");
-	tracker.setVar("extension2", "value2");
-	tracker.setVar("extension3", 3);
-	tracker.setVar("extension4", 4.56);
-	return tracker.ActionTrace("selected", "zone", "ObjectID3");
+//Very complex trace
+tracker.setResponse("AnotherResponse");
+tracker.setScore(123.456);
+tracker.setSuccess(false);
+tracker.setCompletion(true);
+tracker.setVar("extension1", "value1");
+tracker.setVar("extension2", "value2");
+tracker.setVar("extension3", 3);
+tracker.setVar("extension4", 4.56);
+return tracker.ActionTrace("selected", "zone", "ObjectID3");
 
-	//Sending the traces
-	tracker.Flush();
-
+//Sending the traces
+tracker.Flush();
 ```
 
 ### User Guide
@@ -118,20 +117,18 @@ The main typed of game objects supported are **-links to unity-tracker (c#)-**:
 Usage example for the tracking of an in-game quest. We decided to use a completable game object for this use-case as the most suitable option:
 
 ```js
+// Completable
+// Initialized
+tracker.Completable.Initialized("MyGameQuestId", tracker.Completable.CompletableType.Quest);
 
-	// Completable
-	// Initialized
-  	tracker.Completable.Initialized("MyGameQuestId", tracker.Completable.CompletableType.Quest);
-	
-	// Progressed
-  	var progress = 0.8;
-  	tracker.Completable.Progressed("MyGameQuestId", tracker.Completable.CompletableType.Quest, progress);
-	
-	// Progressed
-	var success = true;
-  	var score = 0.75;
-	var t = tracker.Completable.Completed("MyGameQuestId",tracker.Completable.CompletableType.Quest, success,score);
-	
+// Progressed
+var progress = 0.8;
+tracker.Completable.Progressed("MyGameQuestId", tracker.Completable.CompletableType.Quest, progress);
+
+// Progressed
+var success = true;
+var score = 0.75;
+var t = tracker.Completable.Completed("MyGameQuestId",tracker.Completable.CompletableType.Quest, success,score);
 ```
 
 ##### Accessible
@@ -139,14 +136,12 @@ Usage example for the tracking of an in-game quest. We decided to use a completa
 Usage example for the tracking the player's movement through some in-game screens and skipping the `Intro` cutscene:
 
 ```js
-	
-	// Accessible
-	// The player accessed the 'MainMenu' screen
-  	tracker.Accessible.Accessed("MainMenu", tracker.Accessible.AccessibleType.Screen);
-	
-	// The player skipped a cutscene
-  	tracker.Accessible.Skipped("Intro", tracker.Accessible.AccessibleType.Cutscene);
+// Accessible
+// The player accessed the 'MainMenu' screen
+tracker.Accessible.Accessed("MainMenu", tracker.Accessible.AccessibleType.Screen);
 
+// The player skipped a cutscene
+tracker.Accessible.Skipped("Intro", tracker.Accessible.AccessibleType.Cutscene);
 ```
 
 ##### Alternative
@@ -154,14 +149,12 @@ Usage example for the tracking the player's movement through some in-game screen
 Usage example for the tracking the player's choices during a conversation:
 
 ```js
-	
-	// Alternative
-	// The player selected the 'Ivan' answer for the question 'What's his name?'
-  	tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.AlternativeType.Question);
-	
-	// The player unlocked 'Combat Mode' for the menu 'Menues/Start'
-  	tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
-	
+// Alternative
+// The player selected the 'Ivan' answer for the question 'What's his name?'
+tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.AlternativeType.Question);
+
+// The player unlocked 'Combat Mode' for the menu 'Menues/Start'
+tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
 ```
 
 ##### Tracked Game Object
@@ -169,14 +162,12 @@ Usage example for the tracking the player's choices during a conversation:
 Usage example for the tracking the player's with a NPC villager and using a health potion (item):
 
 ```js
-	
-	// Game Object
-	// The player interacted with a Non Playable Character
-  	tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.Npc);
-	
-	// The player used a health potion
-  	tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
-	
+// Game Object
+// The player interacted with a Non Playable Character
+tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.Npc);
+
+// The player used a health potion
+tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
 ```
 
 Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects **-links to unity-tracker-**([Completable](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs), [TrackedGameObject](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs) is the best choice
