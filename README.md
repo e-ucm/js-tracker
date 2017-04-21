@@ -6,8 +6,8 @@ After a game is developed, a common need is to know how the players play, what i
 
 ## Installation
 1. Obtain bundle library
-  *. Download files from Release
-  *. Clone or download repository and obtain them from /dist/
+    * Download files from Release
+    * Clone or download repository and obtain them from /dist/
 1. Copy into your project folder
 1. Include library using, for example, `<script type="text/javascript" src="js-tracker.bundle.js"></script>>`
 1. Configure the tracker by:
@@ -18,14 +18,14 @@ tracker.settings.host = "http://my.host:port/";
 tracker.settings.trackingCode = "TrackingCode";
 ```
 1. More configuration can be done with:
-  *. **port**: This should have the port for the analysis server
-  *. **secure**: Is the connection secure?
-  *. **max_flush**: max number of traces sent when flush
-  *. **batch_size**: max number of traces stored in the tracker queue
-  *. **backupStorage**: if enabled, csv traces will be stored at `localStorage.getItem("backup")`
-  *. **host**: This should have the host for the analysis server
-  *. **trackingCode**: If storage type is set to `net`, this is the [tracking code identifying the game](https://github.com/e-ucm/rage-analytics/wiki/Tracking-code)
-  *. **debug**: Enable to see tracker messages in the Unity console.
+    * **port**: This should have the port for the analysis server
+    * **secure**: Is the connection secure?
+    * **max_flush**: max number of traces sent when flush
+    * **batch_size**: max number of traces stored in the tracker queue
+    * **backupStorage**: if enabled, csv traces will be stored at `localStorage.getItem("backup")`
+    * **host**: This should have the host for the analysis server
+    * **trackingCode**: If storage type is set to `net`, this is the [tracking code identifying the game](https://github.com/e-ucm/rage-analytics/wiki/Tracking-code)
+    * **debug**: Enable to see tracker messages in the Unity console.
 1. **optional** tracker.Login()
 1. Start the tracker by using `tracker.Start()`
 1. Send traces
