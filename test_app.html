@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>JavaScript tracker test</title>
+</head>
+<script type="text/javascript" src="dist/js-tracker.bundle.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<!--<script type="text/javascript" src="moment.js"></script>-->
+<style type="text/css">
+	@import url('https://fonts.googleapis.com/css?family=Mukta+Vaani');
+
+	html,body {width: 100%; height:100%; margin: 0px; padding: 0px; border-width: 0px; overflow: hidden;}
+	body { 
+		background: #b7deed; /* Old browsers */
+		background: linear-gradient(to bottom, #87e0fd 0%,#53cbf1 40%,#05abe0 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		font-family: 'Mukta Vaani', verdana;
+	}
+	.content {width: 100%; height: 100%;}
+	.content h1 {text-align: center;}
+	.box {border: solid 2px; width: 47%; display: inline-block; margin: 5px; padding: 10px; overflow: hidden; box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.25); border-radius: 5px; background-color: white;}
+	.box p span { white-space: pre; }
+
+	.box.start {position: absolute; left: 0px; top: 0px; background-color: white; width: 400px; z-index: 2;}
+	.box.start h2 {margin: 0px; padding: 0px; text-align: center;}
+
+	.box.data {position: absolute; left: 0px; top: 0px;  width: 300px; z-index: 1; white-space: nowrap;}
+
+	.box.sender {position: absolute; left: 0px; bottom: 0px; width: 400px; z-index: 1; white-space: nowrap;}
+
+	.send {position: absolute;bottom: 10px; left: 0px; width: 100%; padding: 0px; margin: 0px; text-align: center}
+	.tittle{position: absolute;top: 10px; left: 0px; width: 100%; padding: 0px; margin: 0px; text-align: center}
+	.send input {width: 30%; }
+
+	.box.trace { position: absolute; bottom: 100px; left: -600px; font-size: 15px; width: 500px; white-space: nowrap;}
+
+	.fields {width: 100%;}
+	.fields td:first-child{ width: 30% }
+	.fields td {width: 70%;}
+	.extensions td {width: 16%;}
+	input { width: 100%; padding: 0px; margin: 0px;}
+</style>
+<body>
+<script type="text/javascript">
+	var tracker = new TrackerAsset();
+
+	var loginButton = function(){
+		tracker.settings.host = $("#host").val();
+
+		tracker.Login($("#username").val(),$("#password").val(), function(data,error){
+			if(!error){
+				$( "#login" ).css('background-color','green');
+			}else{
+				$( "#login" ).css('background-color','red');
+			}
+		});
+	}
+
+	var startButton = function(){
+		tracker.settings.host = $("#host").val();
+		tracker.settings.trackingCode = $("#trackingCode").val();
+
+		tracker.Start(function(result, error){
+			if(!error){
+				$( "#authToken" ).text(result['authToken']);
+				$( "#playerId" ).text(result['playerId']);
+				$( "#session" ).text(result['session']);
+				$( "#actor" ).text(JSON.stringify(result['actor']));
+				$( "#start" ).css('background-color','green');
+
+				$(".data").animate({
+				left: "+=440",
+				});
+
+			}else{
+				$( "#start" ).css('background-color','red');
+			}
+		});
+	}
+
+	var trackButton = function(){
+		if($("#send_score").is(':checked'))				tracker.setScore($("#score").val());
+		if($("#send_completion").is(':checked'))		tracker.setCompletion($("#completion").is(':checked'));
+		if($("#send_success").is(':checked'))			tracker.setSuccess($("#success").is(':checked'));
+		if($("#send_response").is(':checked'))			tracker.setResponse($("#response").val());
+
+		var t = tracker.Trace($("#verb").val(),$("#target_type").val(),$("#target_id").val())
+
+		$('.trace').animate({
+			left: "+=50px",
+			bottom: "-=5px",
+		});
+
+		$('<div class="box trace"><p>CSV = <span id="csv">' + t.ToCsv() + '</span></p><p>xAPI = <span id="xapi">' + t.ToXapi() + '</span></p></div>').appendTo('.content').animate({
+			left: "+=1200px",
+		});
+
+		/*$( "#csv" ).text();
+		$( "#xapi" ).text();*/
+	}
+
+	var flushButton = function(){
+		$('.trace').animate({
+			left: "+=2000px",
+		}, function(){
+			$('.trace').remove();
+		});
+
+		tracker.Flush(function(result, error){
+			if(!error){
+				$( "#flush" ).css('background-color','green');
+			}else{
+				$( "#flush" ).css('background-color','red');
+			}
+		})
+	}
+
+	var addExtensionButton = function(){
+		tracker.addExtension($("#key").val(), $("#value").val());
+	}
+</script>
+	<div class="tittle"><h1>Tracker Test App</h1></div>
+<div class="content">
+
+	<div class="box start">
+		<h2>Tracker Start</h2>
+		<table class="fields">
+			<tr>
+				<td>Host</td>
+				<td><input id="host" type="text" name="host" placeholder="https://host:port/" value="https://rage.e-ucm.es/"></td>
+			</tr>
+			<tr>
+				<td>Tracking Code</td>
+				<td><input id="trackingCode" type="text" name="trackingCode" value="58e3779b1043c7006d76d0e07sj9hnzljjo1dcxr"></td>
+			</tr>
+			<tr>
+				<td>User</td>
+				<td><input id="username" type="text" name="username"></td>
+			</tr>
+			<tr>
+				<td>Pass</td>
+				<td><input id="password" type="password" name="password"></td>
+			</tr>
+		</table>
+		<p><input type="button" id="login" value="Login" onclick="loginButton()"><br>
+		<input type="button" id="start" value="Start" onclick="startButton()"></p>
+	</div>
+	<div class="box data">
+		<p>authToken = <span id="authToken"></span></p>
+		<p>playerId = <span id="playerId"></span></p>
+		<p>session = <span id="session"></span></p>
+		<p>actor = <span id="actor"></span></p>
+	</div>
+	<div class="box sender">
+		<table class="fields">
+			<tr>
+				<td>Verb</td>
+				<td><input id="verb" type="text" name="verb"></td>
+			</tr>
+			<tr>
+				<td>Object Type</td>
+				<td><input id="target_type" type="text" name="target_type"></td>
+			</tr>
+			<tr>
+				<td>Object ID</td>
+				<td><input id="target_id" type="text" name="target_id"></td>
+			</tr>
+		</table>
+		<h3>Result</h3>
+		<table class="extensions">
+			<tr>
+				<th>Name</th><th>Value</th><th>Send?</th><th>Name</th><th>Value</th><th>Send?</th>
+			</tr>
+			<tr>
+				<td>Score</td>
+				<td><input id="score" type="number" name="score" min="0" max="1" step="0.1" value="0.5"></td>
+				<td><input id="send_score" type="checkbox" name="send_score"></td>
+
+				<td>Success</td>
+				<td><input id="success" type="checkbox" name="success"></td>
+				<td><input id="send_success" type="checkbox" name="send_success"></td>
+			</tr>
+			<tr>
+			</tr>
+			<tr>
+				<td>Response</td>
+				<td><input id="response" type="text" name="response"></td>
+				<td><input id="send_response" type="checkbox" name="send_response"></td>
+
+				<td>Completion</td>
+				<td><input id="completion" type="checkbox" name="completion"></td>
+				<td><input id="send_completion" type="checkbox" name="send_completion"></td>
+			</tr>
+			<tr>
+				<td>Extension</td>
+				<td colspan="2"><input id="key" type="text" name="key"></td>
+
+				<td>Value</td>
+				<td><input id="value" type="text" name="value"></td>
+				<td><input id="button" type="button" value="Add extension" onclick="addExtensionButton()"></td>
+			</tr>
+		</table>
+		<input id="trace" type="button" value="Add Trace" onclick="trackButton()">	
+	</div>
+
+	<!--<div class="box trace">
+		<p>CSV = <span id="csv"></span></p>
+		<p>xAPI = <span id="xapi"></span></p>
+	</div>-->
+
+	<div class="send">
+		<input id="flush" type="button" value="Flush" onclick="flushButton()">
+	</div>
+</body>
+</html>
