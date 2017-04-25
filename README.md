@@ -46,10 +46,12 @@ tracker.settings.trackingCode = "58e3779b1043c7006d76d0e07sj9hnzljjo1dcxr";
 
 //Login is optional. If not logged, anonymous actor is retrieved on start
 
+var connected = false;
 tracker.Login("student","password", function(data,error){
   if(!error){
     tracker.Start(function(result, error){
       if(!error){
+      	connected = true;
         console.log("tracker started");
       }else{
         console.log("start error")
@@ -88,8 +90,20 @@ return tracker.ActionTrace("selected", "zone", "ObjectID3");
 //Sending the traces
 tracker.Flush();
 ```
+### Trace sending automatization
 
-### User Guide
+As in JavaScript is a language very oriented to Async programming, there are multiple alternatives to generate an automatic loop for sending traces automatically. For example, you can create a loop like:
+```js
+
+setInterval(function(){
+	if(connected)
+		tracker.Flush(function(result, error){
+			console.log("flushed");
+		})
+}, 3000);
+```
+
+## User Guide
 
 The tracker requires (if `net` mode is on) the [RAGE Analytics](https://github.com/e-ucm/rage-analytics) infrastructure up and running. Check out the [Quickstart guide](https://github.com/e-ucm/rage-analytics/wiki/Quickstart) and follow the `developer` and `teacher` steps in order to create a game and [setup a class](https://github.com/e-ucm/rage-analytics/wiki/Set-up-a-class). It also requires a:
 
