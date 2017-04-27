@@ -74,7 +74,7 @@ tracker.GameObject.Used("GameObjectID2", tracker.GameObject.GameObjectType.Item)
 
 //trace with extensions
 tracker.setVar("extension1", "value1");
-var t =tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
+tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
 
 //Very complex trace
 tracker.setResponse("AnotherResponse");
@@ -85,7 +85,7 @@ tracker.setVar("extension1", "value1");
 tracker.setVar("extension2", "value2");
 tracker.setVar("extension3", 3);
 tracker.setVar("extension4", 4.56);
-return tracker.ActionTrace("selected", "zone", "ObjectID3");
+tracker.ActionTrace("selected", "zone", "ObjectID3");
 
 //Sending the traces
 tracker.Flush();
