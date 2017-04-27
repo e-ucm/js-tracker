@@ -30,7 +30,7 @@ tracker.settings.trackingCode = "TrackingCode";
 1. Start the tracker by using `tracker.Start()`
 1. Send traces
 
-## MonoBehaviour Example
+## Integration example
 
 An example test app can be found at: https://github.com/e-ucm/js-tracker/blob/master/test_app.html
 
