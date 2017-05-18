@@ -34,6 +34,26 @@ tracker.settings.trackingCode = "TrackingCode";
 
 An example test app can be found at: https://github.com/e-ucm/js-tracker/blob/master/test_app.html
 
+## Plugin instalation
+
+Include the plugin file into your program.
+
+```html
+<script type="text/javascript" src="plugins/geolocation.js"></script>
+```
+
+Add the plugin to the tracker using `tracker.addPlugin(plugin)`.
+
+```js
+var tracker = new TrackerAsset();
+
+//Add the plugin
+tracker.addPlugin(new TrackerPlugins.Geolocation());
+
+//Enjoy the plugin
+tracker.Places.Moved("Madrid", 1.4, 2.1, tracker.Places.PlaceType.UrbanArea);
+
+```
 ### Tracker Login and Start
 
 For tracker to send traces to the server, `tracker.Start()` has to be called. If you want to use an authenticated user, you can login before starting the tracker.
