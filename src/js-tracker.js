@@ -225,6 +225,54 @@ function TrackerAsset(){
 	this.addExtension = function(key,value){
 		this.extensions[key] = value;
 	}
+
+	//PLUGINS
+	this.addPlugin = function(plugin){
+		for (var key in plugin.functions) {
+			if(key in this){
+				console.log("WARNING: Function " + key + "() already exists in tracker, ignoring.");
+				continue;
+			}
+
+			this[key] = new plugin.functions[key](this);
+		}
+
+		for (var key in plugin.verbs) {
+			if(typeof TrackerEvent.TraceVerb.VerbIDs[key] !== "undefined"){
+				console.log("WARNING: Verb " + key + " already exists in verbs list, ignoring.");
+				continue;
+			}
+
+			TrackerEvent.TraceVerb.VerbIDs = plugin.verbs[key];
+		}
+
+		for (var key in plugin.objects) {
+			if(typeof TrackerEvent.TraceObject.ObjectIDs[key] !== "undefined"){
+				console.log("WARNING: Object " + key + " already exists in objects list, ignoring.");
+				continue;
+			}
+
+			TrackerEvent.TraceObject.ObjectIDs = plugin.objects[key];
+		}
+
+		for (var key in plugin.extensions) {
+			if(typeof TrackerEvent.TraceResult.ExtensionIDs[key] !== "undefined"){
+				console.log("WARNING: Extension " + key + " already exists in extensions list, ignoring.");
+				continue;
+			}
+
+			TrackerEvent.TraceResult.ExtensionIDs = plugin.extensions[key];
+		}
+
+		for (var key in plugin.interfaces) {
+			if(key in this){
+				console.log("WARNING: Interface " + key + " already exists, ignoring.");
+				continue;
+			}
+
+			this[key] = new plugin.interfaces[key](this);
+		}
+	}
 }
 
 var obsize = function(obj) {
