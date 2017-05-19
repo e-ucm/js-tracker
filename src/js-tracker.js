@@ -243,7 +243,7 @@ function TrackerAsset(){
 				continue;
 			}
 
-			TrackerEvent.TraceVerb.VerbIDs = plugin.verbs[key];
+			TrackerEvent.TraceVerb.VerbIDs[key] = plugin.verbs[key];
 		}
 
 		for (var key in plugin.objects) {
@@ -252,7 +252,7 @@ function TrackerAsset(){
 				continue;
 			}
 
-			TrackerEvent.TraceObject.ObjectIDs = plugin.objects[key];
+			TrackerEvent.TraceObject.ObjectIDs[key] = plugin.objects[key];
 		}
 
 		for (var key in plugin.extensions) {
@@ -261,7 +261,7 @@ function TrackerAsset(){
 				continue;
 			}
 
-			TrackerEvent.TraceResult.ExtensionIDs = plugin.extensions[key];
+			TrackerEvent.TraceResult.ExtensionIDs[key] = plugin.extensions[key];
 		}
 
 		for (var key in plugin.interfaces) {
