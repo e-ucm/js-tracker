@@ -32,12 +32,14 @@ TrackerPlugins.Geolocation = function(){
             GreenZone: 1,
             UrbanArea: 2,
             Water: 3,
-            Place: 4,
-            properties: ["building", "green-zone", "urban-area", "water", "place"]
+            POI: 4,
+            Place: 5,
+            properties: ["building", "green-zone", "urban-area", "water", "point-of-interest", "place"]
+
         }
 
           this.Moved = function(placeId, latitude, longitude, type){
-            if(typeof type === "undefined") {type = 4;}
+            if(typeof type === "undefined") {type = 5;}
 
             this.tracker.setLocation(latitude, longitude);
 
@@ -45,7 +47,7 @@ TrackerPlugins.Geolocation = function(){
           }
 
           this.Looked = function(placeId, type, orientation, latitude, longitude){
-            if(typeof type === "undefined") {type = 4;}
+            if(typeof type === "undefined") {type = 5;}
             if(typeof orientation !== "undefined") {
               this.tracker.setVar("orientation", orientation);
             }
@@ -57,13 +59,13 @@ TrackerPlugins.Geolocation = function(){
           }
 
           this.Entered = function(placeId, type){
-            if(typeof type === "undefined") {type = 4;}
+            if(typeof type === "undefined") {type = 5;}
 
             return this.tracker.Trace("entered",this.PlaceType.properties[type],placeId);
           }
 
           this.Exited = function(placeId, type){
-            if(typeof type === "undefined") {type = 4;}
+            if(typeof type === "undefined") {type = 5;}
 
             return this.tracker.Trace("exited",this.PlaceType.properties[type],placeId);
           }
@@ -107,7 +109,8 @@ TrackerPlugins.Geolocation = function(){
       "urban-area": "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/urban-area",
       water: "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/water",
       place: "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/place",
-      direction: "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/direction"
+      direction: "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/direction",
+      "point-of-interest": "https://beaconing.e-ucm.es/xapi/geolocated/activity-types/point-of-interest"
   };
   this.extensions = {
       location: "https://beaconing.e-ucm.es/xapi/geolocated/extensions/location",
