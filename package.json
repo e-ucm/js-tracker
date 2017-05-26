@@ -7,7 +7,8 @@
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "build": "webpack"
   },
   "devDependencies": {
     "chai": "^3.5.0",
