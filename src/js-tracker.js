@@ -77,7 +77,7 @@ function TrackerAsset(){
 			},
 			dataType: 'json',
 			success: function (data) {
-				tracker.logged_token = data['user']['token'];
+				tracker.settings.userToken = "Bearer " + data['user']['token'];
 				if(tracker.settings.debug)
 					console.info("AuthToken: " + data['user']['token']);
 				callback(data, null);
@@ -100,14 +100,23 @@ function TrackerAsset(){
 			'Content-Type': 'application/json'
 		};
 
-		if(this.logged_token)
-			headers.Authorization = "Bearer " + this.logged_token;
+		var body = "";
+
+		if(this.settings.userToken){
+			if(this.settings.userToken.indexOf('Bearer') !== -1)
+				headers.Authorization = this.settings.userToken;
+			else
+				body = JSON.stringify({"anonymous": this.settings.userToken});
+		}else if(this.playerId){
+			body = JSON.stringify({"anonymous": this.playerId});
+		}
 
 		$.ajax({
 			url: this.url + this.collector + "start/" + this.settings.trackingCode,
 			type: 'post',
 			headers: headers,
 			dataType: 'json',
+			data: body,
 			success: function (data) {
 				if(tracker.settings.debug)
 					console.info(data);
@@ -117,6 +126,14 @@ function TrackerAsset(){
 				tracker.playerId = data['playerId'];
 				tracker.objectId = null;//data['objectId'];
 				tracker.session = data['session'];
+
+				if(headers.Authorization){
+					tracker.userToken = headers.Authorization;
+				}else{
+					tracker.userToken = data['playerId'];
+				}
+
+				console.log(tracker.userToken);
 
 				callback(data, null)
 			},

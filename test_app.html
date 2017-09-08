@@ -58,6 +58,9 @@
 	var startButton = function(){
 		tracker.settings.host = $("#host").val();
 		tracker.settings.trackingCode = $("#trackingCode").val();
+		var ut = $("#userToken").val();
+		if(ut != "")
+			tracker.settings.userToken = ut;
 
 		tracker.Start(function(result, error){
 			if(!error){
@@ -139,6 +142,10 @@
 			<tr>
 				<td>Pass</td>
 				<td><input id="password" type="password" name="password"></td>
+			</tr>
+			<tr>
+				<td>UserToken</td>
+				<td><input id="userToken" type="text" name="userToken"></td>
 			</tr>
 		</table>
 		<p><input type="button" id="login" value="Login" onclick="loginButton()"><br>
