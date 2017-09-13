@@ -120,6 +120,10 @@
 	var addExtensionButton = function(){
 		tracker.addExtension($("#key").val(), $("#value").val());
 	}
+
+	var addExtensionButtonInt = function(){
+		tracker.addExtension($("#keyInt").val(), parseInt($("#valueInt").val()) );
+	}
 </script>
 	<div class="tittle"><h1>Tracker Test App</h1></div>
 <div class="content">
@@ -198,12 +202,20 @@
 				<td><input id="send_completion" type="checkbox" name="send_completion"></td>
 			</tr>
 			<tr>
-				<td>Extension</td>
+				<td>Extension Str</td>
 				<td colspan="2"><input id="key" type="text" name="key"></td>
 
 				<td>Value</td>
 				<td><input id="value" type="text" name="value"></td>
 				<td><input id="button" type="button" value="Add extension" onclick="addExtensionButton()"></td>
+			</tr>
+			<tr>
+				<td>Extension Int</td>
+				<td colspan="2"><input id="keyInt" type="text" name="key"></td>
+
+				<td>Value2</td>
+				<td><input id="valueInt" type="text" name="value"></td>
+				<td><input id="button" type="button" value="Add extension" onclick="addExtensionButtonInt()"></td>
 			</tr>
 		</table>
 		<input id="trace" type="button" value="Add Trace" onclick="trackButton()">	

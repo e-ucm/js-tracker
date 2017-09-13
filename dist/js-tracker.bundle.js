@@ -14869,7 +14869,8 @@ function TrackerAsset(){
 		max_flush: 4,
 		batch_size: 10,
 		backupStorage: true,
-		debug: true
+		debug: true,
+		force_actor: true
 	}
 
 	this.collector = "proxy/gleaner/collector/";
@@ -15000,7 +15001,7 @@ function TrackerAsset(){
 	}
 
 	this.Flush = function(callback){
-		if(this.queue.length > 0){
+		if( !(this.settings.force_actor && (this.actor === null || this.actor === '{}')) && this.queue.length > 0){
 			var traced = 0;
 			var to_flush = "";
 
@@ -15187,7 +15188,7 @@ function TrackerEvent (tracker){
 	this.ToXapi = function()
 	{
 		var t = {
-			actor: this.Actor == null ? {} : this.Actor,
+			actor: this.Actor == null || this.Actor == '{}' ? (this.tracker.actor == null ? {} : this.tracker.actor) : this.Actor,
 			verb: this.Event.ToXapi(), 
 			object: this.Target.ToXapi(),
 			timestamp: moment().toISOString()
