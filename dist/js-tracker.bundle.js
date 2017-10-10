@@ -14894,13 +14894,25 @@ function TrackerAsset(){
 
 	this.generateURL = function(){
 		var splitted = this.settings.host.split ('/');
-		var host_splitted = splitted [2].split (':');
+
+		if(splitted.length > 1 && splitted[0].startsWith('http')){
+			var host_splitted = splitted [2].split (':');
+			var secure = splitted[0] == "https:";
+		}else{
+			var host_splitted = splitted [0].split (':');
+			var secure = this.settings.secure;
+		}
 
 		var domain = host_splitted [0];
-		var secure = secure || splitted[0] == "https:";
-		var port = (host_splitted.Length > 1) ? parseint(host_splitted[1]) : (splitted[0] == "https:" ? 443 : 80);
 
-		this.url = (secure ? 'https://' : 'http://') + domain + '/api/';
+		this.port = 80;
+		if(host_splitted[1] && host_splitted[1].length > 1){
+			this.port = parseInt(host_splitted[1]);
+		}else{
+			this.port = secure ? 443 : 80;
+		}
+
+		this.url = (secure ? 'https://' : 'http://') + domain + ':' + this.port + '/api/';
 		console.log(this.url);
 	}
 
