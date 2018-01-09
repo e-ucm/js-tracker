@@ -17,7 +17,7 @@
  */
 
 var $ = require("jquery");
-var moment = require("./moment.js");
+var moment = require("moment");
 
 function TrackerAsset(){
 
@@ -41,6 +41,9 @@ function TrackerAsset(){
 	this.auth = "";
 	this.playerId = "";
 	this.objectId = "";
+
+	this.started = false;
+	this.connected = false;
 
 	this.session = 0;
 	this.actor = "{}";
@@ -151,7 +154,11 @@ function TrackerAsset(){
 				callback(data, null)
 			},
 			error: function (data) {
-				callback(data,true)
+				if(data.responseJSON){
+					console.log(data.responseJSON);
+				}
+
+				callback(data, null);
 			}
 		});
 	}
@@ -220,11 +227,11 @@ function TrackerAsset(){
 					callback(data, null);
 				},
 				error: function (data) {
-					if(tracker.settings.debug)
-						console.info(data);
 					callback(data, true);
 				}
 			});
+		}else{
+			console.log("Not flushed.");
 		}
 	}
 
