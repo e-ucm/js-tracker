@@ -100,8 +100,9 @@ function TrackerAsset(){
 				
 			},
 			error: function (data) {
-				if(tracker.settings.debug)
-					console.info(data);
+				if(tracker.settings.debug && data.responseJSON){
+					console.log(data.responseJSON);
+				}
 				callback(data, true)
 			}
 		});
@@ -154,7 +155,7 @@ function TrackerAsset(){
 				callback(data, null)
 			},
 			error: function (data) {
-				if(data.responseJSON){
+				if(tracker.settings.debug && data.responseJSON){
 					console.log(data.responseJSON);
 				}
 
@@ -227,6 +228,10 @@ function TrackerAsset(){
 					callback(data, null);
 				},
 				error: function (data) {
+					if(tracker.settings.debug && data.responseJSON){
+						console.log(data.responseJSON);
+					}
+					
 					callback(data, true);
 				}
 			});
