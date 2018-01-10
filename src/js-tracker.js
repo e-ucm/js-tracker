@@ -35,6 +35,7 @@ function TrackerAsset(){
 	}
 
 	this.collector = "proxy/gleaner/collector/";
+	this.backup_file = "";
 
 	this.url = "";
 	this.logged_token = "";
@@ -44,12 +45,15 @@ function TrackerAsset(){
 
 	this.started = false;
 	this.connected = false;
+	this.active = false;
 
 	this.session = 0;
 	this.actor = "{}";
 	this.extensions = {};
 
 	this.queue = [];
+	this.tracesPending = [];
+	this.tracesUnlogged = [];
 
 	this.Accessible = new Accessible(this);
 	this.Alternative = new Alternative(this);
@@ -109,6 +113,18 @@ function TrackerAsset(){
 	}
 
 	this.Start = function(callback){
+		this.started = true;
+
+		if(this.settings.backupStorage){
+			this.backup_file = "backup_" + Math.random().toString(36).slice(2);
+			if(this.settings.debug)
+				console.log("Backup file is: " + this.backup_file);
+		}
+
+		this.Connect(callback);
+	}
+
+	this.Connect = function(callback){
 		this.generateURL();
 
 		var tracker = this;
@@ -150,16 +166,25 @@ function TrackerAsset(){
 					tracker.userToken = data['playerId'];
 				}
 
-				console.log(tracker.userToken);
+				tracker.connected = true;
+				if(!(tracker.actor === null || tracker.actor === '{}'))
+					tracker.active = true;
+
+				if(tracker.settings.debug){
+					console.log("Tracker Started: " + tracker.userToken);
+				}
 
 				callback(data, null)
 			},
 			error: function (data) {
-				if(tracker.settings.debug && data.responseJSON){
-					console.log(data.responseJSON);
-				}
+				if(tracker.settings.debug)
+					if(data.responseJSON){
+						console.log(data.responseJSON);
+					}else{
+						console.log("Can't connect.");
+					}
 
-				callback(data, null);
+				callback(data, true);
 			}
 		});
 	}
@@ -181,8 +206,10 @@ function TrackerAsset(){
 		return this.ActionTrace(verb,type,id);
 	}
 
+	this.flushing = false;
+	this.redo_flush = false;
 	this.Flush = function(callback){
-		if( !(this.settings.force_actor && (this.actor === null || this.actor === '{}')) && this.queue.length > 0){
+		/*if( !(this.settings.force_actor && (this.actor === null || this.actor === '{}')) && this.queue.length > 0){
 			var traced = 0;
 			var to_flush = "";
 
@@ -203,12 +230,12 @@ function TrackerAsset(){
 			to_flush = to_flush.replaceAll(/(^,)|(,$)/g, "");
 
 			if(this.backupStorage){
-				var current = localStorage.getItem("backup")
+				var current = localStorage.getItem(this.backup_file)
 
 				if(current)
 					backup = current + backup;
 
-				localStorage.setItem("backup", backup);
+				localStorage.setItem(this.backup_file, backup);
 			}
 
 			var tracker = this;
@@ -231,14 +258,269 @@ function TrackerAsset(){
 					if(tracker.settings.debug && data.responseJSON){
 						console.log(data.responseJSON);
 					}
-					
+
 					callback(data, true);
 				}
 			});
 		}else{
 			console.log("Not flushed.");
-		}
-	}
+		}*/
+
+        if (!this.flushing){
+            this.flushing = true;
+            this.DoFlush(callback);
+        }else
+            this.redo_flush = true;
+    }
+
+    this.DoFlush = function(callback){
+    	var tracker = this;
+
+    	tracker.CheckStatus(function(res, err){
+    		if(err){
+	            tracker.flushing = false;
+    			callback(res, err);
+    		}else{
+    			tracker.ProcessQueue(function(result, error){
+            		if(error){
+	            		tracker.flushing = false;
+            			callback(result, error);
+            		}
+
+            		if(tracker.redo_flush){
+            			tracker.redo_flush = false;
+            			doFlush(callback);
+            		}
+
+	            	tracker.flushing = false;
+
+	            	callback(result, error);
+	            });
+    		}
+    	});
+    }
+
+    this.CheckStatus = function(callback){
+    	if (!this.started)
+        {
+        	if(this.settings.debug)
+            	console.log("Refusing to send traces without starting tracker (Active is False, should be True)");
+
+            callback("Refusing to send traces without starting tracker (Active is False, should be True)", true);
+        }
+        else if (!this.active)
+        {
+        	if(this.settings.debug)
+            	console.log("Tracker is not active, trying to reconnect.");
+            this.Connect(callback);
+        }else{
+        	callback("Everything OK", false);
+        }
+    }
+
+	this.ProcessQueue = function(callback){
+		var tracker = this;
+
+        if (tracker.queue.length > 0 || tracker.tracesPending.length > 0 || tracker.tracesUnlogged.length > 0)
+        {
+            //Extract the traces from the queue and remove from the queue
+            var traces = tracker.CollectTraces();
+
+            tracker.SendAllTraces(traces, function(result, error){
+	            if(tracker.settings.backupStorage){
+					var current = localStorage.getItem(tracker.backup_file)
+					var rawData = tracker.ProcessTraces(traces, "csv");
+
+					if(current)
+						rawData = current + rawData;
+
+					localStorage.setItem(tracker.backup_file, rawData);
+				}
+	            tracker.queue.dequeue(traces.length);
+
+				callback(result, error);
+            });
+        }
+        else
+        {
+        	if(tracker.settings.debug)
+            	console.log("Nothing to flush");
+
+            callback("Nothing to flush", false);
+        }
+    }
+
+    this.SendAllTraces = function(traces, callback){
+		var tracker = this;
+
+        if (tracker.active){
+            tracker.SendUnloggedTraces(function(unl_result, unl_error){
+            	if(!unl_error){
+                    tracker.SendPendingTraces(function(pen_result, pen_error){
+                    	if(pen_error){
+                    		tracker.tracesPending.push(data);
+                    		callback("Can't send pending traces", true);
+                    	}else if (tracker.queue.length > 0){
+                			var data = tracker.ProcessTraces(traces, "xapi");
+                    		tracker.SendTraces(data, function(result, error){
+                    			if(error && tracker.queue.length > 0){
+                            		tracker.tracesPending.push(data);
+                            		callback("Can't send Traces", true);
+                    			}else
+                    				callback("Everything OK", false);
+                    		});
+                    	}else{
+                    		callback("Everything OK", false);
+                    	}
+                    });
+            	}else
+            		callback("Can't send Unlogged Traces", true);
+            });
+        }
+        else
+        {
+            tracker.tracesUnlogged = tracker.tracesUnlogged.concat(traces);
+            callback("Tracker is not active", true);
+        }
+    }
+
+    this.CollectTraces = function(){
+        var cnt = this.settings.batch_size == 0 ? Number.MAX_SAFE_INTEGER : this.settings.batch_size;
+        cnt = Math.min(this.queue.length, cnt);
+
+        var traces = this.queue.peek(cnt);
+
+        return traces;
+    }
+
+    this.ProcessTraces = function(traces, format){
+        var data = "";
+        var item;
+        var sb = [];
+
+        for (var i = 0; i < traces.length; i++)
+        {
+            item = traces[i];
+
+            switch (format)
+            {
+                case "xapi":
+                    sb.push(item.ToXapi());
+                    break;
+                default:
+                    sb.push(item.ToCsv());
+                    break;
+            }
+        }
+
+        switch (format)
+        {
+            case "csv":
+                data = sb.join("\r\n") + "\r\n";
+                break;
+            case "xapi":
+                data = "[\r\n" + sb.join(",\r\n") + "\r\n]";
+                break;
+            default:
+                data = sb.join("\r\n");
+                break;
+        }
+
+        sb.length = 0;
+
+        return data;
+    }
+
+    this.SendPendingTraces = function(callback){
+    	var tracker = this;
+
+    	// Try to send old traces
+    	if(tracker.tracesPending.length > 0)
+        {
+			if(tracker.settings.debug)
+	            console.log("Enqueued trace-blocks detected: "+tracker.tracesPending.lenth+". Processing...");
+
+	        var data = tracker.tracesPending[0];
+
+	        tracker.SendTraces(data, function(result, error){
+	        	if(error){
+	        		if(tracker.settings.debug)
+		            	console.log("Error sending enqueued traces");
+		            // does not keep sending old traces, but continues processing new traces so that get added to tracesPending
+		            callback("Error sending enqueued pending traces: \n" + result, true);
+	        	}else{
+	        		tracker.tracesPending.shift();
+		            if(tracker.settings.debug)
+		            	console.log("Sent enqueued traces OK");
+
+		            if(tracker.tracesPending.length > 0)
+		            	tracker.SendPendingTraces(callback);
+		            else
+	        			callback(result, null);
+	        	}
+	        });
+	    }else{
+        	callback("Everything OK", null);
+        }
+    }
+
+    this.SendUnloggedTraces = function(callback){
+    	var tracker = this;
+
+    	if(tracker.tracesUnlogged.length == 0)
+    		callback("Everything OK", null);
+    	else if(tracker.actor === null || tracker.actor === '{}')
+    		callback("Can't flush without actor", true);
+    	else{
+    		var data = tracker.ProcessTraces(tracker.tracesUnlogged, "xapi");
+            var sent = tracker.SendTraces(data, function(result, error){
+            	if(error){
+            		tracker.tracesPending.Add(data);
+            		callback("Error sending unlogged traces", true);
+            	}else{
+            		tracker.tracesUnlogged = [];
+            		callback("Everything OK", null);
+            	}
+            });
+    	}
+    }
+
+    this.SendTraces = function(data, callback){
+    	var tracker = this;
+
+        if(tracker.settings.debug)
+        	console.log("Sending traces: " + data);
+
+        $.ajax({
+			url: tracker.url + tracker.collector + "track",
+			type: 'post',
+			data: data,
+			headers: {
+				'Authorization': tracker.auth,
+				'Content-Type': 'application/json'
+			},
+			dataType: 'json',
+			success: function (data) {
+				if(tracker.settings.debug)
+					console.info(data);
+
+				tracker.connected = true;
+
+				callback(data, null);
+			},
+			error: function (data) {
+				if(tracker.settings.debug && data.responseJSON){
+					console.log(data.responseJSON);
+				}
+				if(tracker.settings.debug)
+            		console.log("Error flushing, connection disabled temporaly");
+
+				tracker.connected = false;
+
+				callback(data, true);
+			}
+		});
+    }
 
 	this.setScore = function(value){
 		this.addExtension("score", value);
@@ -731,5 +1013,31 @@ String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
 };
+
+Array.prototype.peek = function(n){
+    n = Math.min(this.length, n);
+
+    var tmp = [];
+
+    for(var i = 0; i < n; i++)
+    {
+        tmp.push(this[i])
+    }
+
+	return tmp;
+}
+
+Array.prototype.dequeue = function(n){
+    n = Math.min(this.length, n);
+
+    var tmp = [];
+
+    for(var i = 0; i < n; i++)
+    {
+        tmp.push(this.shift());
+    }
+
+	return tmp;
+}
 
 module.exports = TrackerAsset;
