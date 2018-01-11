@@ -83,6 +83,7 @@ var connected = true;
 var netstorage = "";
 var initTracker = function(callback){
     tracker.Stop();
+    netstorage = "";
     tracker.settings = settings;
     tracker.Start(callback);
 }
@@ -120,19 +121,190 @@ describe('TrackerAsset Connection Tests', function() {
 	});
 
 	it('TestBackupSync', function(){
-	    storage[settings.BackupFile] = "";
+		initTracker(function(){
+		    storage[settings.BackupFile] = "";
 
-	    tracker.LocalStorage.setItem(tracker.backup_file, "");
+		    tracker.LocalStorage.setItem(tracker.backup_file, "");
 
-	    enqueueTrace01();
-	    tracker.Flush(function(){
-		    netstorage += ",";
-		    enqueueTrace02();
-		    enqueueTrace03();
+		    enqueueTrace01();
 		    tracker.Flush(function(){
+			    netstorage += ",";
+			    enqueueTrace02();
+			    enqueueTrace03();
+			    tracker.Flush(function(){
+				    var text = storage[tracker.backup_file];
+				    var file = text.split('\n');
+				    expect(file.length).to.equal(4);
+			    });
+		    });
+		});
+	});
+
+	it('TestTraceSending_IntermitentConnection', function(){
+	    initTracker(function(){
+	    	netstorage = "";
+	    	enqueueTrace01();
+
+	    	tracker.Flush(function(){
+				var text = netstorage;
+			    var file = JSON.parse(text);
+			    var tracejson = file[file.length - 1];
+
+			    expect(obsize(tracejson)).to.equal(4);
+		        expect(tracejson["object"]["id"]).to.contain("ObjectID");
+		        expect(tracejson["object"]["definition"]["type"]).to.equal("https://w3id.org/xapi/seriousgames/activity-types/game-object");
+		        expect(tracejson["verb"]["id"]).to.equal("https://w3id.org/xapi/seriousgames/verbs/accessed");
+
+		        connected = false;
+		        enqueueTrace02();
+			    enqueueTrace03();
+
+			    tracker.Flush(function(){
+			    	var text = netstorage;
+				    var file = JSON.parse(text);
+				    expect(obsize(file)).to.equal(1);
+				    connected = true;
+
+				    netstorage += ",";
+
+				    tracker.Flush(function(){
+				    	var text = netstorage;
+				    	text = "[" + text + "]";
+				    	var file = JSON.parse(text);
+
+					    expect(obsize(file)).to.equal(2);
+					    expect(obsize(file[0])).to.equal(1);
+					    expect(obsize(file[1])).to.equal(2);
+				    });
+			    });
+	    	});
+	    });   
+	});
+
+	it('TestBackupSync_IntermitentConnection', function(){
+	    initTracker(function(){
+	    	netstorage = "";
+	    	storage[tracker.backup_file] = "";
+
+	    	enqueueTrace01();
+	    	tracker.Flush(function(){
 			    var text = storage[tracker.backup_file];
 			    var file = text.split('\n');
-			    expect(file.length).to.equal(4);
+			    expect(file.length).to.equal(2);
+
+			    connected = false;
+
+			    enqueueTrace02();
+	   			enqueueTrace03();
+	   			tracker.Flush(function(){
+				    var text = storage[tracker.backup_file];
+				    var file = text.split('\n');
+				    expect(file.length).to.equal(4);
+
+				    connnected = true;
+
+				    tracker.Flush(function(){
+				    	var text = storage[tracker.backup_file];
+					    var file = text.split('\n');
+					    expect(file.length).to.equal(4);
+
+					    connnected = true;
+				    });
+	   			});
+	    	});
+	    });
+	});
+
+	it('TestTraceSending_WithoutStart', function(){
+	    tracker.Stop();
+
+	    tracker.Accessible.Accessed("error");
+
+	    tracker.Flush(function(result, error){
+	    	expect(error).to.equal(true);
+	    });
+	});
+
+	it('TestTraceSendingStartFailed', function(){
+	    tracker.Stop();
+
+	    connected = false;
+
+	    initTracker(function(){
+	    	netstorage = "";
+	    	storage[tracker.backup_file] = "";
+
+	    	enqueueTrace01();
+	    	tracker.Flush(function(){
+	    		expect(netstorage).to.equal("");
+	    		expect(storage[tracker.backup_file]).to.not.equal("");
+
+	    		connected = true;
+			    enqueueTrace02();
+			    enqueueTrace03();
+
+	    		tracker.Flush(function(){
+	   				var text = netstorage;
+			    	text = netstorage.replace("][", "],[");
+			    	text = "[" + text + "]";
+
+			    	var file = JSON.parse(text);
+
+				    expect(obsize(file)).to.equal(2);
+				    expect(obsize(file[0])).to.equal(1);
+				    expect(obsize(file[1])).to.equal(2);
+
+				    tracejson = file[0][0];
+
+				    expect(obsize(tracejson)).to.equal(4);
+			        expect(tracejson["object"]["id"]).to.contain("ObjectID");
+			        expect(tracejson["object"]["definition"]["type"]).to.equal("https://w3id.org/xapi/seriousgames/activity-types/game-object");
+			        expect(tracejson["verb"]["id"]).to.equal("https://w3id.org/xapi/seriousgames/verbs/accessed");
+
+			        var text = storage[tracker.backup_file];
+				    var file = text.split('\n');
+				    expect(file.length).to.equal(4);
+	    		});
+	    	});
+	    });
+	});
+
+	it('TestEmptyQueueFlush', function(){
+	    connected = false;
+
+	    initTracker(function(){
+	    	netstorage = "";
+	    	storage[tracker.backup_file] = "";
+
+	    	tracker.Flush(function(){
+	    		expect(netstorage).to.equal("");
+
+	    		tracker.Flush(function(){
+		    		expect(netstorage).to.equal("");
+
+		    		connected = true;
+		    		tracker.Flush(function(){
+		    			expect(netstorage).to.equal("");
+		    			connected = false;
+
+		    			enqueueTrace01();
+		    			tracker.Flush(function(){
+		    				tracker.Flush(function(){
+		    					connected = true;
+		    					tracker.Flush(function(){
+				    				tracker.Flush(function(){
+									    var file = JSON.parse(netstorage);
+
+									    expect(file.length).to.equal(1);
+
+									    var backup = storage[tracker.backup_file].split("\n");
+									    expect(backup.length).to.equal(2);
+				    				});
+				    			});
+		    				});
+		    			});
+		   			});
+			    });
 		    });
 	    });
 	});
