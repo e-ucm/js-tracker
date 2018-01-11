@@ -116,6 +116,15 @@ function TrackerAsset(){
 		this.Connect(callback);
 	}
 
+	this.Stop = function(){
+        this.active = false;
+        this.connected = false;
+        this.started = false;
+        this.actor = null;
+        this.queue = [];
+        this.tracesPending = [];
+    }
+
 	this.Connect = function(callback){
 		this.generateURL();
 
