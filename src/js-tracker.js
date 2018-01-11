@@ -81,7 +81,9 @@ function TrackerAsset(){
 		}
 
 		this.url = (secure ? 'https://' : 'http://') + domain + ':' + this.port + '/api/';
-		console.log(this.url);
+
+		if(this.settings.debug)
+			console.log("Final Tracker URL is: " + this.url);
 	}
 
 	this.Login = function(username, password, callback){
