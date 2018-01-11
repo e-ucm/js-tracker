@@ -88,28 +88,20 @@ function TrackerAsset(){
 		this.generateURL();
 
 		var tracker = this;
-		$.ajax({
-			url: this.url + "login",
-			type: 'post',
-			data: JSON.stringify({username: username, password: password}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			dataType: 'json',
-			success: function (data) {
+		this.HttpRequest(this.url + "login", 'post', {'Content-Type': 'application/json' }, JSON.stringify({username: username, password: password}),
+			function (data) {
 				tracker.settings.userToken = "Bearer " + data['user']['token'];
 				if(tracker.settings.debug)
 					console.info("AuthToken: " + data['user']['token']);
 				callback(data, null);
 				
 			},
-			error: function (data) {
+			function (data) {
 				if(tracker.settings.debug && data.responseJSON){
 					console.log(data.responseJSON);
 				}
 				callback(data, true)
-			}
-		});
+			});
 	}
 
 	this.Start = function(callback){
@@ -144,13 +136,8 @@ function TrackerAsset(){
 			body = JSON.stringify({"anonymous": this.playerId});
 		}
 
-		$.ajax({
-			url: this.url + this.collector + "start/" + this.settings.trackingCode,
-			type: 'post',
-			headers: headers,
-			dataType: 'json',
-			data: body,
-			success: function (data) {
+		this.HttpRequest(this.url + this.collector + "start/" + this.settings.trackingCode, 'post', headers, body,
+			function (data) {
 				if(tracker.settings.debug)
 					console.info(data);
 
@@ -176,7 +163,7 @@ function TrackerAsset(){
 
 				callback(data, null)
 			},
-			error: function (data) {
+			function (data) {
 				if(tracker.settings.debug)
 					if(data.responseJSON){
 						console.log(data.responseJSON);
@@ -185,8 +172,7 @@ function TrackerAsset(){
 					}
 
 				callback(data, true);
-			}
-		});
+			});
 	}
 
 	this.ActionTrace = function(verb,type,id){
@@ -491,16 +477,8 @@ function TrackerAsset(){
         if(tracker.settings.debug)
         	console.log("Sending traces: " + data);
 
-        $.ajax({
-			url: tracker.url + tracker.collector + "track",
-			type: 'post',
-			data: data,
-			headers: {
-				'Authorization': tracker.auth,
-				'Content-Type': 'application/json'
-			},
-			dataType: 'json',
-			success: function (data) {
+        this.HttpRequest(tracker.url + tracker.collector + "track", 'post', { 'Authorization': tracker.auth, 'Content-Type': 'application/json' }, data,
+			function (data) {
 				if(tracker.settings.debug)
 					console.info(data);
 
@@ -508,7 +486,7 @@ function TrackerAsset(){
 
 				callback(data, null);
 			},
-			error: function (data) {
+			function (data) {
 				if(tracker.settings.debug && data.responseJSON){
 					console.log(data.responseJSON);
 				}
@@ -518,8 +496,7 @@ function TrackerAsset(){
 				tracker.connected = false;
 
 				callback(data, true);
-			}
-		});
+			});
     }
 
 	this.setScore = function(value){
@@ -596,6 +573,19 @@ function TrackerAsset(){
 
 			this[key] = new plugin.interfaces[key](this);
 		}
+	}
+
+	//CONNECTION
+	this.HttpRequest = function(url, method, headers, body, success, error){
+		$.ajax({
+			url: url,
+			type: method,
+			headers: headers,
+			dataType: 'json',
+			data: body,
+			success: success,
+			error: error
+		});
 	}
 }
 
