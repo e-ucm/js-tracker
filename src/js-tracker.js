@@ -208,63 +208,6 @@ function TrackerAsset(){
 	this.flushing = false;
 	this.redo_flush = false;
 	this.Flush = function(callback){
-		/*if( !(this.settings.force_actor && (this.actor === null || this.actor === '{}')) && this.queue.length > 0){
-			var traced = 0;
-			var to_flush = "";
-
-			if(this.settings.backupStorage)
-				var backup = "";
-
-			while(this.queue.length > 0 && traced < this.settings.max_flush){
-				traced++;
-
-				var current = this.queue.shift();
-
-				to_flush += current.ToXapi() + ',';
-
-				if(this.settings.backupStorage)
-					backup += current.ToCsv() + '\r\n';
-			}
-
-			to_flush = to_flush.replaceAll(/(^,)|(,$)/g, "");
-
-			if(this.backupStorage){
-				var current = localStorage.getItem(this.backup_file)
-
-				if(current)
-					backup = current + backup;
-
-				localStorage.setItem(this.backup_file, backup);
-			}
-
-			var tracker = this;
-
-			$.ajax({
-				url: this.url + this.collector + "track",
-				type: 'post',
-				data: "[" + to_flush + "]",
-				headers: {
-					'Authorization': this.auth,
-					'Content-Type': 'application/json'
-				},
-				dataType: 'json',
-				success: function (data) {
-					if(tracker.settings.debug)
-						console.info(data);
-					callback(data, null);
-				},
-				error: function (data) {
-					if(tracker.settings.debug && data.responseJSON){
-						console.log(data.responseJSON);
-					}
-
-					callback(data, true);
-				}
-			});
-		}else{
-			console.log("Not flushed.");
-		}*/
-
         if (!this.flushing){
             this.flushing = true;
             this.DoFlush(callback);
@@ -286,16 +229,13 @@ function TrackerAsset(){
         		if(error){
             		tracker.flushing = false;
         			callback(result, error);
-        		}
-
-        		if(tracker.redo_flush){
+        		}else if(tracker.redo_flush){
         			tracker.redo_flush = false;
         			doFlush(callback);
+        		}else{
+	            	tracker.flushing = false;
+	            	callback(result, error);
         		}
-
-            	tracker.flushing = false;
-
-            	callback(result, error);
             });
     	});
     }
@@ -358,7 +298,9 @@ function TrackerAsset(){
             	if(!unl_error){
                     tracker.SendPendingTraces(function(pen_result, pen_error){
                     	if(pen_error){
-                    		tracker.tracesPending.push(data);
+                    		if(tracker.queue.length > 0)
+                    			tracker.tracesPending.push(data);
+
                     		callback("Can't send pending traces", true);
                     	}else if (tracker.queue.length > 0){
                 			var data = tracker.ProcessTraces(traces, "xapi");
