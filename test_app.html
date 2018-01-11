@@ -109,9 +109,6 @@
 		});
 
 		tracker.Flush(function(result, error){
-			if(tracker.settings.debug)
-				console.log(result);
-			
 			if(!error){
 				$( "#flush" ).css('background-color','green');
 			}else{
