@@ -123,6 +123,8 @@ function TrackerAsset(){
         this.actor = null;
         this.queue = [];
         this.tracesPending = [];
+        this.tracesUnlogged = [];
+        this.extensions = {};
     }
 
 	this.Connect = function(callback){
@@ -272,26 +274,27 @@ function TrackerAsset(){
     	var tracker = this;
 
     	tracker.CheckStatus(function(res, err){
-    		if(err){
-	            tracker.flushing = false;
+    		if(err && res == "Not active"){
+    			tracker.flushing = false;
     			callback(res, err);
-    		}else{
-    			tracker.ProcessQueue(function(result, error){
-            		if(error){
-	            		tracker.flushing = false;
-            			callback(result, error);
-            		}
-
-            		if(tracker.redo_flush){
-            			tracker.redo_flush = false;
-            			doFlush(callback);
-            		}
-
-	            	tracker.flushing = false;
-
-	            	callback(result, error);
-	            });
+    			return;
     		}
+
+			tracker.ProcessQueue(function(result, error){
+        		if(error){
+            		tracker.flushing = false;
+        			callback(result, error);
+        		}
+
+        		if(tracker.redo_flush){
+        			tracker.redo_flush = false;
+        			doFlush(callback);
+        		}
+
+            	tracker.flushing = false;
+
+            	callback(result, error);
+            });
     	});
     }
 
@@ -301,7 +304,7 @@ function TrackerAsset(){
         	if(this.settings.debug)
             	console.log("Refusing to send traces without starting tracker (Active is False, should be True)");
 
-            callback("Refusing to send traces without starting tracker (Active is False, should be True)", true);
+            callback("Not active", true);
         }
         else if (!this.active)
         {
@@ -322,14 +325,14 @@ function TrackerAsset(){
             var traces = tracker.CollectTraces();
 
             tracker.SendAllTraces(traces, function(result, error){
-	            if(tracker.settings.backupStorage){
-					var current = localStorage.getItem(tracker.backup_file)
+	            if(tracker.settings.backupStorage && traces.length > 0){
+					var current = tracker.LocalStorage.getItem(tracker.backup_file)
 					var rawData = tracker.ProcessTraces(traces, "csv");
 
 					if(current)
 						rawData = current + rawData;
 
-					localStorage.setItem(tracker.backup_file, rawData);
+					tracker.LocalStorage.setItem(tracker.backup_file, rawData);
 				}
 	            tracker.queue.dequeue(traces.length);
 
@@ -595,6 +598,15 @@ function TrackerAsset(){
 			success: success,
 			error: error
 		});
+	}
+
+	this.LocalStorage = {
+		getItem: function(name){
+			return localStorage.getItem(name);
+		},
+		setItem: function(name, data){
+			localStorage.setItem(name, data);
+		}
 	}
 }
 
