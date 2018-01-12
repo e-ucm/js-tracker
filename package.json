@@ -8,10 +8,13 @@
   "license": "Apache-2.0",
   "scripts": {
     "test": "mocha",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --recursive -R spec",
     "build": "webpack"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "coveralls": "*",
+    "istanbul": "*",
     "jquery": "*",
     "lodash.clonedeep": "^4.5.0",
     "mocha": "*",
