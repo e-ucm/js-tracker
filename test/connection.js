@@ -109,6 +109,30 @@ var initTracker = function(callback) {
 
 
 describe('TrackerAsset Connection Tests', function() {
+    it('TestCorrectActor', function() {
+        initTracker(function() {
+            expect(tracker.actor).not.to.equal(null);
+            expect(tracker.actor.account).not.to.equal(null);
+            expect(tracker.actor.name).to.equal('test-animal-name');
+        });
+    });
+
+    it('TestTraceIncludesCorrectActor', function() {
+        initTracker(function() {
+            tracker.LocalStorage.setItem(tracker.backup_file, '');
+
+            enqueueTrace01();
+            tracker.Flush(function() {
+                var text = netstorage;
+                var file = JSON.parse(text);
+                var tracejson = file[file.length - 1];
+
+                expect(obsize(tracejson)).to.equal(4);
+                expect(tracejson.actor.name).to.equal('test-animal-name');
+            });
+        });
+    });
+
     it('TestTraceSendingSync', function() {
         initTracker(function() {
             tracker.LocalStorage.setItem(tracker.backup_file, '');
