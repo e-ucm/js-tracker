@@ -159,26 +159,26 @@ describe('TrackerAsset CSV Tests', function() {
 
 	it('Generic CSV 1', function(){
 		enqueueTrace01();
-        CheckCSVTrace("accessed,gameobject,ObjectID");
+		CheckCSVTrace("accessed,gameobject,ObjectID");
 	});
 
 	it('Generic CSV 2', function(){
 		enqueueTrace02();
-        CheckCSVTrace("initialized,game,ObjectID2,response,TheResponse,score,0.123");
+		CheckCSVTrace("initialized,game,ObjectID2,response,TheResponse,score,0.123");
 	});
 
 	it('Generic CSV 3', function(){
 		enqueueTrace03();
-        CheckCSVTrace("selected,zone,ObjectID3,success,false,completion,true,response,AnotherResponse,score,123.456,extension1,value1,extension2,value2,extension3,3,extension4,4.56");
+		CheckCSVTrace("selected,zone,ObjectID3,success,false,completion,true,response,AnotherResponse,score,123.456,extension1,value1,extension2,value2,extension3,3,extension4,4.56");
 	});
 
 	it('Generic CSV 3', function(){
 		tracker.setVar("e1", "ex,2");
-        tracker.setVar("e,1", "ex,2,");
-        tracker.setVar("e3", "e3");
-        tracker.ActionTrace("verb", "target", "id");
+		tracker.setVar("e,1", "ex,2,");
+		tracker.setVar("e3", "e3");
+		tracker.ActionTrace("verb", "target", "id");
 
-        CheckCSVTrace("verb,target,id,e1,ex\\,2,e\\,1,ex\\,2\\,,e3,e3");
+		CheckCSVTrace("verb,target,id,e1,ex\\,2,e\\,1,ex\\,2\\,,e3,e3");
 	});
 });
 

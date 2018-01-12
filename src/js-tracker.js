@@ -7,7 +7,7 @@
  * 2020 research and innovation programme under grant agreement No 644187.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	 http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -119,15 +119,15 @@ function TrackerAsset(){
 	}
 
 	this.Stop = function(){
-        this.active = false;
-        this.connected = false;
-        this.started = false;
-        this.actor = null;
-        this.queue = [];
-        this.tracesPending = [];
-        this.tracesUnlogged = [];
-        this.extensions = {};
-    }
+		this.active = false;
+		this.connected = false;
+		this.started = false;
+		this.actor = null;
+		this.queue = [];
+		this.tracesPending = [];
+		this.tracesUnlogged = [];
+		this.extensions = {};
+	}
 
 	this.Connect = function(callback){
 		this.generateURL();
@@ -208,66 +208,66 @@ function TrackerAsset(){
 	this.flushing = false;
 	this.redo_flush = false;
 	this.Flush = function(callback){
-        if (!this.flushing){
-            this.flushing = true;
-            this.DoFlush(callback);
-        }else
-            this.redo_flush = true;
-    }
+		if (!this.flushing){
+			this.flushing = true;
+			this.DoFlush(callback);
+		}else
+			this.redo_flush = true;
+	}
 
-    this.DoFlush = function(callback){
-    	var tracker = this;
+	this.DoFlush = function(callback){
+		var tracker = this;
 
-    	tracker.CheckStatus(function(res, err){
-    		if(err && res == "Not active"){
-    			tracker.flushing = false;
-    			callback(res, err);
-    			return;
-    		}
+		tracker.CheckStatus(function(res, err){
+			if(err && res == "Not active"){
+				tracker.flushing = false;
+				callback(res, err);
+				return;
+			}
 
 			tracker.ProcessQueue(function(result, error){
-        		if(error){
-            		tracker.flushing = false;
-        			callback(result, error);
-        		}else if(tracker.redo_flush){
-        			tracker.redo_flush = false;
-        			doFlush(callback);
-        		}else{
-	            	tracker.flushing = false;
-	            	callback(result, error);
-        		}
-            });
-    	});
-    }
+				if(error){
+					tracker.flushing = false;
+					callback(result, error);
+				}else if(tracker.redo_flush){
+					tracker.redo_flush = false;
+					doFlush(callback);
+				}else{
+					tracker.flushing = false;
+					callback(result, error);
+				}
+			});
+		});
+	}
 
-    this.CheckStatus = function(callback){
-    	if (!this.started)
-        {
-        	if(this.settings.debug)
-            	console.log("Refusing to send traces without starting tracker (Active is False, should be True)");
+	this.CheckStatus = function(callback){
+		if (!this.started)
+		{
+			if(this.settings.debug)
+				console.log("Refusing to send traces without starting tracker (Active is False, should be True)");
 
-            callback("Not active", true);
-        }
-        else if (!this.active)
-        {
-        	if(this.settings.debug)
-            	console.log("Tracker is not active, trying to reconnect.");
-            this.Connect(callback);
-        }else{
-        	callback("Everything OK", false);
-        }
-    }
+			callback("Not active", true);
+		}
+		else if (!this.active)
+		{
+			if(this.settings.debug)
+				console.log("Tracker is not active, trying to reconnect.");
+			this.Connect(callback);
+		}else{
+			callback("Everything OK", false);
+		}
+	}
 
 	this.ProcessQueue = function(callback){
 		var tracker = this;
 
-        if (tracker.queue.length > 0 || tracker.tracesPending.length > 0 || tracker.tracesUnlogged.length > 0)
-        {
-            //Extract the traces from the queue and remove from the queue
-            var traces = tracker.CollectTraces();
+		if (tracker.queue.length > 0 || tracker.tracesPending.length > 0 || tracker.tracesUnlogged.length > 0)
+		{
+			//Extract the traces from the queue and remove from the queue
+			var traces = tracker.CollectTraces();
 
-            tracker.SendAllTraces(traces, function(result, error){
-	            if(tracker.settings.backupStorage && traces.length > 0){
+			tracker.SendAllTraces(traces, function(result, error){
+				if(tracker.settings.backupStorage && traces.length > 0){
 					var current = tracker.LocalStorage.getItem(tracker.backup_file)
 					var rawData = tracker.ProcessTraces(traces, "csv");
 
@@ -276,164 +276,164 @@ function TrackerAsset(){
 
 					tracker.LocalStorage.setItem(tracker.backup_file, rawData);
 				}
-	            tracker.queue.dequeue(traces.length);
+				tracker.queue.dequeue(traces.length);
 
 				callback(result, error);
-            });
-        }
-        else
-        {
-        	if(tracker.settings.debug)
-            	console.log("Nothing to flush");
+			});
+		}
+		else
+		{
+			if(tracker.settings.debug)
+				console.log("Nothing to flush");
 
-            callback("Nothing to flush", false);
-        }
-    }
+			callback("Nothing to flush", false);
+		}
+	}
 
-    this.SendAllTraces = function(traces, callback){
+	this.SendAllTraces = function(traces, callback){
 		var tracker = this;
 
-        if (tracker.active){
-            tracker.SendUnloggedTraces(function(unl_result, unl_error){
-            	if(!unl_error){
-                    tracker.SendPendingTraces(function(pen_result, pen_error){
-                    	if(pen_error){
-                    		if(tracker.queue.length > 0)
-                    			tracker.tracesPending.push(data);
+		if (tracker.active){
+			tracker.SendUnloggedTraces(function(unl_result, unl_error){
+				if(!unl_error){
+					tracker.SendPendingTraces(function(pen_result, pen_error){
+						if(pen_error){
+							if(tracker.queue.length > 0)
+								tracker.tracesPending.push(data);
 
-                    		callback("Can't send pending traces", true);
-                    	}else if (tracker.queue.length > 0){
-                			var data = tracker.ProcessTraces(traces, "xapi");
-                    		tracker.SendTraces(data, function(result, error){
-                    			if(error && tracker.queue.length > 0){
-                            		tracker.tracesPending.push(data);
-                            		callback("Can't send Traces", true);
-                    			}else
-                    				callback("Everything OK", false);
-                    		});
-                    	}else{
-                    		callback("Everything OK", false);
-                    	}
-                    });
-            	}else
-            		callback("Can't send Unlogged Traces", true);
-            });
-        }
-        else
-        {
-            tracker.tracesUnlogged = tracker.tracesUnlogged.concat(traces);
-            callback("Tracker is not active", true);
-        }
-    }
+							callback("Can't send pending traces", true);
+						}else if (tracker.queue.length > 0){
+							var data = tracker.ProcessTraces(traces, "xapi");
+							tracker.SendTraces(data, function(result, error){
+								if(error && tracker.queue.length > 0){
+									tracker.tracesPending.push(data);
+									callback("Can't send Traces", true);
+								}else
+									callback("Everything OK", false);
+							});
+						}else{
+							callback("Everything OK", false);
+						}
+					});
+				}else
+					callback("Can't send Unlogged Traces", true);
+			});
+		}
+		else
+		{
+			tracker.tracesUnlogged = tracker.tracesUnlogged.concat(traces);
+			callback("Tracker is not active", true);
+		}
+	}
 
-    this.CollectTraces = function(){
-        var cnt = this.settings.batch_size == 0 ? Number.MAX_SAFE_INTEGER : this.settings.batch_size;
-        cnt = Math.min(this.queue.length, cnt);
+	this.CollectTraces = function(){
+		var cnt = this.settings.batch_size == 0 ? Number.MAX_SAFE_INTEGER : this.settings.batch_size;
+		cnt = Math.min(this.queue.length, cnt);
 
-        var traces = this.queue.peek(cnt);
+		var traces = this.queue.peek(cnt);
 
-        return traces;
-    }
+		return traces;
+	}
 
-    this.ProcessTraces = function(traces, format){
-        var data = "";
-        var item;
-        var sb = [];
+	this.ProcessTraces = function(traces, format){
+		var data = "";
+		var item;
+		var sb = [];
 
-        for (var i = 0; i < traces.length; i++)
-        {
-            item = traces[i];
+		for (var i = 0; i < traces.length; i++)
+		{
+			item = traces[i];
 
-            switch (format)
-            {
-                case "xapi":
-                    sb.push(item.ToXapi());
-                    break;
-                default:
-                    sb.push(item.ToCsv());
-                    break;
-            }
-        }
+			switch (format)
+			{
+				case "xapi":
+					sb.push(item.ToXapi());
+					break;
+				default:
+					sb.push(item.ToCsv());
+					break;
+			}
+		}
 
-        switch (format)
-        {
-            case "csv":
-                data = sb.join("\r\n") + "\r\n";
-                break;
-            case "xapi":
-                data = "[\r\n" + sb.join(",\r\n") + "\r\n]";
-                break;
-            default:
-                data = sb.join("\r\n");
-                break;
-        }
+		switch (format)
+		{
+			case "csv":
+				data = sb.join("\r\n") + "\r\n";
+				break;
+			case "xapi":
+				data = "[\r\n" + sb.join(",\r\n") + "\r\n]";
+				break;
+			default:
+				data = sb.join("\r\n");
+				break;
+		}
 
-        sb.length = 0;
+		sb.length = 0;
 
-        return data;
-    }
+		return data;
+	}
 
-    this.SendPendingTraces = function(callback){
-    	var tracker = this;
+	this.SendPendingTraces = function(callback){
+		var tracker = this;
 
-    	// Try to send old traces
-    	if(tracker.tracesPending.length > 0)
-        {
+		// Try to send old traces
+		if(tracker.tracesPending.length > 0)
+		{
 			if(tracker.settings.debug)
-	            console.log("Enqueued trace-blocks detected: "+tracker.tracesPending.lenth+". Processing...");
+				console.log("Enqueued trace-blocks detected: "+tracker.tracesPending.lenth+". Processing...");
 
-	        var data = tracker.tracesPending[0];
+			var data = tracker.tracesPending[0];
 
-	        tracker.SendTraces(data, function(result, error){
-	        	if(error){
-	        		if(tracker.settings.debug)
-		            	console.log("Error sending enqueued traces");
-		            // does not keep sending old traces, but continues processing new traces so that get added to tracesPending
-		            callback("Error sending enqueued pending traces: \n" + result, true);
-	        	}else{
-	        		tracker.tracesPending.shift();
-		            if(tracker.settings.debug)
-		            	console.log("Sent enqueued traces OK");
+			tracker.SendTraces(data, function(result, error){
+				if(error){
+					if(tracker.settings.debug)
+						console.log("Error sending enqueued traces");
+					// does not keep sending old traces, but continues processing new traces so that get added to tracesPending
+					callback("Error sending enqueued pending traces: \n" + result, true);
+				}else{
+					tracker.tracesPending.shift();
+					if(tracker.settings.debug)
+						console.log("Sent enqueued traces OK");
 
-		            if(tracker.tracesPending.length > 0)
-		            	tracker.SendPendingTraces(callback);
-		            else
-	        			callback(result, null);
-	        	}
-	        });
-	    }else{
-        	callback("Everything OK", null);
-        }
-    }
+					if(tracker.tracesPending.length > 0)
+						tracker.SendPendingTraces(callback);
+					else
+						callback(result, null);
+				}
+			});
+		}else{
+			callback("Everything OK", null);
+		}
+	}
 
-    this.SendUnloggedTraces = function(callback){
-    	var tracker = this;
+	this.SendUnloggedTraces = function(callback){
+		var tracker = this;
 
-    	if(tracker.tracesUnlogged.length == 0)
-    		callback("Everything OK", null);
-    	else if(tracker.actor === null || tracker.actor === '{}')
-    		callback("Can't flush without actor", true);
-    	else{
-    		var data = tracker.ProcessTraces(tracker.tracesUnlogged, "xapi");
-            var sent = tracker.SendTraces(data, function(result, error){
-            	if(error){
-            		tracker.tracesPending.Add(data);
-            		callback("Error sending unlogged traces", true);
-            	}else{
-            		tracker.tracesUnlogged = [];
-            		callback("Everything OK", null);
-            	}
-            });
-    	}
-    }
+		if(tracker.tracesUnlogged.length == 0)
+			callback("Everything OK", null);
+		else if(tracker.actor === null || tracker.actor === '{}')
+			callback("Can't flush without actor", true);
+		else{
+			var data = tracker.ProcessTraces(tracker.tracesUnlogged, "xapi");
+			var sent = tracker.SendTraces(data, function(result, error){
+				if(error){
+					tracker.tracesPending.Add(data);
+					callback("Error sending unlogged traces", true);
+				}else{
+					tracker.tracesUnlogged = [];
+					callback("Everything OK", null);
+				}
+			});
+		}
+	}
 
-    this.SendTraces = function(data, callback){
-    	var tracker = this;
+	this.SendTraces = function(data, callback){
+		var tracker = this;
 
-        if(tracker.settings.debug)
-        	console.log("Sending traces: " + data);
+		if(tracker.settings.debug)
+			console.log("Sending traces: " + data);
 
-        this.HttpRequest(tracker.url + tracker.collector + "track", 'post', { 'Authorization': tracker.auth, 'Content-Type': 'application/json' }, data,
+		this.HttpRequest(tracker.url + tracker.collector + "track", 'post', { 'Authorization': tracker.auth, 'Content-Type': 'application/json' }, data,
 			function (data) {
 				if(tracker.settings.debug)
 					console.info(data);
@@ -447,13 +447,13 @@ function TrackerAsset(){
 					console.log(data.responseJSON);
 				}
 				if(tracker.settings.debug)
-            		console.log("Error flushing, connection disabled temporaly");
+					console.log("Error flushing, connection disabled temporaly");
 
 				tracker.connected = false;
 
 				callback(data, true);
 			});
-    }
+	}
 
 	this.setScore = function(value){
 		this.addExtension("score", value);
@@ -824,7 +824,7 @@ TrackerEvent.TraceResult = function(){
 			for(key in this.Extensions){
 				if(TrackerEvent.TraceResult.ExtensionIDs.hasOwnProperty(key)){
 					this.Extensions[TrackerEvent.TraceResult.ExtensionIDs[key]] = this.Extensions[key];
-        			delete this.Extensions[key];
+					delete this.Extensions[key];
 				}
 			}
 		}
@@ -849,24 +849,24 @@ Accessible = function(tracker){
 
 	this.AccessibleType = {
 		Screen: 0,
-        Area: 1,
-        Zone: 2,
-        Cutscene: 3,
-        Accessible: 4,
-        properties: ["screen", "area", "zone", "cutscene", "accessible"]
-    }
+		Area: 1,
+		Zone: 2,
+		Cutscene: 3,
+		Accessible: 4,
+		properties: ["screen", "area", "zone", "cutscene", "accessible"]
+	}
 
-    this.Accessed = function(reachableId, type){
+	this.Accessed = function(reachableId, type){
   		if(typeof type === "undefined") {type = 4;}
 
   		return this.tracker.Trace("accessed",this.AccessibleType.properties[type],reachableId);
-    }
+	}
 
-    this.Skipped = function(reachableId, type){
+	this.Skipped = function(reachableId, type){
   		if(typeof type === "undefined") {type = 4;}
   		
-    	return this.tracker.Trace("skipped",this.AccessibleType.properties[type],reachableId);
-    }
+		return this.tracker.Trace("skipped",this.AccessibleType.properties[type],reachableId);
+	}
 }
 
 Alternative = function(tracker){
@@ -875,27 +875,27 @@ Alternative = function(tracker){
 
 	this.AlternativeType = {
 		Question: 0,
-        Menu: 1,
-        Dialog: 2,
-        Path: 3,
-        Arena: 4,
-        Alternative: 5,
-        properties: ["question", "menu", "dialog", "path", "arena", "alternative"]
-    }
+		Menu: 1,
+		Dialog: 2,
+		Path: 3,
+		Arena: 4,
+		Alternative: 5,
+		properties: ["question", "menu", "dialog", "path", "arena", "alternative"]
+	}
 
-    this.Selected = function(alternativeId, optionId, type){
+	this.Selected = function(alternativeId, optionId, type){
   		if(typeof type === "undefined") {type = 5;}
   		
-    	this.tracker.setResponse(optionId);
-    	return this.tracker.Trace("selected",this.AlternativeType.properties[type],alternativeId);
-    }
+		this.tracker.setResponse(optionId);
+		return this.tracker.Trace("selected",this.AlternativeType.properties[type],alternativeId);
+	}
 
-    this.Unlocked = function(alternativeId, optionId, type){
+	this.Unlocked = function(alternativeId, optionId, type){
   		if(typeof type === "undefined") {type = 5;}
   		
-    	this.tracker.setResponse(optionId);
-    	return this.tracker.Trace("unlocked",this.AlternativeType.properties[type],alternativeId);
-    }
+		this.tracker.setResponse(optionId);
+		return this.tracker.Trace("unlocked",this.AlternativeType.properties[type],alternativeId);
+	}
 }
 
 Completable = function(tracker){
@@ -904,39 +904,39 @@ Completable = function(tracker){
 
 	this.CompletableType = {
 		Game: 0,
-        Session: 1,
-        Level: 2,
-        Quest: 3,
-        Stage: 4,
-        Combat: 5,
-        StoryNode: 6,
-        Race: 7,
-        Completable: 8,
-        properties: ["game", "session", "level", "quest", "stage", "combat", "storynode", "race", "completable"]
-    }
+		Session: 1,
+		Level: 2,
+		Quest: 3,
+		Stage: 4,
+		Combat: 5,
+		StoryNode: 6,
+		Race: 7,
+		Completable: 8,
+		properties: ["game", "session", "level", "quest", "stage", "combat", "storynode", "race", "completable"]
+	}
 
-    this.Initialized = function(completableId, type){
+	this.Initialized = function(completableId, type){
   		if(typeof type === "undefined") {type = 8;}
   		
-    	return this.tracker.Trace("initialized",this.CompletableType.properties[type],completableId);
-    }
+		return this.tracker.Trace("initialized",this.CompletableType.properties[type],completableId);
+	}
 
-    this.Progressed = function(completableId, type, progress){
+	this.Progressed = function(completableId, type, progress){
   		if(typeof type === "undefined") {type = 8;}
   		
-    	this.tracker.setProgress(progress);
-    	return this.tracker.Trace("progressed",this.CompletableType.properties[type],completableId);
-    }
+		this.tracker.setProgress(progress);
+		return this.tracker.Trace("progressed",this.CompletableType.properties[type],completableId);
+	}
 
-    this.Completed = function(completableId, type, success, score){
+	this.Completed = function(completableId, type, success, score){
   		if(typeof type === "undefined") {type = 8;}
   		if(typeof success === "undefined") {success = true;}
   		if(typeof score === "undefined") {score = 1;}
   		
-    	this.tracker.setSuccess(success);
-    	this.tracker.setScore(score);
-    	return this.tracker.Trace("completed",this.CompletableType.properties[type],completableId);
-    }
+		this.tracker.setSuccess(success);
+		this.tracker.setScore(score);
+		return this.tracker.Trace("completed",this.CompletableType.properties[type],completableId);
+	}
 }
 
 GameObject = function(tracker){
@@ -945,52 +945,52 @@ GameObject = function(tracker){
 
 	this.GameObjectType = {
 		Enemy: 0,
-        Npc: 1,
-        Item: 2,
-        GameObject: 3,
-        properties: ["enemy", "npc", "item", "gameobject"]
-    }
+		Npc: 1,
+		Item: 2,
+		GameObject: 3,
+		properties: ["enemy", "npc", "item", "gameobject"]
+	}
 
-    this.Interacted = function(gameobjectId, type){
+	this.Interacted = function(gameobjectId, type){
   		if(typeof type === "undefined") {type = 3;}
 
-    	return this.tracker.Trace("interacted",this.GameObjectType.properties[type],gameobjectId);
-    }
+		return this.tracker.Trace("interacted",this.GameObjectType.properties[type],gameobjectId);
+	}
 
-    this.Used = function(gameobjectId, type){
+	this.Used = function(gameobjectId, type){
   		if(typeof type === "undefined") {type = 3;}
 
-    	return this.tracker.Trace("used",this.GameObjectType.properties[type],gameobjectId);
-    }
+		return this.tracker.Trace("used",this.GameObjectType.properties[type],gameobjectId);
+	}
 }
 
 String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    return target.replace(new RegExp(search, 'g'), replacement);
+	var target = this;
+	return target.replace(new RegExp(search, 'g'), replacement);
 };
 
 Array.prototype.peek = function(n){
-    n = Math.min(this.length, n);
+	n = Math.min(this.length, n);
 
-    var tmp = [];
+	var tmp = [];
 
-    for(var i = 0; i < n; i++)
-    {
-        tmp.push(this[i])
-    }
+	for(var i = 0; i < n; i++)
+	{
+		tmp.push(this[i])
+	}
 
 	return tmp;
 }
 
 Array.prototype.dequeue = function(n){
-    n = Math.min(this.length, n);
+	n = Math.min(this.length, n);
 
-    var tmp = [];
+	var tmp = [];
 
-    for(var i = 0; i < n; i++)
-    {
-        tmp.push(this.shift());
-    }
+	for(var i = 0; i < n; i++)
+	{
+		tmp.push(this.shift());
+	}
 
 	return tmp;
 }
