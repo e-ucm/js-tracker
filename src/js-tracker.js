@@ -167,7 +167,7 @@ function TrackerAsset() {
             tracker.auth = data.authToken;
             tracker.actor = data.actor;
             tracker.playerId = data.playerId;
-            tracker.objectId = null;
+            tracker.objectId = data.objectId;
             tracker.session = data.session;
 
             if (headers.Authorization) {
