@@ -213,4 +213,45 @@ describe('TrackerAsset xAPI Tests', function() {
         expect(tracejson.result.extensions.extension3).to.equal(3);
         expect(tracejson.result.extensions.extension4).to.equal(4.56);
     });
+
+    it('Test Scores', function() {
+        tracker.setScore(1.1,2.2,3.3,4.4);
+        var t = tracker.Alternative.Selected('a1','o1');
+        var tracejson = JSON.parse(t.ToXapi());
+
+        expect(obsize(tracejson)).to.equal(5);
+        expect(tracejson.object.id).to.contain('a1');
+        expect(tracejson.verb.id).to.equal('https://w3id.org/xapi/adb/verbs/selected');
+
+        expect(obsize(tracejson.result)).to.equal(2);
+        expect(tracejson.result.response).to.equal('o1');
+        expect(tracejson.result.score.raw).to.equal(1.1);
+        expect(tracejson.result.score.min).to.equal(2.2);
+        expect(tracejson.result.score.max).to.equal(3.3);
+        expect(tracejson.result.score.scaled).to.equal(4.4);
+    });
+
+    it('Test Score Raw', function() {
+        tracker.setScore(1.1);
+        var t = tracker.Alternative.Selected('a1','o1');
+        var tracejson = JSON.parse(t.ToXapi());
+        expect(tracejson.result.score.raw).to.equal(1.1);
+    });
+
+    it('Test Score Raw and Max', function() {
+        tracker.setScoreRaw(1.1);
+        tracker.setScoreMax(3.3);
+        var t = tracker.Alternative.Selected('a1','o1');
+        var tracejson = JSON.parse(t.ToXapi());
+        expect(tracejson.result.score.max).to.equal(3.3);
+    });
+
+    it('Test Score Min and Scaled', function() {
+        tracker.setScoreMin(2.2);
+        tracker.setScoreScaled(4.4);
+        var t = tracker.Alternative.Selected('a1','o1');
+        var tracejson = JSON.parse(t.ToXapi());
+        expect(tracejson.result.score.min).to.equal(2.2);
+        expect(tracejson.result.score.scaled).to.equal(4.4);
+    });
 });
