@@ -27310,8 +27310,47 @@ function TrackerAsset() {
         });
     };
 
-    this.setScore = function(value) {
-        this.addExtension('score', value);
+    this.setScore = function(raw, min, max, scaled) {
+        if (exists(raw)) {
+            this.setScoreRaw(raw);
+        }
+
+        if (exists(min)) {
+            this.setScoreMin(min);
+        }
+
+        if (exists(max)) {
+            this.setScoreMax(max);
+        }
+
+        if (exists(scaled)) {
+            this.setScoreScaled(scaled);
+        }
+    };
+
+    this.setScoreRaw = function(raw) {
+        this.setScoreValue('raw', raw);
+
+    };
+
+    this.setScoreMin = function(min) {
+        this.setScoreValue('min', min);
+    };
+
+    this.setScoreMax = function(max) {
+        this.setScoreValue('max', max);
+    };
+
+    this.setScoreScaled = function(scaled) {
+        this.setScoreValue('scaled', scaled);
+    };
+
+    this.setScoreValue = function(key, value) {
+        if (!exists(this.extensions.score)) {
+            this.extensions.score = {};
+        }
+
+        this.extensions.score[key] = Number(value);
     };
 
     this.setCompletion = function(value) {
@@ -27615,7 +27654,25 @@ TrackerEvent.TraceResult = function() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
         var completion = (this.Completion !== null) ? ',completion,' + this.Completion.toString() : '';
         var response = (this.Response) ? ',response,' + this.Response.replaceAll(',', '\\,') : '';
-        var score = (this.Score !== null) ? ',score,' + this.Score.toString() : '';
+        var score = '';
+
+        if (exists(this.Score)) {
+            if (exists(this.Score.raw)) {
+                score += ',score,' + this.Score.raw;
+            }
+
+            if (exists(this.Score.min)) {
+                score += ',score_min,' + this.Score.min;
+            }
+
+            if (exists(this.Score.max)) {
+                score += ',score_max,' + this.Score.max;
+            }
+
+            if (exists(this.Score.scaled)) {
+                score += ',score_scaled,' + this.Score.scaled;
+            }
+        }
 
         var result = success + completion + response + score;
 
@@ -27667,7 +27724,7 @@ TrackerEvent.TraceResult = function() {
         }
 
         if (this.Score !== null) {
-            ret.score = {raw: Number(this.Score)};
+            ret.score = this.Score;
         }
 
         if (this.Extensions !== null && obsize(this.Extensions) > 0) {
@@ -27843,6 +27900,10 @@ Array.prototype.dequeue = function(n) {
     }
 
     return tmp;
+};
+
+var exists = function(value) {
+    return !(typeof value === 'undefined' || value === null);
 };
 
 module.exports = TrackerAsset;
