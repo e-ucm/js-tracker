@@ -30,7 +30,7 @@ function TrackerAsset() {
         userToken: '',
         max_flush: 4,
         batch_size: 10,
-        backupStorage: true,
+        backupStorage: false,
         debug: true,
         force_actor: true
     };
