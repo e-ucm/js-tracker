@@ -17,7 +17,7 @@
 	}
 	.content {width: 100%; height: 100%;}
 	.content h1 {text-align: center;}
-	.box {border: solid 2px; width: 47%; display: inline-block; margin: 5px; padding: 10px; overflow: scroll; box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.25); border-radius: 5px; background-color: white;}
+	.box {border: solid 2px; width: 47%; display: inline-block; margin: 5px; padding: 10px; box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.25); border-radius: 5px; background-color: white; text-align: center;}
 	.box p span { white-space: pre; }
 
 	.box.start {position: absolute; left: 0px; top: 0px; background-color: white; width: 400px; z-index: 2;}
@@ -25,13 +25,25 @@
 
 	.box.data {position: absolute; left: 0px; top: 0px;  width: 300px; z-index: 1; white-space: nowrap;}
 
-	.box.sender {position: absolute; left: 0px; bottom: 0px; width: 400px; z-index: 1; white-space: nowrap;}
+	.box.sender {position: absolute; left: 0px; bottom: 0px; width: 400px; height: 370px; z-index: 1; white-space: nowrap;}
+	.box .header {position: absolute; width: 100%; text-align: center; left: 0px;}
+	.box .header .label {position: relative; top: -47px; border: solid 2px; margin: 5px; padding: 10px; border-radius: 5px 5px 0px 0px; background-color: white; border-bottom: 0px; cursor: pointer; display: inline; width: 5px;}
 
+	.box.group.active {z-index: 3;}
+	.box.group {z-index: 2;}
+
+	.box .header.left {text-align: left;}
+	.box .header.right {text-align: right;}
 	.send {position: absolute;bottom: 10px; left: 0px; width: 100%; padding: 0px; margin: 0px; text-align: center}
 	.tittle{position: absolute;top: 10px; left: 0px; width: 100%; padding: 0px; margin: 0px; text-align: center}
 	.send input {width: 30%; }
 
+	.seriousgames td { width: 12.5%; font-size: 14px;}
+
 	.box.trace { position: absolute; bottom: 100px; left: -600px; font-size: 15px; width: 500px; white-space: nowrap;}
+
+	.box .content {overflow-x: scroll; margin: 0px; padding: 0px;}
+	.box .content table {width: 99%;}
 
 	.fields {width: 100%;}
 	.fields td:first-child{ width: 30% }
@@ -42,11 +54,20 @@
 <body>
 <script type="text/javascript">
 	var tracker = new TrackerAsset();
+	tracker.settings.backupStorage = false;
 
 	var loginButton = function(){
 		tracker.settings.host = $("#host").val();
 
-		tracker.Login($("#username").val(),$("#password").val(), function(data,error){
+		/*tracker.Login($("#username").val(),$("#password").val(), function(data,error){
+			if(!error){
+				$( "#login" ).css('background-color','green');
+			}else{
+				$( "#login" ).css('background-color','red');
+			}
+		});*/
+
+		tracker.LoginBeaconing($("#username").val(), function(data,error){
 			if(!error){
 				$( "#login" ).css('background-color','green');
 			}else{
@@ -81,12 +102,20 @@
 	}
 
 	var trackButton = function(){
-		if($("#send_score").is(':checked'))				tracker.setScore($("#score").val());
+		if($("#send_score").is(':checked')){
+			tracker.setScore($("#score").val(),null,$("#score").val()+2,$("#score").val()+1);
+		}
 		if($("#send_completion").is(':checked'))		tracker.setCompletion($("#completion").is(':checked'));
 		if($("#send_success").is(':checked'))			tracker.setSuccess($("#success").is(':checked'));
 		if($("#send_response").is(':checked'))			tracker.setResponse($("#response").val());
 
 		var t = tracker.Trace($("#verb").val(),$("#target_type").val(),$("#target_id").val())
+		logTrace(t);
+	}
+
+	var logTrace = function(trace){
+		console.log(trace);
+		var t = trace;
 
 		$('.trace').animate({
 			left: "+=50px",
@@ -96,9 +125,6 @@
 		$('<div class="box trace"><p>CSV = <span id="csv">' + t.ToCsv() + '</span></p><p>xAPI = <span id="xapi">' + t.ToXapi() + '</span></p></div>').appendTo('.content').animate({
 			left: "+=1200px",
 		});
-
-		/*$( "#csv" ).text();
-		$( "#xapi" ).text();*/
 	}
 
 	var flushButton = function(){
@@ -124,101 +150,258 @@
 	var addExtensionButtonInt = function(){
 		tracker.addExtension($("#keyInt").val(), parseInt($("#valueInt").val()) );
 	}
+
+	var changeGroup = function(i){
+		$(".sender.group.active").removeClass("active");
+		$($(".sender.group").get(i)).addClass("active");
+	}
+
+	var accessibleAccessed = function(){
+		logTrace(tracker.Accessible.Accessed($('#seriousgames_id').val(), tracker.Accessible.AccessibleType[$('#accessible_type').val()]));
+	}
+
+	var accessibleSkipped = function(){
+		logTrace(tracker.Accessible.Skipped($('#seriousgames_id').val(), tracker.Accessible.AccessibleType[$('#accessible_type').val()]));
+	}
+
+	var gameObjectInteracted = function(){
+		logTrace(tracker.GameObject.Interacted($('#seriousgames_id').val(), tracker.GameObject.GameObjectType[$('#gameobject_type').val()]));
+	}
+
+	var gameObjectUsed = function(){
+		logTrace(tracker.GameObject.Used($('#seriousgames_id').val(), tracker.GameObject.GameObjectType[$('#gameobject_type').val()]));
+	}
+
+	var alternativeSelected = function(){
+		if($('#alternative_correct_send').val())
+			tracker.setSuccess($('#alternative_correct').val());
+		logTrace(tracker.Alternative.Selected($('#seriousgames_id').val(), $('#alternative_response').val(), tracker.Alternative.AlternativeType[$('#alternative_type').val()]));
+	}
+
+	var alternativeUnlocked = function(){
+		logTrace(tracker.Alternative.Unlocked($('#seriousgames_id').val(), $('#alternative_response').val(), tracker.Alternative.AlternativeType[$('#alternative_type').val()]));
+	}
+
+	var completableInitialized = function(){
+		logTrace(tracker.Completable.Initialized($('#seriousgames_id').val(), tracker.Completable.CompletableType[$('#completable_type').val()]));
+	}
+
+	var completableProgressed = function(){
+		logTrace(tracker.Completable.Progressed($('#seriousgames_id').val(), tracker.Completable.CompletableType[$('#completable_type').val()]));
+	}
+
+	var completableCompleted = function(){
+		logTrace(tracker.Completable.Completed($('#seriousgames_id').val(), tracker.Completable.CompletableType[$('#completable_type').val()]));
+	}
 </script>
 	<div class="tittle"><h1>Tracker Test App</h1></div>
 <div class="content">
-
 	<div class="box start">
-		<h2>Tracker Start</h2>
-		<table class="fields">
-			<tr>
-				<td>Host</td>
-				<td><input id="host" type="text" name="host" placeholder="https://host:port/" value="https://analytics.beaconing.eu/"></td>
-			</tr>
-			<tr>
-				<td>Tracking Code</td>
-				<td><input id="trackingCode" type="text" name="trackingCode" value="5a54b16f72ca7c0081bc4982ikgt0rdh85"></td>
-			</tr>
-			<tr>
-				<td>User</td>
-				<td><input id="username" type="text" name="username"></td>
-			</tr>
-			<tr>
-				<td>Pass</td>
-				<td><input id="password" type="password" name="password"></td>
-			</tr>
-			<tr>
-				<td>UserToken</td>
-				<td><input id="userToken" type="text" name="userToken"></td>
-			</tr>
-		</table>
-		<p><input type="button" id="login" value="Login" onclick="loginButton()"><br>
-		<input type="button" id="start" value="Start" onclick="startButton()"></p>
+		<div class="content">
+			<h2>Tracker Start</h2>
+			<table class="fields">
+				<tr>
+					<td>Host</td>
+					<td><input id="host" type="text" name="host" placeholder="https://host:port/" value="https://analytics.beaconing.eu/"></td>
+				</tr>
+				<tr>
+					<td>Tracking Code</td>
+					<td><input id="trackingCode" type="text" name="trackingCode" value="5a54b16f72ca7c0081bc4982ikgt0rdh85"></td>
+				</tr>
+				<tr>
+					<td>User</td>
+					<td><input id="username" type="text" name="username"></td>
+				</tr>
+				<tr>
+					<td>Pass</td>
+					<td><input id="password" type="password" name="password"></td>
+				</tr>
+				<tr>
+					<td>UserToken</td>
+					<td><input id="userToken" type="text" name="userToken"></td>
+				</tr>
+			</table>
+			<p><input type="button" id="login" value="Login" onclick="loginButton()"><br>
+			<input type="button" id="start" value="Start" onclick="startButton()"></p>
+		</div>
 	</div>
 	<div class="box data">
-		<p>authToken = <span id="authToken"></span></p>
-		<p>playerId = <span id="playerId"></span></p>
-		<p>session = <span id="session"></span></p>
-		<p>actor = <span id="actor"></span></p>
+		<div class="content">
+			<p>authToken = <span id="authToken"></span></p>
+			<p>playerId = <span id="playerId"></span></p>
+			<p>session = <span id="session"></span></p>
+			<p>actor = <span id="actor"></span></p>
+		</div>
 	</div>
-	<div class="box sender">
-		<table class="fields">
-			<tr>
-				<td>Verb</td>
-				<td><input id="verb" type="text" name="verb"></td>
-			</tr>
-			<tr>
-				<td>Object Type</td>
-				<td><input id="target_type" type="text" name="target_type"></td>
-			</tr>
-			<tr>
-				<td>Object ID</td>
-				<td><input id="target_id" type="text" name="target_id"></td>
-			</tr>
-		</table>
-		<h3>Result</h3>
-		<table class="extensions">
-			<tr>
-				<th>Name</th><th>Value</th><th>Send?</th><th>Name</th><th>Value</th><th>Send?</th>
-			</tr>
-			<tr>
-				<td>Score</td>
-				<td><input id="score" type="number" name="score" min="0" max="1" step="0.1" value="0.5"></td>
-				<td><input id="send_score" type="checkbox" name="send_score"></td>
+	<div class="box sender group active">
+		<div class="header left"><div class="label" onclick="changeGroup(0)">Custom Trace</div></div>
+		<div class="content">
+			<table class="fields">
+				<tr>
+					<td>Verb</td>
+					<td><input id="verb" type="text" name="verb"></td>
+				</tr>
+				<tr>
+					<td>Object Type</td>
+					<td><input id="target_type" type="text" name="target_type"></td>
+				</tr>
+				<tr>
+					<td>Object ID</td>
+					<td><input id="target_id" type="text" name="target_id"></td>
+				</tr>
+			</table>
+			<h3>Result</h3>
+			<table class="extensions">
+				<tr>
+					<th>Name</th><th>Value</th><th>Send?</th><th>Name</th><th>Value</th><th>Send?</th>
+				</tr>
+				<tr>
+					<td>Score</td>
+					<td><input id="score" type="number" name="score" min="0" max="1" step="0.1" value="0.5"></td>
+					<td><input id="send_score" type="checkbox" name="send_score"></td>
 
-				<td>Success</td>
-				<td><input id="success" type="checkbox" name="success"></td>
-				<td><input id="send_success" type="checkbox" name="send_success"></td>
-			</tr>
-			<tr>
-			</tr>
-			<tr>
-				<td>Response</td>
-				<td><input id="response" type="text" name="response"></td>
-				<td><input id="send_response" type="checkbox" name="send_response"></td>
+					<td>Success</td>
+					<td><input id="success" type="checkbox" name="success"></td>
+					<td><input id="send_success" type="checkbox" name="send_success"></td>
+				</tr>
+				<tr>
+				</tr>
+				<tr>
+					<td>Response</td>
+					<td><input id="response" type="text" name="response"></td>
+					<td><input id="send_response" type="checkbox" name="send_response"></td>
 
-				<td>Completion</td>
-				<td><input id="completion" type="checkbox" name="completion"></td>
-				<td><input id="send_completion" type="checkbox" name="send_completion"></td>
-			</tr>
-			<tr>
-				<td>Extension Str</td>
-				<td colspan="2"><input id="key" type="text" name="key"></td>
+					<td>Completion</td>
+					<td><input id="completion" type="checkbox" name="completion"></td>
+					<td><input id="send_completion" type="checkbox" name="send_completion"></td>
+				</tr>
+				<tr>
+					<td>Extension Str</td>
+					<td colspan="2"><input id="key" type="text" name="key"></td>
 
-				<td>Value</td>
-				<td><input id="value" type="text" name="value"></td>
-				<td><input id="button" type="button" value="Add extension" onclick="addExtensionButton()"></td>
-			</tr>
-			<tr>
-				<td>Extension Int</td>
-				<td colspan="2"><input id="keyInt" type="text" name="key"></td>
+					<td>Value</td>
+					<td><input id="value" type="text" name="value"></td>
+					<td><input id="button" type="button" value="Add extension" onclick="addExtensionButton()"></td>
+				</tr>
+				<tr>
+					<td>Extension Int</td>
+					<td colspan="2"><input id="keyInt" type="text" name="key"></td>
 
-				<td>Value2</td>
-				<td><input id="valueInt" type="text" name="value"></td>
-				<td><input id="button" type="button" value="Add extension" onclick="addExtensionButtonInt()"></td>
-			</tr>
-		</table>
-		<input id="trace" type="button" value="Add Trace" onclick="trackButton()">	
+					<td>Value2</td>
+					<td><input id="valueInt" type="text" name="value"></td>
+					<td><input id="button" type="button" value="Add extension" onclick="addExtensionButtonInt()"></td>
+				</tr>
+			</table>
+			<input id="trace" type="button" value="Add Trace" onclick="trackButton()">	
+		</div>
+	</div>
+
+	<div class="box sender group">
+		<div class="header"><div class="label" onclick="changeGroup(1)">Serious Games</div></div>
+		<h3>Serious Games Profile</h3>
+		<div class="content">
+			<table>
+				<tr>
+					<td>ID</td>
+					<td><input id="seriousgames_id" type="text" name="id"></td>
+				</tr>
+			</table>
+			<table class="seriousgames">
+				<tr>
+					<th colspan="4">Accessible</th>
+					<th colspan="4">GameObject</th>
+				</tr>
+				<tr>
+					<td colspan="2">Type</td>
+					<td colspan="2">
+						<select id="accessible_type">
+							<option value="Accessible">Accessible</option>
+							<option value="Screen">Screen</option>
+							<option value="Area">Area</option>
+							<option value="Zone">Zone</option>
+							<option value="Cutscene">Cutscene</option>
+						</select>
+					</td>
+					<td colspan="2">Type</td>
+					<td colspan="2">
+						<select id="gameobject_type">
+							<option value="GameObject">GameObject</option>
+							<option value="Enemy">Enemy</option>
+							<option value="Npc">Npc</option>
+							<option value="Item">Item</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2"><input type="button" onclick="accessibleAccessed()" value="Accessed"></td>
+					<td colspan="2"><input type="button" onclick="accessibleSkipped()" value="Skipped"></td>
+					<td colspan="2"><input type="button" onclick="gameObjectInteracted()" value="Interacted"></td>
+					<td colspan="2"><input type="button" onclick="gameObjectUsed()" value="Used"></td>
+				</tr>
+
+				<tr>
+					<th colspan="4">Alternative</th>
+					<th colspan="4">Completable</th>
+				</tr>
+				<tr>
+					<td colspan="2">Type</td>
+					<td colspan="2">
+						<select id="alternative_type">
+							<option value="Alternative">Alternative</option>
+							<option value="Question">Question</option>
+							<option value="Menu">Menu</option>
+							<option value="Dialog">Dialog</option>
+							<option value="Path">Path</option>
+							<option value="Arena">Arena</option>
+						</select>
+					</td>
+
+					<td colspan="2">Type</td>
+					<td colspan="2">
+						<select id="completable_type">
+							<option value="Completable">Completable</option>
+							<option value="Game">Game</option>
+							<option value="Session">Session</option>
+							<option value="Level">Level</option>
+							<option value="Quest">Quest</option>
+							<option value="Stage">Stage</option>
+							<option value="Combat">Combat</option>
+							<option value="StoryNode">StoryNode</option>
+							<option value="Race">Race</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">Response</td>
+					<td colspan="2"><input id="alternative_response" type="text" name="verb"></td>
+
+					<td colspan="2">Prog/Score</td>
+					<td colspan="2"><input id="completable_ps" type="number" min="0" step="0.1" value="0"></td>
+				</tr>
+				<tr>
+					<td colspan="2"><input id="alternative_correct_send" type="checkbox" style="width: 15px"> Is correct?</td>
+					<td colspan="2"><input id="alternative_correct" type="checkbox" name="verb"></td>
+
+					<td colspan="2"><input id="completable_success_send" type="checkbox" style="width: 15px"> Success</td>
+					<td colspan="2"><input id="completable_success" type="checkbox" name="verb"></td>
+				</tr>
+				<tr>
+					<td colspan="2"><input type="button" onclick="alternativeSelected()" value="Selected"></td>
+					<td colspan="2"><input type="button" onclick="alternativeUnlocked()" value="Unlocked"></td>
+					<td colspan="4">
+						<input style="width: 33.3%" type="button" onclick="completableInitialized()" value="Initialized">
+						<input style="width: 33.3%" type="button" onclick="completableProgressed()" value="Progressed">
+						<input style="width: 33.3%" type="button" onclick="completableCompleted()" value="Completed">
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="box sender group">
+		<div class="header right"><div class="label" onclick="changeGroup(2)">Location-Based</div></div>
+		<div class="content">
+		</div>
 	</div>
 
 	<!--<div class="box trace">
