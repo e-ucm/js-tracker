@@ -111,6 +111,27 @@ function TrackerAsset() {
         });
     };
 
+    this.LoginBeaconing = function(accessToken, callback) {
+        this.generateURL();
+
+        var tracker = this;
+        this.HttpRequest(this.url + 'login/beaconing', 'post', {'Content-Type': 'application/json' }, JSON.stringify({accessToken: accessToken}),
+         function (data) {
+            tracker.settings.userToken = 'Bearer ' + data.user.token;
+            if (tracker.settings.debug) {
+                console.info('AuthToken: ' + data.user.token);
+            }
+            callback(data, null);
+
+        },
+         function (data) {
+            if (tracker.settings.debug && data.responseJSON) {
+                console.log(data.responseJSON);
+            }
+            callback(data, true);
+        });
+    };
+
     this.Start = function(callback) {
         this.started = true;
 
