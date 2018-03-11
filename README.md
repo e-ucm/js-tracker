@@ -73,6 +73,7 @@ tracker.settings.trackingCode = "58e3779b1043c7006d76d0e07sj9hnzljjo1dcxr";
 //Login is optional. If not logged, anonymous actor is retrieved on start
 
 var connected = false;
+// You can use tracker.LoginBeaconing("accessToken", callback); if you want
 tracker.Login("student","password", function(data,error){
   if(!error){
     tracker.Start(function(result, error){
