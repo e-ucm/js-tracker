@@ -23,7 +23,7 @@ var tracker = new TrackerAsset();
 tracker.settings.host = "http://my.host:port/";
 tracker.settings.trackingCode = "TrackingCode";
 ```
-1. More configuration can be done with:
+5. More configuration can be done with:
     * **port**: This should have the port for the analysis server
     * **secure**: Is the connection secure?
     * **max_flush**: max number of traces sent when flush
@@ -38,7 +38,7 @@ tracker.settings.trackingCode = "TrackingCode";
 
 ## Integration example
 
-An example test app can be found at: https://github.com/e-ucm/js-tracker/blob/master/test_app.html
+An example test app can be found [here](https://github.com/e-ucm/js-tracker/blob/master/test_app.html).
 
 ## Plugin instalation
 
@@ -146,12 +146,12 @@ The tracker exposes an API designed to collect, analyze and visualize the data. 
 
 A **gameplay** is the flow of interactions that a player performs over these game objects in a sequential order.
 
-The main typed of game objects supported are **-links to unity-tracker (c#)-**:
+The main typed of game objects supported are:
 
-* [Completable](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/CompletableTracker.cs) - for Game, Session, Level, Quest, Stage, Combat, StoryNode, Race or any other generic Completable. Methods: `Initialized`, `Progressed` and `Completed`.
-* [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/AccessibleTracker.cs) - for Screen, Area, Zone, Cutscene or any other generic Accessible. Methods: `Accessed` and `Skipped`.
-* [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/AlternativeTracker.cs) - for Question, Menu, Dialog, Path, Arena or any other generic Alternative. Methods: `Selected` and `Unlocked`.
-* [GameObject](https://github.com/e-ucm/unity-tracker/blob/master/Tracker/Format/GameObjectTracker.cs) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
+* [Completable](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/CompletableTracker.cs) - for Game, Session, Level, Quest, Stage, Combat, StoryNode, Race or any other generic Completable. Methods: `Initialized`, `Progressed` and `Completed`.
+* [Accessible](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AccessibleTracker.cs) - for Screen, Area, Zone, Cutscene or any other generic Accessible. Methods: `Accessed` and `Skipped`.
+* [Alternative](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs) - for Question, Menu, Dialog, Path, Arena or any other generic Alternative. Methods: `Selected` and `Unlocked`.
+* [GameObject](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/GameObjectTracker.cs) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
 
 ##### Completable
 
@@ -211,9 +211,9 @@ tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.
 tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
 ```
 
-Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects **-links to unity-tracker-**([Completable](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs), [GameObject](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [Alternative](https://github.com/e-ucm/unity-tracker/blob/master/Assets/Format/AlternativeTracker.cs) is the best choice
+Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects ([Completable](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs), [GameObject](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [alternatives](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs) are the best choice.
 
 ### Tracker and Collector Flow
 If the storage type is `net`, the tracker will try to connect to a `Collector` [endpoint](https://github.com/e-ucm/rage-analytics/wiki/Back-end-collector), exposed by the [rage-analytics Backend](https://github.com/e-ucm/rage-analytics-backend). 
 
-More information about the tracker can be found in the [official documentation of rage-analytics] (https://github.com/e-ucm/rage-analytics/wiki/Tracker).
+More information about the tracker can be found in the [official documentation of rage-analytics](https://github.com/e-ucm/rage-analytics/wiki/Tracker).
