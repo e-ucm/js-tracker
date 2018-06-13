@@ -1,6 +1,6 @@
 {
-  "name": "js-tracker",
-  "version": "0.1.0",
+  "name": "xapi-tracker",
+  "version": "0.9.0",
   "description": "Client Side Tracker Asset written in JavaScript",
   "main": "src/tk-widget.js",
   "repository": "https://github.com/e-ucm/js-tracker",
@@ -13,16 +13,21 @@
     "test": "npm run lint && mocha",
     "test-travis": "npm run lint && ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --recursive -R spec"
   },
+  "dependencies": {
+    "request": "2.87.0",
+    "lodash.clonedeep": "^4.5.0",
+    "moment": "2.22.2"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
-    "coveralls": "*",
-    "istanbul": "*",
-    "jquery": "*",
+    "coveralls": "3.0.1",
+    "istanbul": "0.4.5",
+    "request": "2.87.0",
     "jscs": "3.0.3",
-    "jshint": "*",
+    "jshint": "2.9.5",
     "lodash.clonedeep": "^4.5.0",
-    "mocha": "*",
-    "moment": "*",
+    "mocha": "5.2.0",
+    "moment": "2.22.2",
     "webpack": "^2.3.2"
   }
 }
