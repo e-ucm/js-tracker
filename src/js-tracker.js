@@ -240,12 +240,14 @@ function TrackerAsset() {
 
     this.flushing = false;
     this.redo_flush = false;
+    this.pending_callbacks = [];
     this.Flush = function(callback) {
         if (!this.flushing) {
             this.flushing = true;
             this.DoFlush(callback);
         }else {
             this.redo_flush = true;
+            this.pending_callbacks.push(callback);
         }
     };
 
@@ -265,7 +267,14 @@ function TrackerAsset() {
                     callback(result, error);
                 }else if (tracker.redo_flush) {
                     tracker.redo_flush = false;
-                    tracker.DoFlush(callback);
+                    callback(result, error);
+
+                    var pcs = tracker.pending_callbacks.peek(tracker.pending_callbacks.length);
+                    tracker.DoFlush(pcs[0]);
+                    for (var i = 1; i < pcs.length; i++) {
+                        pcs[i](result, error);
+                    }
+                    tracker.pending_callbacks.dequeue(pcs.length);
                 }else {
                     tracker.flushing = false;
                     callback(result, error);
