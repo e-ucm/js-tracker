@@ -1,8 +1,8 @@
 'use strict';
 
 const path = require('path');
-const jquery = require('jquery');
 const cloneDeep = require('lodash.clonedeep');
+const request = require('request');
 const webpack = require('webpack');
 
 const defaults = {
@@ -15,6 +15,12 @@ const defaults = {
         library: 'TrackerAsset',
         libraryTarget: 'umd',
         filename: 'js-tracker.bundle.js'
+    },
+
+    node: {
+        fs: 'empty',
+        net: 'empty',
+        tls: 'empty'
     },
 
     plugins: []

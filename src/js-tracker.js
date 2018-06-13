@@ -7,7 +7,7 @@
  * 2020 research and innovation programme under grant agreement No 644187.
  * You may obtain a copy of the License at
  *
- *	 http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an 'AS IS' BASIS,
@@ -17,7 +17,7 @@
  */
 'use strict';
 
-var $ = require('jquery');
+var request = require('request');
 var moment = require('moment');
 
 function TrackerAsset() {
@@ -620,14 +620,31 @@ function TrackerAsset() {
 
     // CONNECTION
     this.HttpRequest = function(url, method, headers, body, success, error) {
-        $.ajax({
-            url: url,
-            type: method,
-            headers: headers,
-            dataType: 'json',
-            data: body,
-            success: success,
-            error: error
+        var t = this;
+
+        var r = {
+            uri: url,
+            method: method,
+            json: true,
+            headers: headers
+        };
+
+        if (method.toLowerCase() === 'post') {
+            if (body === '') {
+                r.body = {};
+            } else {
+                r.body = JSON.parse(body);
+            }
+        }
+
+        request(r, function (err, httpResponse, body) {
+            if (err || httpResponse && httpResponse.statusCode !== 200) {
+                if (t.settings.debug) {
+                    console.log('Error:', err, 'Status code:', httpResponse ? httpResponse.statusCode : -1, 'Body', body);
+                }
+                return error({ responseJSON: err ? err : body });
+            }
+            success(body);
         });
     };
 
@@ -828,11 +845,11 @@ TrackerEvent.TraceResult = function() {
 
         for (var key in extensions) {
             switch (key.toLowerCase()) {
-            case 'success': {		this.Success = extensions[key]; break; }
-            case 'completion': {	this.Completion = extensions[key]; break; }
-            case 'response': {		this.Response = extensions[key]; break; }
-            case 'score': {			this.Score = extensions[key]; break; }
-            default: {				this.Extensions[key] = extensions[key]; break; }
+            case 'success': {       this.Success = extensions[key]; break; }
+            case 'completion': {    this.Completion = extensions[key]; break; }
+            case 'response': {      this.Response = extensions[key]; break; }
+            case 'score': {         this.Score = extensions[key]; break; }
+            default: {              this.Extensions[key] = extensions[key]; break; }
         }
         }
     };
