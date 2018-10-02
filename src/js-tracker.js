@@ -818,7 +818,7 @@ TrackerEvent.TraceObject.ObjectIDs = {
 
     // Acceesible
     screen: 'https://w3id.org/xapi/seriousgames/activity-types/screen' ,
-    srea: 'https://w3id.org/xapi/seriousgames/activity-types/area',
+    area: 'https://w3id.org/xapi/seriousgames/activity-types/area',
     zone: 'https://w3id.org/xapi/seriousgames/activity-types/zone',
     cutscene: 'https://w3id.org/xapi/seriousgames/activity-types/cutscene',
     accessible: 'https://w3id.org/xapi/seriousgames/activity-types/accessible',
@@ -978,16 +978,16 @@ var Accessible = function(tracker) {
         properties: ['screen', 'area', 'zone', 'cutscene', 'accessible']
     };
 
-    this.Accessed = function(reachableId, type) {
+    this.Accessed = function(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        return this.tracker.Trace('accessed',this.AccessibleType.properties[type],reachableId);
+        return this.tracker.Trace('accessed',this.AccessibleType.properties[type],accessibleId);
     };
 
-    this.Skipped = function(reachableId, type) {
+    this.Skipped = function(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        return this.tracker.Trace('skipped',this.AccessibleType.properties[type],reachableId);
+        return this.tracker.Trace('skipped',this.AccessibleType.properties[type],accessibleId);
     };
 };
 
