@@ -1,8 +1,7 @@
-'use strict';
+
 
 const path = require('path');
 const cloneDeep = require('lodash.clonedeep');
-const request = require('request');
 const webpack = require('webpack');
 
 const defaults = {
@@ -26,7 +25,7 @@ const defaults = {
     plugins: []
 };
 
-var minified = cloneDeep(defaults);
+const minified = cloneDeep(defaults); // Use const for minified since it's not reassigned
 minified.plugins.push(new webpack.optimize.UglifyJsPlugin());
 minified.output.filename = 'js-tracker.bundle.min.js';
 

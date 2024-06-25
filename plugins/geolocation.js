@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
+
 
 if (typeof TrackerPlugins === 'undefined') {
     var TrackerPlugins = {};
@@ -26,69 +26,69 @@ TrackerPlugins.Geolocation = function() {
 
         Places:
          function(tracker) {
-            this.tracker = tracker;
+             this.tracker = tracker;
 
-            this.PlaceType = {
-                Building: 0,
-                GreenZone: 1,
-                UrbanArea: 2,
-                Water: 3,
-                POI: 4,
-                Place: 5,
-                properties: ['building', 'green-zone', 'urban-area', 'water', 'point-of-interest', 'place']
+             this.PlaceType = {
+                 Building: 0,
+                 GreenZone: 1,
+                 UrbanArea: 2,
+                 Water: 3,
+                 POI: 4,
+                 Place: 5,
+                 properties: ['building', 'green-zone', 'urban-area', 'water', 'point-of-interest', 'place']
 
-            };
+             };
 
-            this.Moved = function(placeId, latitude, longitude, type) {
-                if (typeof type === 'undefined') {type = 5;}
+             this.Moved = function(placeId, latitude, longitude, type) {
+                 if (typeof type === 'undefined') {type = 5;}
 
-                this.tracker.setLocation(latitude, longitude);
+                 this.tracker.setLocation(latitude, longitude);
 
-                return this.tracker.Trace('moved',this.PlaceType.properties[type],placeId);
-            };
+                 return this.tracker.Trace('moved',this.PlaceType.properties[type],placeId);
+             };
 
-            this.Looked = function(placeId, type, orientation, latitude, longitude) {
-                if (typeof type === 'undefined') {type = 5;}
-                if (typeof orientation !== 'undefined') {
-                    this.tracker.setVar('orientation', orientation);
-                }
-                if (typeof latitude !== 'undefined') {
-                    this.tracker.setLocation(latitude, longitude);
-                }
+             this.Looked = function(placeId, type, orientation, latitude, longitude) {
+                 if (typeof type === 'undefined') {type = 5;}
+                 if (typeof orientation !== 'undefined') {
+                     this.tracker.setVar('orientation', orientation);
+                 }
+                 if (typeof latitude !== 'undefined') {
+                     this.tracker.setLocation(latitude, longitude);
+                 }
 
-                return this.tracker.Trace('looked',this.PlaceType.properties[type],placeId);
-            };
+                 return this.tracker.Trace('looked',this.PlaceType.properties[type],placeId);
+             };
 
-            this.Entered = function(placeId, type) {
-                if (typeof type === 'undefined') {type = 5;}
+             this.Entered = function(placeId, type) {
+                 if (typeof type === 'undefined') {type = 5;}
 
-                return this.tracker.Trace('entered',this.PlaceType.properties[type],placeId);
-            };
+                 return this.tracker.Trace('entered',this.PlaceType.properties[type],placeId);
+             };
 
-            this.Exited = function(placeId, type) {
-                if (typeof type === 'undefined') {type = 5;}
+             this.Exited = function(placeId, type) {
+                 if (typeof type === 'undefined') {type = 5;}
 
-                return this.tracker.Trace('exited',this.PlaceType.properties[type],placeId);
-            };
-        },
+                 return this.tracker.Trace('exited',this.PlaceType.properties[type],placeId);
+             };
+         },
 
         Directions:
          function(tracker) {
-            this.tracker = tracker;
+             this.tracker = tracker;
 
-            this.DirectionType = {
-                Direction: 0,
-                properties: ['direction']
-            };
+             this.DirectionType = {
+                 Direction: 0,
+                 properties: ['direction']
+             };
 
-            this.Followed = function(placeId, directions, type) {
-                if (typeof type === 'undefined') {type = 0;}
+             this.Followed = function(placeId, directions, type) {
+                 if (typeof type === 'undefined') {type = 0;}
 
-                this.tracker.setLocation(location);
+                 this.tracker.setLocation(location);
 
-                return this.tracker.Trace('followed',this.DirectionType.properties[type],placeId);
-            };
-        }
+                 return this.tracker.Trace('followed',this.DirectionType.properties[type],placeId);
+             };
+         }
     };
     this.functions = {
         setLocation: function(tracker) {
