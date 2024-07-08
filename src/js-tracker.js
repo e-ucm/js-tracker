@@ -317,10 +317,6 @@ function TrackerAsset() {
 
     this.ProcessQueue = function(callback) {
         var tracker = this;
-        if (this.settings.debug) {
-            console.log("Processing Queue:");
-            console.log(tracker.queue);
-        }
         if (tracker.queue.length > 0 || tracker.tracesPending.length > 0 || tracker.tracesUnlogged.length > 0) {
             // Extract the traces from the queue and remove from the queue
             var traces = tracker.CollectTraces();
