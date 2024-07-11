@@ -19,17 +19,9 @@
 var axios = require('axios');
 var moment = require('moment');
 var uuidv4 = require('uuid').v4;
-var ScalableBloomFilter = require('bloom-filters').ScalableBloomFilter;
-
-// by default it creates an ideally scalable bloom filter for 8 elements with an error rate of 0.01 and a load factor of 0.5
-var filter = new ScalableBloomFilter();
 
 function generateStatementId() {
-    var traceid = uuidv4();
-    while(filter.has(traceid)) {
-        traceid = uuidv4();
-    }
-    return traceid;
+    return uuidv4();
 }
 
 function TrackerAsset() {
@@ -61,7 +53,7 @@ function TrackerAsset() {
     this.active = false;
 
     this.session = 0;
-    this.actor = new TrackerEvent.TraceActor("undefined", "undefined", "undefined");
+    this.actor = null;
     this.extensions = {};
     this.context = new TrackerEvent.TraceContext(uuidv4());
 
@@ -751,7 +743,7 @@ function TrackerEvent (tracker) {
     };
 
     this.getActor = function() {
-        return this.Actor === null ? (this.tracker.actor === null ? {} : this.tracker.actor) : this.Actor;
+        return this.Actor === null ? (this.tracker.actor === null ? new TrackerEvent.TraceActor("undefined", "undefined", "undefined") : this.tracker.actor) : this.Actor;
     };
 
     this.getContext = function() {
