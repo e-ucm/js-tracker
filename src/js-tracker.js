@@ -215,7 +215,7 @@ function TrackerAsset() {
 
                 tracker.connected = true;
                 
-                if (tracker.actor.name !== "undefined") {
+                if (tracker.actor && tracker.actor.name !== "undefined") {
                     tracker.active = true;
                 }
 
@@ -477,7 +477,7 @@ function TrackerAsset() {
 
         if (tracker.tracesUnlogged.length === 0) {
             callback(null, 'Everything OK');
-        } else if (tracker.actor === null || tracker.actor.name === 'undefined' || tracker.actor.account.homepage === 'undefined') {
+        } else if (tracker.actor === null) {
             callback(true, 'Can\'t flush without actor');
         } else {
             var data = tracker.ProcessTraces(tracker.tracesUnlogged, 'xapi');
@@ -757,7 +757,7 @@ function TrackerEvent (tracker) {
     this.ToXapi = function() {
         var t = {
             id : this.Id,
-            actor: this.getActor().ToXapi(),
+            actor: this.getActor() ? this.getActor().ToXapi() : null,
             verb: this.Event.ToXapi(),
             object: this.Target.ToXapi(),
             context: this.getContext().ToXapi(),
