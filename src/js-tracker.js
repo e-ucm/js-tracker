@@ -198,7 +198,11 @@ function TrackerAsset() {
                 }
 
                 tracker.auth = data.authToken;
-                tracker.actor = new TrackerEvent.TraceActor(data.actor.name, data.actor.account.name, data.actor.account.homePage);
+                if(data.actor) {
+                    tracker.actor = new TrackerEvent.TraceActor(data.actor.name, data.actor.account.name, data.actor.account.homePage);
+                } else {
+                    tracker.actor = new TrackerEvent.TraceActor("undefined", "undefined", "undefined");
+                }
                 tracker.playerId = data.playerId;
                 tracker.objectId = data.objectId;
                 tracker.session = data.session;
@@ -743,7 +747,7 @@ function TrackerEvent (tracker) {
     };
 
     this.getActor = function() {
-        return this.Actor === null ? (this.tracker.actor === null ? new TrackerEvent.TraceActor("undefined", "undefined", "undefined") : this.tracker.actor) : this.Actor;
+        return this.Actor === null ? (this.tracker.actor === null ? {} : this.tracker.actor) : this.Actor;
     };
 
     this.getContext = function() {
