@@ -757,7 +757,7 @@ function TrackerEvent (tracker) {
     this.ToXapi = function() {
         var t = {
             id : this.Id,
-            actor: this.getActor() ? this.getActor().ToXapi() : null,
+            actor: this.getActor().ToXapi(),
             verb: this.Event.ToXapi(),
             object: this.Target.ToXapi(),
             context: this.getContext().ToXapi(),
