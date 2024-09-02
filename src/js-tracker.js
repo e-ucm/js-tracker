@@ -198,8 +198,8 @@ function TrackerAsset() {
                 }
 
                 tracker.auth = data.authToken;
-                actor_name = data.actor.name == null ? "undefined" : data.actor.name;
-                account_name = data.actor.account.name == null ? "undefined" : data.actor.account.name;
+                actor_name = data.actor.name == null ? "XYZ.." : data.actor.name;
+                account_name = data.actor.account.name == null ? "XYZ.." : data.actor.account.name;
                 account_homePage = data.actor.account.homePage == null ? "undefined" : data.actor.account.homePage;
                 tracker.actor = new TrackerEvent.TraceActor(actor_name, account_name, account_homePage);
                 tracker.playerId = data.playerId;
@@ -213,8 +213,7 @@ function TrackerAsset() {
                 }
 
                 tracker.connected = true;
-                
-                if (tracker.actor !== null && tracker.actor.name !== "undefined") {
+                if (tracker.actor !== null && tracker.actor.name !== "XYZ..") {
                     tracker.active = true;
                 }
 
@@ -476,7 +475,7 @@ function TrackerAsset() {
 
         if (tracker.tracesUnlogged.length === 0) {
             callback(null, 'Everything OK');
-        } else if (tracker.actor === null  || tracker.actor.name === 'undefined' || tracker.actor.account.homepage === 'undefined') {
+        } else if (tracker.actor === null  || tracker.actor.name === 'XYZ..' || tracker.actor.account.homepage === 'undefined') {
             callback(true, 'Can\'t flush without actor');
         } else {
             var data = tracker.ProcessTraces(tracker.tracesUnlogged, 'xapi');
