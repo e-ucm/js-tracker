@@ -204,7 +204,7 @@ function TrackerAsset() {
                     account_homePage = data.actor.account.homePage;
                     tracker.actor = new TrackerEvent.TraceActor(actor_name, account_name, account_homePage);
                 } else {
-                    let errorMessage="Actor is not well defined. It should be defined with name, account.name and account.homePage. Your actor :" + data.actor
+                    let errorMessage="Actor is not well defined. It should be defined with name, account.name and account.homePage. Your actor :" + data.actor;
                     callback(errorMessage, null);
                 }
                 tracker.playerId = data.playerId;
