@@ -198,10 +198,15 @@ function TrackerAsset() {
                 }
 
                 tracker.auth = data.authToken;
-                actor_name = data.actor.name == null ? "XYZ.." : data.actor.name;
-                account_name = data.actor.account.name == null ? "XYZ.." : data.actor.account.name;
-                account_homePage = data.actor.account.homePage == null ? "undefined" : data.actor.account.homePage;
-                tracker.actor = new TrackerEvent.TraceActor(actor_name, account_name, account_homePage);
+                if(data.actor && data.actor.name && data.actor.account && data.actor.account.name && data.actor.account.homePage) {
+                    actor_name = data.actor.name;
+                    account_name = data.actor.account.name;
+                    account_homePage = data.actor.account.homePage;
+                    tracker.actor = new TrackerEvent.TraceActor(actor_name, account_name, account_homePage);
+                } else {
+                    let errorMessage="Actor is not well defined. It should be defined with name, account.name and account.homePage. Your actor :" + data.actor
+                    callback(errorMessage, null);
+                }
                 tracker.playerId = data.playerId;
                 tracker.objectId = data.objectId;
                 tracker.session = data.session;
