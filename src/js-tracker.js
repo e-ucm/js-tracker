@@ -15,25 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-var request = require('request');
+var axios = require('axios');
 var moment = require('moment');
+var uuidv4 = require('uuid').v4;
 
-function TrackerAsset() {
+function generateStatementId() {
+    return uuidv4();
+}
 
-    this.settings = {
-        host: 'https://rage.e-ucm.es/',
-        port: 443,
-        secure: true,
-        trackingCode: '',
-        userToken: '',
-        max_flush: 4,
-        batch_size: 10,
-        backupStorage: false,
-        debug: true,
-        force_actor: true
-    };
+function TrackerAsset(settings) {
+    if(settings) {
+        this.settings = {
+            host: settings.host ? settings.host : 'http://localhost/',
+            port: settings.port ? settings.port : 80,
+            secure: settings.secure ? settings.secure : false,
+            trackingCode: settings.trackingCode ? settings.trackingCode : '',
+            userToken: settings.userToken ? settings.userToken : '',
+            max_flush: settings.max_flush ? settings.max_flush : 4,
+            batch_size: settings.batch_size ? settings.batch_size : 10,
+            backupStorage: settings.backupStorage ? settings.backupStorage : false,
+            debug: settings.debug ? settings.debug : true,
+            force_actor: settings.force_actor ? settings.force_actor : true
+        };
+    } else {
+        this.settings = {
+            host: 'http://localhost/',
+            port: 80,
+            secure: false,
+            trackingCode: '',
+            userToken: '',
+            max_flush: 4,
+            batch_size: 10,
+            backupStorage: false,
+            debug: true,
+            force_actor: true
+        };
+    }
 
     this.collector = 'proxy/gleaner/collector/';
     this.backup_file = '';
@@ -49,8 +67,9 @@ function TrackerAsset() {
     this.active = false;
 
     this.session = 0;
-    this.actor = '{}';
+    this.actor = null;
     this.extensions = {};
+    this.context = new TrackerEvent.TraceContext(uuidv4());
 
     this.queue = [];
     this.tracesPending = [];
@@ -95,20 +114,19 @@ function TrackerAsset() {
 
         var tracker = this;
         this.HttpRequest(this.url + 'login', 'post', {'Content-Type': 'application/json' }, JSON.stringify({username: username, password: password}),
-         function (data) {
-            tracker.settings.userToken = 'Bearer ' + data.user.token;
-            if (tracker.settings.debug) {
-                console.info('AuthToken: ' + data.user.token);
-            }
-            callback(data, null);
-
-        },
-         function (data) {
-            if (tracker.settings.debug && data.responseJSON) {
-                console.log(data.responseJSON);
-            }
-            callback(data, true);
-        });
+            function (data) {
+                if (tracker.settings.debug && data.responseJSON) {
+                    console.log(data.responseJSON);
+                }
+                callback(true, data);
+            },
+            function (data) {
+                tracker.settings.userToken = 'Bearer ' + data.user.token;
+                if (tracker.settings.debug) {
+                    console.info('AuthToken: ' + data.user.token);
+                }
+                callback(null, data);
+            });
     };
 
     this.LoginBeaconing = function(accessToken, callback) {
@@ -116,32 +134,29 @@ function TrackerAsset() {
 
         var tracker = this;
         this.HttpRequest(this.url + 'login/beaconing', 'post', {'Content-Type': 'application/json' }, JSON.stringify({accessToken: accessToken}),
-         function (data) {
-            tracker.settings.userToken = 'Bearer ' + data.user.token;
-            if (tracker.settings.debug) {
-                console.info('AuthToken: ' + data.user.token);
-            }
-            callback(data, null);
-
-        },
-         function (data) {
-            if (tracker.settings.debug && data.responseJSON) {
-                console.log(data.responseJSON);
-            }
-            callback(data, true);
-        });
+            function (data) {
+                if (tracker.settings.debug && data.responseJSON) {
+                    console.log(data.responseJSON);
+                }
+                callback(true, data);
+            },
+            function (data) {
+                tracker.settings.userToken = 'Bearer ' + data.user.token;
+                if (tracker.settings.debug) {
+                    console.info('AuthToken: ' + data.user.token);
+                }
+                callback(null, data);
+            });
     };
 
     this.Start = function(callback) {
         this.started = true;
-
         if (this.settings.backupStorage) {
             this.backup_file = 'backup_' + Math.random().toString(36).slice(2);
             if (this.settings.debug) {
                 console.log('Backup file is: ' + this.backup_file);
             }
         }
-
         this.Connect(callback);
     };
 
@@ -180,53 +195,63 @@ function TrackerAsset() {
         }
 
         this.HttpRequest(this.url + this.collector + 'start/' + this.settings.trackingCode, 'post', headers, body,
-         function (data) {
-            if (tracker.settings.debug) {
-                console.info(data);
-            }
-
-            tracker.auth = data.authToken;
-            tracker.actor = data.actor;
-            tracker.playerId = data.playerId;
-            tracker.objectId = data.objectId;
-            tracker.session = data.session;
-
-            if (headers.Authorization) {
-                tracker.userToken = headers.Authorization;
-            }else {
-                tracker.userToken = data.playerId;
-            }
-
-            tracker.connected = true;
-            if (!(tracker.actor === null || tracker.actor === '{}')) {
-                tracker.active = true;
-            }
-
-            if (tracker.settings.debug) {
-                console.log('Tracker Started: ' + tracker.userToken);
-            }
-
-            callback(data, null);
-        },
-         function (data) {
-            if (tracker.settings.debug) {
-                if (data.responseJSON) {
-                    console.log(data.responseJSON);
-                }else {
-                    console.log('Can\'t connect.');
+            function (data) {
+                if (tracker.settings.debug) {
+                    if (data.responseJSON) {
+                        console.log(data.responseJSON);
+                    }else {
+                        console.log('Can\'t connect.');
+                    }
                 }
-            }
 
-            callback(data, true);
-        });
+                callback(true, data);
+            }, 
+            function (data) {
+                if (tracker.settings.debug) {
+                    console.info(data);
+                }
+
+                tracker.auth = data.authToken;
+                if(data.actor && data.actor.name && data.actor.account && data.actor.account.name && data.actor.account.homePage) {
+                    actor_name = data.actor.name;
+                    account_name = data.actor.account.name;
+                    account_homePage = data.actor.account.homePage;
+                    tracker.actor = new TrackerEvent.TraceActor(actor_name, account_name, account_homePage);
+                } else {
+                    let errorMessage="Actor is not well defined. It should be defined with name, account.name and account.homePage. Your actor :" + data.actor;
+                    callback(errorMessage, null);
+                }
+                tracker.playerId = data.playerId;
+                tracker.objectId = data.objectId;
+                tracker.session = data.session;
+
+                if (headers.Authorization) {
+                    tracker.userToken = headers.Authorization;
+                }else {
+                    tracker.userToken = data.playerId;
+                }
+
+                tracker.connected = true;
+                if (tracker.actor !== null && tracker.actor.name !== "XYZ..") {
+                    tracker.active = true;
+                }
+
+                if (tracker.settings.debug) {
+                    console.log('Tracker Started: ' + tracker.userToken);
+                }
+
+                callback(null, data);
+            });
     };
 
     this.ActionTrace = function(verb,type,id) {
         var t = new TrackerEvent(this);
+        t.setId(generateStatementId());
         t.setActor(this.actor);
         t.setEvent(new TrackerEvent.TraceVerb(verb));
         t.setTarget(new TrackerEvent.TraceObject(type, id));
         t.setResult(new TrackerEvent.TraceResult());
+        t.setContext(this.context);
         t.Result.setExtensions(this.extensions);
         this.extensions = {};
 
@@ -252,32 +277,35 @@ function TrackerAsset() {
     };
 
     this.DoFlush = function(callback) {
+        if (this.settings.debug) {
+            console.log("Doing Flush");
+        }
         var tracker = this;
 
         tracker.CheckStatus(function(res, err) {
             if (err && res === 'Not active') {
                 tracker.flushing = false;
-                callback(res, err);
+                callback(err, res);
                 return;
             }
 
-            tracker.ProcessQueue(function(result, error) {
+            tracker.ProcessQueue(function(error, result) {
                 if (error) {
                     tracker.flushing = false;
-                    callback(result, error);
+                    callback(error, result);
                 }else if (tracker.redo_flush) {
                     tracker.redo_flush = false;
-                    callback(result, error);
+                    callback(error, result);
 
                     var pcs = tracker.pending_callbacks.peek(tracker.pending_callbacks.length);
                     tracker.DoFlush(pcs[0]);
                     for (var i = 1; i < pcs.length; i++) {
-                        pcs[i](result, error);
+                        pcs[i](error, result);
                     }
                     tracker.pending_callbacks.dequeue(pcs.length);
                 }else {
                     tracker.flushing = false;
-                    callback(result, error);
+                    callback(error, result);
                 }
             });
         });
@@ -289,25 +317,23 @@ function TrackerAsset() {
                 console.log('Refusing to send traces without starting tracker (Active is False, should be True)');
             }
 
-            callback('Not active', true);
+            callback(true, 'Not active');
         } else if (!this.active) {
             if (this.settings.debug) {
                 console.log('Tracker is not active, trying to reconnect.');
             }
             this.Connect(callback);
         }else {
-            callback('Everything OK', false);
+            callback(false, 'Everything OK');
         }
     };
 
     this.ProcessQueue = function(callback) {
         var tracker = this;
-
         if (tracker.queue.length > 0 || tracker.tracesPending.length > 0 || tracker.tracesUnlogged.length > 0) {
             // Extract the traces from the queue and remove from the queue
             var traces = tracker.CollectTraces();
-
-            tracker.SendAllTraces(traces, function(result, error) {
+            tracker.SendAllTraces(traces, function(error, result) {
                 if (tracker.settings.backupStorage && traces.length > 0) {
                     var current = tracker.LocalStorage.getItem(tracker.backup_file);
                     var rawData = tracker.ProcessTraces(traces, 'csv');
@@ -320,24 +346,27 @@ function TrackerAsset() {
                 }
                 tracker.queue.dequeue(traces.length);
 
-                callback(result, error);
+                callback(error, result);
             });
         } else {
             if (tracker.settings.debug) {
                 console.log('Nothing to flush');
             }
 
-            callback('Nothing to flush', false);
+            callback(false, 'Nothing to flush');
         }
     };
 
     this.SendAllTraces = function(traces, callback) {
         var tracker = this;
-
+        if (this.settings.debug) {
+            console.log("Sending All traces");
+            console.log(tracker.active);
+        }
         if (tracker.active) {
-            tracker.SendUnloggedTraces(function(unl_result, unl_error) {
+            tracker.SendUnloggedTraces(function(unl_error, unl_result) {
                 if (!unl_error) {
-                    tracker.SendPendingTraces(function(pen_result, pen_error) {
+                    tracker.SendPendingTraces(function(pen_error, pen_result) {
                         var data = tracker.ProcessTraces(traces, 'xapi');
 
                         if (pen_error) {
@@ -345,36 +374,42 @@ function TrackerAsset() {
                                 tracker.tracesPending.push(data);
                             }
 
-                            callback('Can\'t send pending traces', true);
+                            callback(true, 'Can\'t send pending traces');
                         }else if (tracker.queue.length > 0) {
-                            tracker.SendTraces(data, function(result, error) {
+                            tracker.SendTraces(data, function(error, result) {
                                 if (error && tracker.queue.length > 0) {
                                     tracker.tracesPending.push(data);
-                                    callback('Can\'t send Traces', true);
+                                    callback(true, 'Can\'t send Traces');
                                 }else {
-                                    callback('Everything OK', false);
+                                    callback(false, 'Everything OK');
                                 }
                             });
                         }else {
-                            callback('Everything OK', false);
+                            callback(false, 'Everything OK');
                         }
                     });
                 }else {
-                    callback('Can\'t send Unlogged Traces', true);
+                    callback(true, 'Can\'t send Unlogged Traces');
                 }
             });
         } else {
             tracker.tracesUnlogged = tracker.tracesUnlogged.concat(traces);
-            callback('Tracker is not active', true);
+            callback(true, 'Tracker is not active');
         }
     };
 
     this.CollectTraces = function() {
+        if (this.settings.debug) {
+            console.log("Collecting traces");
+        }
         var cnt = this.settings.batch_size === 0 ? Number.MAX_SAFE_INTEGER : this.settings.batch_size;
         cnt = Math.min(this.queue.length, cnt);
-
         var traces = this.queue.peek(cnt);
-
+        if (this.settings.debug) {
+            console.log(cnt);
+            //console.log(traces);
+            console.log("Collecting traces done");
+        }        
         return traces;
     };
 
@@ -387,31 +422,31 @@ function TrackerAsset() {
             item = traces[i];
 
             switch (format) {
-            case 'xapi': {
-                sb.push(item.ToXapi());
-                break;
+                case 'xapi': {
+                    sb.push(item.ToXapi());
+                    break;
+                }
+                default: {
+                    sb.push(item.ToCsv());
+                    break;
+                }
             }
-            default: {
-                sb.push(item.ToCsv());
-                break;
-            }
-        }
         }
 
         switch (format) {
-        case 'csv': {
-            data = sb.join('\r\n') + '\r\n';
-            break;
+            case 'csv': {
+                data = sb.join('\r\n') + '\r\n';
+                break;
+            }
+            case 'xapi': {
+                data = '[\r\n' + sb.join(',\r\n') + '\r\n]';
+                break;
+            }
+            default: {
+                data = sb.join('\r\n');
+                break;
+            }
         }
-        case 'xapi': {
-            data = '[\r\n' + sb.join(',\r\n') + '\r\n]';
-            break;
-        }
-        default: {
-            data = sb.join('\r\n');
-            break;
-        }
-    }
 
         sb.length = 0;
 
@@ -429,13 +464,13 @@ function TrackerAsset() {
 
             var data = tracker.tracesPending[0];
 
-            tracker.SendTraces(data, function(result, error) {
+            tracker.SendTraces(data, function(error, result) {
                 if (error) {
                     if (tracker.settings.debug) {
                         console.log('Error sending enqueued traces');
                     }
                     // Does not keep sending old traces, but continues processing new traces so that get added to tracesPending
-                    callback('Error sending enqueued pending traces: \n' + result, true);
+                    callback(true, 'Error sending enqueued pending traces: \n' + result);
                 }else {
                     tracker.tracesPending.shift();
                     if (tracker.settings.debug) {
@@ -445,12 +480,12 @@ function TrackerAsset() {
                     if (tracker.tracesPending.length > 0) {
                         tracker.SendPendingTraces(callback);
                     } else {
-                        callback(result, null);
+                        callback(null, result);
                     }
                 }
             });
         }else {
-            callback('Everything OK', null);
+            callback(null, 'Everything OK');
         }
     };
 
@@ -458,18 +493,18 @@ function TrackerAsset() {
         var tracker = this;
 
         if (tracker.tracesUnlogged.length === 0) {
-            callback('Everything OK', null);
-        } else if (tracker.actor === null || tracker.actor === '{}') {
-            callback('Can\'t flush without actor', true);
+            callback(null, 'Everything OK');
+        } else if (tracker.actor === null  || tracker.actor.name === 'XYZ..' || tracker.actor.account.homepage === 'undefined') {
+            callback(true, 'Can\'t flush without actor');
         } else {
             var data = tracker.ProcessTraces(tracker.tracesUnlogged, 'xapi');
-            tracker.SendTraces(data, function(result, error) {
+            tracker.SendTraces(data, function(error, result) {
                 if (error) {
                     tracker.tracesPending.Add(data);
-                    callback('Error sending unlogged traces', true);
+                    callback(true, 'Error sending unlogged traces');
                 }else {
                     tracker.tracesUnlogged = [];
-                    callback('Everything OK', null);
+                    callback(null, 'Everything OK');
                 }
             });
         }
@@ -483,27 +518,27 @@ function TrackerAsset() {
         }
 
         this.HttpRequest(tracker.url + tracker.collector + 'track', 'post', { Authorization: tracker.auth, 'Content-Type': 'application/json' }, data,
-         function (data) {
-            if (tracker.settings.debug) {
-                console.info(data);
-            }
+            function (data) {
+                if (tracker.settings.debug && data.responseJSON) {
+                    console.log(data.responseJSON);
+                }
+                if (tracker.settings.debug) {
+                    console.log('Error flushing, connection disabled temporaly');
+                }
 
-            tracker.connected = true;
+                tracker.connected = false;
 
-            callback(data, null);
-        },
-         function (data) {
-            if (tracker.settings.debug && data.responseJSON) {
-                console.log(data.responseJSON);
-            }
-            if (tracker.settings.debug) {
-                console.log('Error flushing, connection disabled temporaly');
-            }
+                callback(true, data);
+            },
+            function (data) {
+                if (tracker.settings.debug) {
+                    console.info(data);
+                }
 
-            tracker.connected = false;
+                tracker.connected = true;
 
-            callback(data, true);
-        });
+                callback(null, data);
+            });
     };
 
     this.setScore = function(raw, min, max, scaled) {
@@ -628,33 +663,29 @@ function TrackerAsset() {
     };
 
     // CONNECTION
-    this.HttpRequest = function(url, method, headers, body, success, error) {
+    this.HttpRequest = function(url, method, headers, body, error, success) {
         var t = this;
 
-        var r = {
-            uri: url,
+        var config = {
+            url: url,
             method: method,
-            json: true,
             headers: headers
         };
-
+    
         if (method.toLowerCase() === 'post') {
-            if (body === '') {
-                r.body = {};
-            } else {
-                r.body = JSON.parse(body);
-            }
+            config.data = body === '' ? {} : JSON.parse(body);
         }
-
-        request(r, function (err, httpResponse, body) {
-            if (err || httpResponse && httpResponse.statusCode !== 200) {
+    
+        axios(config)
+            .then(function(response) {
+                success(response.data);
+            })
+            .catch(function(err) {
                 if (t.settings.debug) {
-                    console.log('Error:', err, 'Status code:', httpResponse ? httpResponse.statusCode : -1, 'Body', body);
+                    console.log('Error:', err, 'Status code:', err.response ? err.response.status : -1, 'Body', err.response ? err.response.data : null);
                 }
-                return error({ responseJSON: err ? err : body });
-            }
-            success(body);
-        });
+                error({ responseJSON: err.response ? err.response.data : err });
+            });    
     };
 
     this.LocalStorage = {
@@ -691,13 +722,23 @@ function TrackerEvent (tracker) {
 
     this.TimeStamp = Date.now();
 
+    this.Id = null;
     this.Actor = null;
     this.Event = null;
     this.Target = null;
     this.Result = null;
+    this.Context = null;
+    
+    this.setId = function(id) {
+        this.Id = id;
+    };
 
     this.setActor = function(actor) {
         this.Actor = actor;
+    };
+
+    this.setContext = function(context) {
+        this.Context = context;
     };
 
     this.setEvent = function(event) {
@@ -722,11 +763,21 @@ function TrackerEvent (tracker) {
          (this.Result === null && this.Result.ToCsv() ? '' : this.Result.ToCsv());
     };
 
+    this.getActor = function() {
+        return this.Actor === null ? (this.tracker.actor === null ? new TrackerEvent.TraceActor("undefined", "undefined", "undefined") : this.tracker.actor) : this.Actor;
+    };
+
+    this.getContext = function() {
+        return this.Context === null ? (this.tracker.context === null ? {} : this.tracker.context) : this.Context;
+    };
+
     this.ToXapi = function() {
         var t = {
-            actor: this.Actor === null || this.Actor === '{}' ? (this.tracker.actor === null ? {} : this.tracker.actor) : this.Actor,
+            id : this.Id,
+            actor: this.getActor().ToXapi(),
             verb: this.Event.ToXapi(),
             object: this.Target.ToXapi(),
+            context: this.getContext().ToXapi(),
             timestamp: moment().toISOString()
         };
 
@@ -744,6 +795,40 @@ function TrackerEvent (tracker) {
 // ##############################################
 // ################ NESTED TYPES ################
 // ##############################################
+
+// Trace Actor
+
+TrackerEvent.TraceActor = function(name, accountname, accounthomepage) {
+    this.name = name;
+    this.account = new TrackerEvent.TraceActor.TraceAccount(accountname, accounthomepage);
+
+    this.ToCsv = function() {
+        return this.name.replaceAll(',', '\\,') ;
+    };
+
+    this.ToXapi = function() {
+        return {
+            account: this.account.ToXapi(),
+            name: this.name
+        };
+    };
+};
+
+TrackerEvent.TraceActor.TraceAccount = function(name, homepage) {
+    this.name = name;
+    this.homepage = homepage;
+
+    this.ToCsv = function() {
+        return this.name.replaceAll(',', '\\,') ;
+    };
+
+    this.ToXapi = function() {
+        return {
+                homePage: this.homepage,
+                name: this.name
+            };
+    };
+};
 
 // Trace Verb
 
@@ -773,6 +858,31 @@ TrackerEvent.TraceVerb.VerbIDs = {
     unlocked: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
     interacted: 'http://adlnet.gov/expapi/verbs/interacted',
     used: 'https://w3id.org/xapi/seriousgames/verbs/used'
+};
+
+// Trace Context
+
+TrackerEvent.TraceContext = function(registration) {
+    this.registration = registration;
+
+    this.ToCsv = function() {
+        return this.registration.replaceAll(',', '\\,') ;
+    };
+
+    this.ToXapi = function() {
+        return {
+            registration: this.registration,
+            contextActivities : {
+                category : [{
+                    id : TrackerEvent.TraceContext.categoryIDs.seriousgame
+                }]
+            }
+        };
+    };
+};
+
+TrackerEvent.TraceContext.categoryIDs = {
+    seriousgame : 'https://w3id.org/xapi/seriousgame'
 };
 
 // Trace Target
@@ -854,12 +964,12 @@ TrackerEvent.TraceResult = function() {
 
         for (var key in extensions) {
             switch (key.toLowerCase()) {
-            case 'success': {       this.Success = extensions[key]; break; }
-            case 'completion': {    this.Completion = extensions[key]; break; }
-            case 'response': {      this.Response = extensions[key]; break; }
-            case 'score': {         this.Score = extensions[key]; break; }
-            default: {              this.Extensions[key] = extensions[key]; break; }
-        }
+            case 'success': { this.Success = extensions[key]; break; }
+            case 'completion': { this.Completion = extensions[key]; break; }
+            case 'response': { this.Response = extensions[key]; break; }
+            case 'score': { this.Score = extensions[key]; break; }
+            default: { this.Extensions[key] = extensions[key]; break; }
+            }
         }
     };
 

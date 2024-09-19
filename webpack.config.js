@@ -1,33 +1,25 @@
-'use strict';
-
 const path = require('path');
-const cloneDeep = require('lodash.clonedeep');
-const request = require('request');
-const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
-const defaults = {
-    context: path.resolve(__dirname, 'src'),
-
-    entry: './js-tracker.js',
-
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        library: 'TrackerAsset',
-        libraryTarget: 'umd',
-        filename: 'js-tracker.bundle.js'
-    },
-
-    node: {
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty'
-    },
-
-    plugins: []
+module.exports = {
+  entry: './src/js-tracker.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'js-tracker.bundle.js'
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin()],
+  },
+  module: {
+    rules: [
+      {
+        test: "/test/",
+        exclude: "/node_modules/",
+        use: {
+          loader: 'babel-loader',
+        },
+      },
+    ],
+  },
 };
-
-var minified = cloneDeep(defaults);
-minified.plugins.push(new webpack.optimize.UglifyJsPlugin());
-minified.output.filename = 'js-tracker.bundle.min.js';
-
-module.exports = [defaults, minified];
