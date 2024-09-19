@@ -2,7 +2,7 @@
   "name": "xapi-tracker",
   "version": "1.0.0",
   "description": "Client Side Tracker Asset written in JavaScript",
-  "main": "src/tk-widget.js",
+  "main": "src/js-tracker.js",
   "repository": "https://github.com/e-ucm/js-tracker",
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",

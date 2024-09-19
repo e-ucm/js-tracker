@@ -24,20 +24,34 @@ function generateStatementId() {
     return uuidv4();
 }
 
-function TrackerAsset() {
-
-    this.settings = {
-        host: 'http://localhost/',
-        port: 80,
-        secure: false,
-        trackingCode: '',
-        userToken: '',
-        max_flush: 4,
-        batch_size: 10,
-        backupStorage: false,
-        debug: true,
-        force_actor: true
-    };
+function TrackerAsset(settings) {
+    if(settings) {
+        this.settings = {
+            host: settings.host ? settings.host : 'http://localhost/',
+            port: settings.port ? settings.port : 80,
+            secure: settings.secure ? settings.secure : false,
+            trackingCode: settings.trackingCode ? settings.trackingCode : '',
+            userToken: settings.userToken ? settings.userToken : '',
+            max_flush: settings.max_flush ? settings.max_flush : 4,
+            batch_size: settings.batch_size ? settings.batch_size : 10,
+            backupStorage: settings.backupStorage ? settings.backupStorage : false,
+            debug: settings.debug ? settings.debug : true,
+            force_actor: settings.force_actor ? settings.force_actor : true
+        };
+    } else {
+        this.settings = {
+            host: 'http://localhost/',
+            port: 80,
+            secure: false,
+            trackingCode: '',
+            userToken: '',
+            max_flush: 4,
+            batch_size: 10,
+            backupStorage: false,
+            debug: true,
+            force_actor: true
+        };
+    }
 
     this.collector = 'proxy/gleaner/collector/';
     this.backup_file = '';
