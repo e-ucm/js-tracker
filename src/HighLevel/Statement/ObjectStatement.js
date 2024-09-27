@@ -45,14 +45,21 @@ class ObjectStatement {
     description;
 
     toXAPI() {
-        return {
-            id: this.id,
-            definition: {
-                name: this.name ? { "en-US": this.name } : null,
-                description: this.description ? { "en-US": this.description } : null,
-                type: this.typeIds[this.type]
-            }
+        var object= {}
+        if(this.id) {
+            object.id = this.id;
         }
+        object.definition={}
+        if(this.name) {
+            object.definition.name = { "en-US": this.name };
+        }
+        if(this.description) {
+            object.definition.description = { "en-US": this.description };
+        }
+        if(this.type) {
+            object.definition.type = this.typeIds[this.type];
+        }
+        return object;
     }
 }
 

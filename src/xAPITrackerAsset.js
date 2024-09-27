@@ -25,7 +25,6 @@ class xAPITrackerAsset {
     
     Trace(verbId, objectType, objectId) {
         var statement=new Statement(this.actor, verbId, objectId, objectType, this.context);
-        this.enqueue(statement.toXAPI());
         return statement;
     }
 

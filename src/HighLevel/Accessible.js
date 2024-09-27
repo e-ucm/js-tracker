@@ -16,13 +16,17 @@ class Accessible {
     Accessed(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        return this.tracker.Trace('accessed',this.AccessibleType.properties[type],accessibleId);
+        var statement = this.tracker.Trace('accessed',this.AccessibleType.properties[type],accessibleId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 
     Skipped(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        return this.tracker.Trace('skipped',this.AccessibleType.properties[type],accessibleId);
+        var statement = this.tracker.Trace('skipped',this.AccessibleType.properties[type],accessibleId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 }
 

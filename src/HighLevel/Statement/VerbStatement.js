@@ -22,10 +22,15 @@ class VerbStatement {
     verbDisplay;
 
     toXAPI() {
-        return {
-            id: this.verbId,
-            display: { "en": this.verbDisplay }
+        var verb = {}
+        if(this.verbId) {
+            verb.id = this.verbId;
         }
+        
+        if(this.verbDisplay) {
+            verb.display = { "en": this.verbDisplay };
+        }
+        return verb;
     }
 }
 

@@ -24,6 +24,7 @@ fs.readFile(currentdir+'/config.json', 'utf8', (err, data) => {
         var GameObjectTracker=new GameObject(xapiTracker);
         var mystatement=accessibleTracker.Accessed("https://testid/");
         var mystatement=completableTracker.Initialized("https://mynewSeriousGame", 0);
+        var mystatement=completableTracker.Progressed("https://mynewSeriousGame", 0, 0.5);
         var mystatement=xapiTracker.Trace("initialized", "game", "https://github.com/xapijs/xapi");
         console.log(mystatement);
     } catch (error) {

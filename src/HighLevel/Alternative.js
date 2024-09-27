@@ -17,16 +17,20 @@ class Alternative {
 
     Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
-
-        this.tracker.setResponse(optionId);
-        return this.tracker.Trace('selected',this.AlternativeType.properties[type],alternativeId);
+        
+        var statement = this.tracker.Trace('selected',this.AlternativeType.properties[type],alternativeId);
+        statement.setResponse(optionId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 
     Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
-
-        this.tracker.setResponse(optionId);
-        return this.tracker.Trace('unlocked',this.AlternativeType.properties[type],alternativeId);
+        
+        var statement = this.tracker.Trace('unlocked',this.AlternativeType.properties[type],alternativeId);
+        statement.setResponse(optionId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 }
 module.exports = Alternative;

@@ -21,14 +21,18 @@ class Completable {
     Initialized(completableId, type) {
         if (typeof type === 'undefined') {type = 8;}
 
-        return this.tracker.Trace('initialized',this.CompletableType.properties[type],completableId);
+        var statement = this.tracker.Trace('initialized',this.CompletableType.properties[type],completableId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 
     Progressed(completableId, type, progress) {
         if (typeof type === 'undefined') {type = 8;}
 
-        //this.tracker.setProgress(progress);
-        return this.tracker.Trace('progressed',this.CompletableType.properties[type],completableId);
+        var statement = this.tracker.Trace('progressed',this.CompletableType.properties[type],completableId);
+        statement.setProgress(progress);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 
     Completed(completableId, type, success, score) {
@@ -36,9 +40,11 @@ class Completable {
         if (typeof success === 'undefined') {success = true;}
         if (typeof score === 'undefined') {score = 1;}
 
-        //this.tracker.setSuccess(success);
-        //this.tracker.setScore(score);
-        return this.tracker.Trace('completed',this.CompletableType.properties[type],completableId);
+        var statement = this.tracker.Trace('completed',this.CompletableType.properties[type],completableId);
+        statement.setSuccess(success);
+        statement.setScore(score);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 }
 

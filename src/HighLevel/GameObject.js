@@ -16,13 +16,17 @@ class GameObject {
     Interacted(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
-        return this.tracker.Trace('interacted',this.GameObjectType.properties[type],gameobjectId);
+        var statement = this.tracker.Trace('interacted',this.GameObjectType.properties[type],gameobjectId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 
     Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
-        return this.tracker.Trace('used',this.GameObjectType.properties[type],gameobjectId);
+        var statement = this.tracker.Trace('used',this.GameObjectType.properties[type],gameobjectId);
+        this.tracker.enqueue(statement.toXAPI());
+        return statement;
     };
 }
 module.exports = GameObject;
