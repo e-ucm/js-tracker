@@ -5,6 +5,10 @@ const Statement = require("./HighLevel/Statement/Statement");
 
 class xAPITrackerAsset {
     constructor(endpoint, auth, homePage, token) {
+        this.updateAuth(endpoint, auth, homePage, token);
+    }
+
+    updateAuth(endpoint, auth, homePage, token) {
         this.endpoint = endpoint;
         this.auth = auth;
         this.homePage = homePage;
