@@ -31,6 +31,8 @@ class xAPITrackerAsset {
 
     enqueue(statement) {
         const mystatement=[statement];
+        console.log("Sending to LRS ")
+        console.log(mystatement);
         this.xapi.sendStatement({statement: mystatement})
         .then((result) => {
             console.log(result);

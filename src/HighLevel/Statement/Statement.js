@@ -13,6 +13,8 @@ class Statement {
         this.object = new ObjectStatement(objectId, objectType);
         this.timestamp = new Date();
         this.context = context;
+        this.version = "1.0.3";
+        this.result = new TraceResult();
     }
     
     actor;
@@ -20,6 +22,7 @@ class Statement {
     object;
     timestamp;
     context;
+    result;
 
     toXAPI() {
         return {
@@ -28,7 +31,9 @@ class Statement {
             verb: this.verb ? this.verb.toXAPI(): null,
             object:this.object ?  this.object.toXAPI() : null,
             timestamp: this.timestamp.toISOString(),
-            context: this.context ? this.context.toXAPI() : null
+            context: this.context ? this.context.toXAPI() : null, 
+            version: this.version ? this.version : null,
+            result: this.result ? this.result : null
         }
     }
 }
