@@ -19,7 +19,6 @@ class xAPITrackerAsset {
             endpoint: endpoint,
             auth: auth
         });
-        console.log(this.xapi);
     }
     
     xapi;

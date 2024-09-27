@@ -235,7 +235,6 @@ class OAuth2Protocol {
                 } else {
                     // Handle the successful authorization response
                     authorizeResponse = code; // Capture the authorization code
-                    console.log(authorizeResponse);
                     res.send('Authorization successful! You can close this tab now.'); // Response to the user
                 }
             });
