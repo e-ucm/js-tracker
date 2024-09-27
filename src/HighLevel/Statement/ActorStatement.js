@@ -13,7 +13,7 @@ class ActorStatement {
             name: this.token,
             account: {
                 name: this.accountName,
-                homepage: this.homepage
+                homePage: this.homepage
             }
         }
     }

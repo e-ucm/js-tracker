@@ -111,7 +111,7 @@ class Statement {
             xapiTrace.timestamp = this.timestamp.toISOString();
         }
         if(this.context) {
-            xapiTrace.context = this.context;
+            xapiTrace.context = this.context.toXAPI();
         }
         if(this.version) {
             xapiTrace.version = this.version;

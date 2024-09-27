@@ -15,21 +15,21 @@ class Alternative {
         properties: ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
     };
 
-    Selected(alternativeId, optionId, type) {
+    async Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
         var statement = this.tracker.Trace('selected',this.AlternativeType.properties[type],alternativeId);
         statement.setResponse(optionId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    Unlocked(alternativeId, optionId, type) {
+    async Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
         var statement = this.tracker.Trace('unlocked',this.AlternativeType.properties[type],alternativeId);
         statement.setResponse(optionId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 }

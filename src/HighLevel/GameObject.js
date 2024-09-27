@@ -13,19 +13,19 @@ class GameObject {
         properties: ['enemy', 'npc', 'item', 'gameobject']
     };
 
-    Interacted(gameobjectId, type) {
+    async Interacted(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('interacted',this.GameObjectType.properties[type],gameobjectId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    Used(gameobjectId, type) {
+    async Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('used',this.GameObjectType.properties[type],gameobjectId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 }

@@ -13,19 +13,19 @@ class Accessible {
         properties: ['screen', 'area', 'zone', 'cutscene', 'accessible']
     };
 
-    Accessed(accessibleId, type) {
+    async Accessed(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
         var statement = this.tracker.Trace('accessed',this.AccessibleType.properties[type],accessibleId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    Skipped(accessibleId, type) {
+    async Skipped(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
         var statement = this.tracker.Trace('skipped',this.AccessibleType.properties[type],accessibleId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 }

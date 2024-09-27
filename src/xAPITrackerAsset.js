@@ -15,6 +15,7 @@ class xAPITrackerAsset {
             endpoint: endpoint,
             auth: auth
         });
+        console.log(this.xapi);
     }
     
     xapi;
@@ -28,15 +29,17 @@ class xAPITrackerAsset {
         return statement;
     }
 
-    enqueue(statement) {
-        const mystatement=[statement];
+    async enqueue(statement) {
         console.log("Sending to LRS ")
-        console.log(mystatement);
-        this.xapi.sendStatement({statement: mystatement})
+        console.log(statement);
+        //const mystatement=statement;
+        //this.xapi.sendStatement({statement: mystatement})
+        const mystatements=[statement];
+        await this.xapi.sendStatements({statements: mystatements})
         .then((result) => {
+            console.log("Statement send");
             console.log(result);
-        })
-        .catch(console.error);
+        }).catch(console.error);
     }
 }
 

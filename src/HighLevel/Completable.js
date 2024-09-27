@@ -18,24 +18,24 @@ class Completable {
         properties: ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable']
     };
 
-    Initialized(completableId, type) {
+    async Initialized(completableId, type) {
         if (typeof type === 'undefined') {type = 8;}
 
         var statement = this.tracker.Trace('initialized',this.CompletableType.properties[type],completableId);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    Progressed(completableId, type, progress) {
+    async Progressed(completableId, type, progress) {
         if (typeof type === 'undefined') {type = 8;}
 
         var statement = this.tracker.Trace('progressed',this.CompletableType.properties[type],completableId);
         statement.setProgress(progress);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    Completed(completableId, type, success, score) {
+    async Completed(completableId, type, success, score) {
         if (typeof type === 'undefined') {type = 8;}
         if (typeof success === 'undefined') {success = true;}
         if (typeof score === 'undefined') {score = 1;}
@@ -43,7 +43,7 @@ class Completable {
         var statement = this.tracker.Trace('completed',this.CompletableType.properties[type],completableId);
         statement.setSuccess(success);
         statement.setScore(score);
-        this.tracker.enqueue(statement.toXAPI());
+        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 }
