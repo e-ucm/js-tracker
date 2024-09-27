@@ -151,16 +151,39 @@ class OAuth2Protocol {
   }
 
   generatePkceChallenge() {
-    const codeVerifier = this.generateRandomString();
+    const codeVerifier = this.generateRandomString(32);
     const codeChallenge = this.base64UrlEncode(this.sha256(codeVerifier));
     return { codeVerifier, codeChallenge };
   }
 
-  generateRandomString() {
-    const array = new Uint32Array(56 / 2);
-    window.crypto.getRandomValues(array);
-    return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+  generateRandomString(length) {
+    let array;
+
+    // Check if window is defined (i.e., running in a browser)
+    if (typeof window !== 'undefined' && window.crypto) {
+        array = new Uint32Array(length);
+        window.crypto.getRandomValues(array);
+    } 
+    // If running in Node.js, use the crypto module
+    else if (typeof require !== 'undefined') {
+        const crypto = require('crypto');
+        
+        // Ensure that 'length' is passed correctly as the size argument
+        if (typeof length !== 'number' || length <= 0) {
+            throw new Error('Invalid length provided for random string generation');
+        }
+
+        // Generate random bytes, then convert them to a hexadecimal string
+        array = crypto.randomBytes(length);
+    } else {
+        throw new Error('No suitable random generator available');
+    }
+
+    // Convert array to hexadecimal string
+    return Array.from(array, byte => ('0' + byte.toString(16)).substr(-2)).join('');
   }
+
+
 
   sha256(plain) {
     const encoder = new TextEncoder();
@@ -179,29 +202,71 @@ class OAuth2Protocol {
     return 'http://localhost:3000/callback';  // Example redirect URL
   }
 
-  async doAuthorizeRequest(authUrl, clientId, scope, state, redirectUrl, pkceType, codeChallenge) {
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: clientId,
-      scope: scope || '',
-      state: state || '',
-      redirect_uri: redirectUrl
-    });
+  appendParamsToExistingQueryString(url, params) {
+    const query = new URLSearchParams(params);
+    return `${url}${query.toString()}`;
+  }
 
-    if (pkceType === 'S256') {
-      params.append('code_challenge', codeChallenge);
-      params.append('code_challenge_method', 'S256');
+
+  async doAuthorizeRequest(authorizeEndpoint, clientId, scope, state, redirectUrl, pkceType, codeChallenge = null) {
+    const parameters = {
+        response_type: 'code',
+        client_id: clientId,
+        redirect_uri: redirectUrl,
+    };
+
+    if (pkceType !== 'None') {
+        parameters.code_challenge = codeChallenge;
+        parameters.code_challenge_method = pkceType.toString();
     }
 
-    const url = `${authUrl}?${params.toString()}`;
-    window.location.href = url;
+    if (scope) parameters.scope = scope;
+    if (state) parameters.state = state;
 
-    // This needs to handle the actual authorization callback flow.
-    return new Promise(resolve => {
-      // Resolve with authorization code after user login
-      // e.g. resolve('authCode');
-    });
-  }
+    let authorizeResponse = null;
+
+    try {
+        const url = this.appendParamsToExistingQueryString(`${authorizeEndpoint}?`, parameters);
+
+        // Check if running in Node.js or browser
+        if (typeof window !== 'undefined' && window.location) {
+            // Browser-based redirect
+            AuthUtility.OpenUrl(url);
+        } else {
+            // Node.js environment: Manual handling (use `open` npm package to open in browser)
+            const open = await import('open'); // Use dynamic import here
+            await open.default(url); // Access the `default` export for ES modules
+
+            const listener = {
+                registerListener: function(callback) {
+                    // Code to handle the listener registration
+                    this.callback = callback;
+                },
+                notify: function(data) {
+                    if (this.callback) {
+                        this.callback(data);
+                    }
+                }
+            };
+            // Check if listener is provided and has the registerListener function
+            if (listener && typeof listener.registerListener === 'function') {
+              listener.registerListener(auth => (authorizeResponse = auth));
+
+              while (authorizeResponse === null) {
+                  await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            } else {
+              console.error("Listener object does not have a registerListener method");
+            }
+        }
+
+        return authorizeResponse;
+    } catch (error) {
+        // Handle exceptions
+        throw error;
+    }
+}
+
 
   async updateParamsForAuth(request) {
     if (this.token.expired) {
