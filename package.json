@@ -18,7 +18,8 @@
     "uuid": "^10.0.0",
     "axios": "1.7.7",
     "crypto":"1.0.1",
-    "open": "10.1.0"
+    "open": "10.1.0",
+    "express": "4.21.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.0",

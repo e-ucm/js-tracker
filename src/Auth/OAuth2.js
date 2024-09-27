@@ -19,7 +19,7 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     async initAuth(endpoint, config, homePage, token) {
         const oAuth2Token = await this.getToken(config);
         const auth = "Bearer " + oAuth2Token;
-        
+        console.log(auth);
         // Now that we have the token, update the authorization in the super class
         this.updateAuth(endpoint, auth, homePage, token);
     }

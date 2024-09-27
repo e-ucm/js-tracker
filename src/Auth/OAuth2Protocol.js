@@ -1,4 +1,6 @@
 var axios = require('axios');
+var { randomBytes, createHash } = require('crypto');
+const express = require('express');
 
 class OAuth2Protocol {
   constructor() {
@@ -150,40 +152,22 @@ class OAuth2Protocol {
     return await this.doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
   }
 
+  // Function to generate a random code verifier
+  generateRandomString(length) {
+    return randomBytes(Math.ceil(length / 2))
+      .toString('hex') // Convert to hexadecimal
+      .slice(0, length); // Return required length
+  }
+
+  // Function to generate the PKCE challenge
   generatePkceChallenge() {
-    const codeVerifier = this.generateRandomString(32);
-    const codeChallenge = this.base64UrlEncode(this.sha256(codeVerifier));
+    const codeVerifier = this.generateRandomString(128); // Generate a random code verifier
+    const hash = createHash('sha256'); // Create a SHA-256 hash
+    hash.update(codeVerifier); // Update hash with the code verifier
+    const codeChallenge = hash.digest('base64url'); // Base64 URL encode the hash
+
     return { codeVerifier, codeChallenge };
   }
-
-  generateRandomString(length) {
-    let array;
-
-    // Check if window is defined (i.e., running in a browser)
-    if (typeof window !== 'undefined' && window.crypto) {
-        array = new Uint32Array(length);
-        window.crypto.getRandomValues(array);
-    } 
-    // If running in Node.js, use the crypto module
-    else if (typeof require !== 'undefined') {
-        const crypto = require('crypto');
-        
-        // Ensure that 'length' is passed correctly as the size argument
-        if (typeof length !== 'number' || length <= 0) {
-            throw new Error('Invalid length provided for random string generation');
-        }
-
-        // Generate random bytes, then convert them to a hexadecimal string
-        array = crypto.randomBytes(length);
-    } else {
-        throw new Error('No suitable random generator available');
-    }
-
-    // Convert array to hexadecimal string
-    return Array.from(array, byte => ('0' + byte.toString(16)).substr(-2)).join('');
-  }
-
-
 
   sha256(plain) {
     const encoder = new TextEncoder();
@@ -232,36 +216,42 @@ class OAuth2Protocol {
         if (typeof window !== 'undefined' && window.location) {
             // Browser-based redirect
             AuthUtility.OpenUrl(url);
+            //TODO in brower mode 
+            //authorizeResponse = 
+            //return authorizeResponse;
         } else {
             // Node.js environment: Manual handling (use `open` npm package to open in browser)
+            const app = express();
+            const PORT = 3000;
+            
+            // Route to handle the callback
+            app.get('/callback', (req, res) => {
+                // Assuming the authorization code is passed as a query parameter
+                const { code, error } = req.query;
+            
+                if (error) {
+                    console.error("Error during authorization:", error);
+                    res.send('Authorization failed.'); // Handle authorization failure
+                } else {
+                    // Handle the successful authorization response
+                    authorizeResponse = code; // Capture the authorization code
+                    console.log(authorizeResponse);
+                    res.send('Authorization successful! You can close this tab now.'); // Response to the user
+                }
+            });
+            // Start the server
+            app.listen(3000, () => {
+              console.log(`Server is running at http://localhost:${PORT}`);
+            });
             const open = await import('open'); // Use dynamic import here
             await open.default(url); // Access the `default` export for ES modules
-
-            const listener = {
-                registerListener: function(callback) {
-                    // Code to handle the listener registration
-                    this.callback = callback;
-                },
-                notify: function(data) {
-                    if (this.callback) {
-                        this.callback(data);
-                    }
-                }
-            };
-            // Check if listener is provided and has the registerListener function
-            if (listener && typeof listener.registerListener === 'function') {
-              listener.registerListener(auth => (authorizeResponse = auth));
-
-              while (authorizeResponse === null) {
-                  await new Promise(resolve => setTimeout(resolve, 100));
-              }
-            } else {
-              console.error("Listener object does not have a registerListener method");
+            // Polling to wait for the authorization response
+            while (authorizeResponse === null) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // Wait for a while
             }
-        }
-
         return authorizeResponse;
-    } catch (error) {
+    }
+  } catch (error) {
         // Handle exceptions
         throw error;
     }
