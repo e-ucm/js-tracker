@@ -4,15 +4,16 @@ import ResultStatements from "./ResultStatement.js";
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Statement {
-    constructor(actor, verbId, objectId, objectType, context) {
+    constructor(actor, verbId, objectId, objectType, context, defautURI="mygame") {
         this.id = uuidv4();
         this.actor = actor;
         this.verb = new VerbStatement(verbId);
-        this.object = new ObjectStatement(objectId, objectType);
+        this.object = new ObjectStatement(setAsUri(objectId, defautURI), objectType);
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatements();
+        this.defautURI = defautURI;
     }
     
     actor;
@@ -21,6 +22,19 @@ export default class Statement {
     timestamp;
     context;
     result;
+
+    static setAsUri(id, defaultValue="mygame") {
+        if(isUri(id)) {
+            return id;
+        } else {
+            return `${defaultValue}://${id}`;
+        }
+    }
+    
+    static isUri(id) {
+        const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
+        return pattern.test(id);
+    }
 
     setScore(raw, min, max, scaled) {
         if (exists(raw)) {
@@ -86,7 +100,7 @@ export default class Statement {
     };
 
     addExtension(key,value) {
-        this.result.setExtension(key, value);
+        this.result.setExtension(setAsUri(key, defautURI), value);
     };
 
 

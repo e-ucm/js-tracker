@@ -19,6 +19,7 @@ export default class xAPITrackerAsset {
             endpoint: endpoint,
             auth: auth
         });
+        this.defaultUri="mygame";
     }
     
     xapi;
@@ -26,9 +27,10 @@ export default class xAPITrackerAsset {
     auth;
     homePage;
     token;
+    defautURI;
     
     Trace(verbId, objectType, objectId) {
-        var statement=new Statement(this.actor, verbId, objectId, objectType, this.context);
+        var statement=new Statement(this.actor, verbId, objectId, objectType, this.context, this.defautURI);
         return statement;
     }
 
