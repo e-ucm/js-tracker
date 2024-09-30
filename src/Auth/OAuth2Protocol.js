@@ -1,6 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import express from 'express';
+import PkceGenerator from './PkceGenerator.js';
 
 export default class OAuth2Protocol {
   constructor() {
@@ -89,7 +90,12 @@ export default class OAuth2Protocol {
     let codeVerifier = null, codeChallenge = null;
     if (pkceType === 'S256') {
       // Generate PKCE verifier and challenge
-      ({ codeVerifier, codeChallenge } = this.generatePkceChallenge());
+      const pkceGenerator = new PkceGenerator();
+      var pkce  = await pkceGenerator.generatePkceChallenge();
+      codeVerifier=pkce["codeVerifier"];
+      codeChallenge=pkce["codeChallenge"];
+      console.log('Code Verifier:', codeVerifier);
+      console.log('Code Challenge:', codeChallenge);
     }
 
     const redirectUrl = this.listenForCallback();
@@ -152,45 +158,6 @@ export default class OAuth2Protocol {
     return await this.doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
   }
 
-  // Function to generate a random code verifier
-  generateRandomString(length) {
-    if (typeof window !== 'undefined' && window.location) {
-      const array = new Uint32Array(56 / 2);
-      window.crypto.getRandomValues(array);
-      return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
-    } else {
-      return crypto.randomBytes(Math.ceil(length / 2))
-          .toString('hex') // Convert to hexadecimal
-          .slice(0, length); // Return required length
-    } 
-  }
-
-  // Function to generate the PKCE challenge
-  generatePkceChallenge() {
-    if (typeof window !== 'undefined' && window.location) {
-      const codeVerifier = this.generateRandomString(128);
-      const codeChallenge = this.base64UrlEncode(this.sha256(codeVerifier));
-      return { codeVerifier, codeChallenge };
-    } else {
-      const codeVerifier = this.generateRandomString(128); // Generate a random code verifier
-      const hash = crypto.createHash('sha256'); // Create a SHA-256 hash
-      hash.update(codeVerifier); // Update hash with the code verifier
-      const codeChallenge = hash.digest('base64url'); // Base64 URL encode the hash
-      return { codeVerifier, codeChallenge };
-    }
-  }
-
-  sha256(plain) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return crypto.subtle.digest('SHA-256', data);
-  }
-
-  base64UrlEncode(arrayBuffer) {
-    const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBuffer)));
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-
   listenForCallback() {
     // You need to handle redirect/callback logic here.
     // For example, listening on a local server or using a deep-linking URL.
@@ -226,7 +193,12 @@ export default class OAuth2Protocol {
         // Check if running in Node.js or browser
         if (typeof window !== 'undefined' && window.location) {
             // Browser-based redirect
-            AuthUtility.OpenUrl(url);
+            window.location.href = url;
+            // This needs to handle the actual authorization callback flow.
+            return new Promise(resolve => {
+              // Resolve with authorization code after user login
+              // e.g. resolve('authCode');
+            });
         } else {
             // Node.js environment: Manual handling (use `open` npm package to open in browser)
             //const express = require('express');
