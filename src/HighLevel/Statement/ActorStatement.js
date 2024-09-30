@@ -1,4 +1,4 @@
-class ActorStatement {
+export default class ActorStatement {
     constructor(token, accountName, homepage) {
         this.token = token;
         this.accountName = accountName;
@@ -18,6 +18,3 @@ class ActorStatement {
         }
     }
 }
-
-
-module.exports = ActorStatement;

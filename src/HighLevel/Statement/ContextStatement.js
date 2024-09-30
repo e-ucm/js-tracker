@@ -1,6 +1,6 @@
-var uuidv4 = require('uuid').v4;
+import { v4 as uuidv4 } from 'uuid';
 
-class ContextStatement {
+export default class ContextStatement {
     constructor() {
         this.registration=uuidv4();
     }
@@ -21,5 +21,3 @@ class ContextStatement {
         }
     }
 }
-
-module.exports = ContextStatement;

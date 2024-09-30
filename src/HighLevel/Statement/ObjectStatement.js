@@ -1,4 +1,4 @@
-class ObjectStatement {
+export default class ObjectStatement {
     constructor(id, type, name = null, description = null) {
         this.id = id;
         this.type = type;
@@ -62,5 +62,3 @@ class ObjectStatement {
         return object;
     }
 }
-
-module.exports = ObjectStatement;

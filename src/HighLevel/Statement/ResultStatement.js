@@ -1,4 +1,4 @@
-class ResultStatements {
+export default class ResultStatements {
     constructor() {
         this.parent = null;
         this.Score = null;
@@ -74,5 +74,3 @@ var obsize = function(obj) {
     }
     return size;
 };
-
-module.exports = ResultStatements

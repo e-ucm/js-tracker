@@ -1,4 +1,4 @@
-class Completable {
+export default class Completable {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -47,5 +47,3 @@ class Completable {
         return statement;
     };
 }
-
-module.exports = Completable;

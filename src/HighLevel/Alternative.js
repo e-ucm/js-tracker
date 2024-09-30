@@ -1,4 +1,4 @@
-class Alternative {
+export default class Alternative {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -33,4 +33,3 @@ class Alternative {
         return statement;
     };
 }
-module.exports = Alternative;

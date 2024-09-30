@@ -1,4 +1,4 @@
-class GameObject {
+export default class GameObject {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -29,4 +29,3 @@ class GameObject {
         return statement;
     };
 }
-module.exports = GameObject;

@@ -1,15 +1,25 @@
 
-//var xAPITrackerAssetOAuth1 = require('../src/Auth/OAuth1');
-var xAPITrackerAssetOAuth2 = require('../src/Auth/OAuth2');
-var Accessible = require('../src/HighLevel/Accessible');
-var Completable = require('../src/HighLevel/Completable');
-var Alternative = require('../src/HighLevel/Alternative');
-var GameObject = require('../src/HighLevel/GameObject');
-var XAPI = require("@xapi/xapi");
-const fs = require('fs');
+//import xAPITrackerAssetOAuth1 from '../src/Auth/OAuth1';
+import xAPITrackerAssetOAuth2 from '../src/Auth/OAuth2.js';
+import Accessible from '../src/HighLevel/Accessible.js';
+import Completable from '../src/HighLevel/Completable.js';
+import Alternative from '../src/HighLevel/Alternative.js';
+import GameObject from '../src/HighLevel/GameObject.js';
+import XAPI from "@xapi/xapi";
+import fs from 'fs';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Get the __filename equivalent
+const __filename = fileURLToPath(import.meta.url);
+
+// Get the __dirname equivalent
+const __dirname = dirname(__filename);
+
+console.log(__dirname);  // This will now behave like __dirname
 // Reading from a JSON file
-currentdir=__dirname
+const currentdir=__dirname
 fs.readFile(currentdir+'/config.json', 'utf8', async (err, data) => {
     if (err) {
         console.error("Error reading file:", err);

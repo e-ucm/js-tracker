@@ -1,6 +1,8 @@
-var axios = require('axios');
+import axios from 'axios';
+import crypto from 'crypto';
+import express from 'express';
 
-class OAuth2Protocol {
+export default class OAuth2Protocol {
   constructor() {
     this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
     this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
@@ -157,11 +159,10 @@ class OAuth2Protocol {
       window.crypto.getRandomValues(array);
       return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
     } else {
-      var { randomBytes } = require('crypto');
-      return randomBytes(Math.ceil(length / 2))
-        .toString('hex') // Convert to hexadecimal
-        .slice(0, length); // Return required length
-    }
+      return crypto.randomBytes(Math.ceil(length / 2))
+          .toString('hex') // Convert to hexadecimal
+          .slice(0, length); // Return required length
+    } 
   }
 
   // Function to generate the PKCE challenge
@@ -171,9 +172,8 @@ class OAuth2Protocol {
       const codeChallenge = this.base64UrlEncode(this.sha256(codeVerifier));
       return { codeVerifier, codeChallenge };
     } else {
-      var { createHash } = require('crypto');
       const codeVerifier = this.generateRandomString(128); // Generate a random code verifier
-      const hash = createHash('sha256'); // Create a SHA-256 hash
+      const hash = crypto.createHash('sha256'); // Create a SHA-256 hash
       hash.update(codeVerifier); // Update hash with the code verifier
       const codeChallenge = hash.digest('base64url'); // Base64 URL encode the hash
       return { codeVerifier, codeChallenge };
@@ -229,7 +229,7 @@ class OAuth2Protocol {
             AuthUtility.OpenUrl(url);
         } else {
             // Node.js environment: Manual handling (use `open` npm package to open in browser)
-            const express = require('express');
+            //const express = require('express');
             const app = express();
             const PORT = 3000;
             
@@ -289,5 +289,3 @@ class OAuth2Protocol {
     }
   }
 }
-
-module.exports = OAuth2Protocol;

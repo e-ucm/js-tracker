@@ -1,9 +1,9 @@
-var XAPI = require("@xapi/xapi");
-var ActorStatement = require("./HighLevel/Statement/ActorStatement");
-var ContextStatement = require("./HighLevel/Statement/ContextStatement");
-const Statement = require("./HighLevel/Statement/Statement");
+import XAPI from "@xapi/xapi";
+import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
+import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
+import Statement from "./HighLevel/Statement/Statement.js";
 
-class xAPITrackerAsset {
+export default class xAPITrackerAsset {
     constructor(endpoint, auth, homePage, token) {
         this.updateAuth(endpoint, auth, homePage, token);
     }
@@ -45,5 +45,3 @@ class xAPITrackerAsset {
         }).catch(console.error);
     }
 }
-
-module.exports = xAPITrackerAsset;

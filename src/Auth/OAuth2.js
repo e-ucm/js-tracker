@@ -1,7 +1,7 @@
-const xAPITrackerAsset = require("../xAPITrackerAsset");
-const OAuth2Protocol = require("./OAuth2Protocol");
+import xAPITrackerAsset from "../xAPITrackerAsset.js";
+import OAuth2Protocol from "./OAuth2Protocol.js";
 
-class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     constructor(endpoint, config, homePage, token) {
         // Call the parent constructor without the token (since we don't have it yet
         super(endpoint, null, homePage, token);
@@ -30,5 +30,3 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         super.updateAuth(endpoint, auth, homePage, token);
     }
 }
-
-module.exports = xAPITrackerAssetOAuth2;

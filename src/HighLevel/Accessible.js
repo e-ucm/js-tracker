@@ -1,4 +1,4 @@
-class Accessible {
+export default class Accessible {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -29,5 +29,3 @@ class Accessible {
         return statement;
     };
 }
-
-module.exports = Accessible;

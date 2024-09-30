@@ -1,12 +1,9 @@
-const { now } = require("moment");
-const ActorStatement = require("./ActorStatement");
-const VerbStatement = require("./VerbStatement");
-const ObjectStatement = require("./ObjectStatement");
-const ContextStatement = require("./ContextStatement");
-const ResultStatements = require("./ResultStatement");
-var uuidv4 = require('uuid').v4;
+import VerbStatement from "./VerbStatement.js";
+import ObjectStatement from "./ObjectStatement.js";
+import ResultStatements from "./ResultStatement.js";
+import { v4 as uuidv4 } from 'uuid';
 
-class Statement {
+export default class Statement {
     constructor(actor, verbId, objectId, objectType, context) {
         this.id = uuidv4();
         this.actor = actor;
@@ -122,5 +119,3 @@ class Statement {
         return xapiTrace;
     }
 }
-
-module.exports = Statement;
