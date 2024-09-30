@@ -1,6 +1,4 @@
 var axios = require('axios');
-var { randomBytes, createHash } = require('crypto');
-const express = require('express');
 
 class OAuth2Protocol {
   constructor() {
@@ -154,19 +152,32 @@ class OAuth2Protocol {
 
   // Function to generate a random code verifier
   generateRandomString(length) {
-    return randomBytes(Math.ceil(length / 2))
-      .toString('hex') // Convert to hexadecimal
-      .slice(0, length); // Return required length
+    if (typeof window !== 'undefined' && window.location) {
+      const array = new Uint32Array(56 / 2);
+      window.crypto.getRandomValues(array);
+      return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+    } else {
+      var { randomBytes } = require('crypto');
+      return randomBytes(Math.ceil(length / 2))
+        .toString('hex') // Convert to hexadecimal
+        .slice(0, length); // Return required length
+    }
   }
 
   // Function to generate the PKCE challenge
   generatePkceChallenge() {
-    const codeVerifier = this.generateRandomString(128); // Generate a random code verifier
-    const hash = createHash('sha256'); // Create a SHA-256 hash
-    hash.update(codeVerifier); // Update hash with the code verifier
-    const codeChallenge = hash.digest('base64url'); // Base64 URL encode the hash
-
-    return { codeVerifier, codeChallenge };
+    if (typeof window !== 'undefined' && window.location) {
+      const codeVerifier = this.generateRandomString(128);
+      const codeChallenge = this.base64UrlEncode(this.sha256(codeVerifier));
+      return { codeVerifier, codeChallenge };
+    } else {
+      var { createHash } = require('crypto');
+      const codeVerifier = this.generateRandomString(128); // Generate a random code verifier
+      const hash = createHash('sha256'); // Create a SHA-256 hash
+      hash.update(codeVerifier); // Update hash with the code verifier
+      const codeChallenge = hash.digest('base64url'); // Base64 URL encode the hash
+      return { codeVerifier, codeChallenge };
+    }
   }
 
   sha256(plain) {
@@ -216,11 +227,9 @@ class OAuth2Protocol {
         if (typeof window !== 'undefined' && window.location) {
             // Browser-based redirect
             AuthUtility.OpenUrl(url);
-            //TODO in brower mode 
-            //authorizeResponse = 
-            //return authorizeResponse;
         } else {
             // Node.js environment: Manual handling (use `open` npm package to open in browser)
+            const express = require('express');
             const app = express();
             const PORT = 3000;
             
