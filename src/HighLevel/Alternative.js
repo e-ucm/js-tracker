@@ -1,3 +1,5 @@
+import Statement from "./Statement/Statement.js";
+
 export default class Alternative {
     constructor(tracker) {
         this.tracker = tracker;
@@ -15,21 +17,27 @@ export default class Alternative {
         properties: ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
     };
 
-    async Selected(alternativeId, optionId, type) {
+    Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
         var statement = this.tracker.Trace('selected',this.AlternativeType.properties[type],alternativeId);
         statement.setResponse(optionId);
-        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    async Unlocked(alternativeId, optionId, type) {
+    Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
         var statement = this.tracker.Trace('unlocked',this.AlternativeType.properties[type],alternativeId);
         statement.setResponse(optionId);
-        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
+
+    /**
+     * @param {Statement} statement
+     * 
+     */
+    async sendStatement(statement) {
+        await this.tracker.enqueue(statement.toXAPI());
+    }
 }

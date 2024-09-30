@@ -1,3 +1,5 @@
+import Statement from "./Statement/Statement.js";
+
 export default class GameObject {
     constructor(tracker) {
         this.tracker = tracker;
@@ -13,19 +15,25 @@ export default class GameObject {
         properties: ['enemy', 'npc', 'item', 'gameobject']
     };
 
-    async Interacted(gameobjectId, type) {
+    Interacted(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('interacted',this.GameObjectType.properties[type],gameobjectId);
-        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
 
-    async Used(gameobjectId, type) {
+    Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('used',this.GameObjectType.properties[type],gameobjectId);
-        await this.tracker.enqueue(statement.toXAPI());
         return statement;
     };
+    
+    /**
+     * @param {Statement} statement
+     * 
+     */
+    async sendStatement(statement) {
+        await this.tracker.enqueue(statement.toXAPI());
+    }
 }
