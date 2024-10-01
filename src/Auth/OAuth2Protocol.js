@@ -1,6 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import express from 'express';
+import open from 'open';
 import PkceGenerator from './PkceGenerator.js';
 
 export default class OAuth2Protocol {
@@ -223,8 +224,8 @@ export default class OAuth2Protocol {
             app.listen(3000, () => {
               console.log(`Server is running at http://localhost:${PORT}`);
             });
-            const open = await import('open'); // Use dynamic import here
-            await open.default(url); // Access the `default` export for ES modules
+            console.log(url);
+            open(url);
             // Polling to wait for the authorization response
             while (authorizeResponse === null) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Wait for a while

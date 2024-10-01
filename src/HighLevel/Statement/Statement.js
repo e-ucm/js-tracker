@@ -4,16 +4,16 @@ import ResultStatements from "./ResultStatement.js";
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Statement {
-    constructor(actor, verbId, objectId, objectType, context, defautURI="mygame") {
+    constructor(actor, verbId, objectId, objectType, context, defautURI) {
         this.id = uuidv4();
         this.actor = actor;
         this.verb = new VerbStatement(verbId);
-        this.object = new ObjectStatement(setAsUri(objectId, defautURI), objectType);
+        this.defautURI = defautURI;
+        this.object = new ObjectStatement(this.setAsUri(objectId), objectType);
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatements();
-        this.defautURI = defautURI;
     }
     
     actor;
@@ -23,15 +23,15 @@ export default class Statement {
     context;
     result;
 
-    static setAsUri(id, defaultValue="mygame") {
-        if(isUri(id)) {
+    setAsUri(id) {
+        if(this.isUri(id)) {
             return id;
         } else {
-            return `${defaultValue}://${id}`;
+            return `${this.defautURI}://${id}`;
         }
     }
     
-    static isUri(id) {
+    isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
         return pattern.test(id);
     }
@@ -55,54 +55,45 @@ export default class Statement {
     };
 
     setScoreRaw(raw) {
-        this.setScoreValue('raw', raw);
+        this.result.setScoreValue('raw', raw);
 
     };
 
     setScoreMin(min) {
-        this.setScoreValue('min', min);
+        this.result.setScoreValue('min', min);
     };
 
     setScoreMax(max) {
-        this.setScoreValue('max', max);
+        this.result.setScoreValue('max', max);
     };
 
     setScoreScaled(scaled) {
-        this.setScoreValue('scaled', scaled);
-    };
-
-    setScoreValue(key, value) {
-        if (exists(this.result.Extensions.score)) {
-            this.result.Extension.score = {};
-        }
-
-        this.result.Extension.score[key] = Number(value);
+        this.result.setScoreValue('scaled', scaled);
     };
 
     setCompletion(value) {
-        this.addExtension('completion', value);
+        this.addResultExtension('completion', value);
     };
 
     setSuccess(value) {
-        this.addExtension('success', value);
+        this.addResultExtension('success', value);
     };
 
     setResponse(value) {
-        this.addExtension('response', value);
+        this.addResultExtension('response', value);
     };
 
     setProgress(value) {
-        this.addExtension('progress', value);
+        this.addResultExtension('progress', value);
     };
 
     setVar(key,value) {
-        this.addExtension(key,value);
+        this.addResultExtension(key,value);
     };
 
-    addExtension(key,value) {
-        this.result.setExtension(setAsUri(key, defautURI), value);
+    addResultExtension(key,value) {
+        this.result.setExtension(this.setAsUri(key), value);
     };
-
 
     toXAPI() {
         var xapiTrace={}

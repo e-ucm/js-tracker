@@ -1,26 +1,18 @@
 import Statement from "./Statement/Statement.js";
 
-export default class Alternative {
+export class AlternativeTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
     
     tracker;
 
-    AlternativeType = {
-        Question: 0,
-        Menu: 1,
-        Dialog: 2,
-        Path: 3,
-        Arena: 4,
-        Alternative: 5,
-        properties: ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
-    };
+    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
 
     Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
-        var statement = this.tracker.Trace('selected',this.AlternativeType.properties[type],alternativeId);
+        var statement = this.tracker.Trace('selected',this.AlternativeType[type],alternativeId);
         statement.setResponse(optionId);
         return statement;
     };
@@ -28,7 +20,7 @@ export default class Alternative {
     Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
-        var statement = this.tracker.Trace('unlocked',this.AlternativeType.properties[type],alternativeId);
+        var statement = this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId);
         statement.setResponse(optionId);
         return statement;
     };
@@ -41,3 +33,12 @@ export default class Alternative {
         await this.tracker.enqueue(statement.toXAPI());
     }
 }
+
+export const ALTERNATIVETYPE = Object.freeze({
+    QUESTION: 0,
+    MENU: 1,
+    DIALOG: 2,
+    PATH: 3,
+    ARENA: 4,
+    ALTERNATIVE: 5
+});
