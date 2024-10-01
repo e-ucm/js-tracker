@@ -16,10 +16,12 @@ export default class xAPITrackerAsset {
         this.token = token;
         this.actor=new ActorStatement(token, token, homePage);
         this.context = new ContextStatement();
-        this.xapi = new XAPI({
-            endpoint: endpoint,
-            auth: auth
-        });
+        if(this.auth != null) {
+            this.xapi = new XAPI({
+                endpoint: endpoint,
+                auth: auth
+            });
+        }
         this.defaultUri=defaultUri;
         this.statementsToSend=[];
         if(this.auth) { 
