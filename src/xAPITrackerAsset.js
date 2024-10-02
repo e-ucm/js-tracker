@@ -4,7 +4,7 @@ import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
 
 export default class xAPITrackerAsset {
-    constructor(endpoint, auth, homePage, token, defaultUri, debug=false) {
+    constructor(endpoint, auth, homePage, token, defaultUri, debug) {
         this.updateAuth(endpoint, auth, homePage, token, defaultUri, debug);
     }
 
@@ -58,7 +58,7 @@ export default class xAPITrackerAsset {
     }
 
     async enqueue(statement) {
-        if(this.debug) {
+        if(this.debug !== null && this.debug) {
             console.debug(statement);
         }
         if(this.online) {
@@ -66,7 +66,7 @@ export default class xAPITrackerAsset {
             await this.xapi.sendStatements({statements: this.statementsToSend})
             .then((result) => {
                 this.statementsToSend = [];
-                if(this.debug) {
+                if(this.debug !== null && this.debug) {
                     console.debug(result);
                 }
             }).catch(console.error);
