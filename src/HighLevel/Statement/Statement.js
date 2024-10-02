@@ -118,7 +118,7 @@ export default class Statement {
         if(this.version) {
             xapiTrace.version = this.version;
         }
-        if(this.result) {
+        if(!this.result.isEmpty()) {
             xapiTrace.result = this.result.toXAPI();
         }
         return xapiTrace;

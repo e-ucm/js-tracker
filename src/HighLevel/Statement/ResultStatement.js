@@ -8,6 +8,10 @@ export default class ResultStatements {
         this.Extensions = {};
     }
 
+    isEmpty() {
+        return (this.parent == null) && (this.Score == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
+    }
+
     ExtensionIDs = {
         health: 'https://w3id.org/xapi/seriousgames/extensions/health',
         position: 'https://w3id.org/xapi/seriousgames/extensions/position',
