@@ -4,11 +4,11 @@ import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
 
 export default class xAPITrackerAsset {
-    constructor(endpoint, auth, homePage, token, defaultUri) {
-        this.updateAuth(endpoint, auth, homePage, token, defaultUri);
+    constructor(endpoint, auth, homePage, token, defaultUri, debug=false) {
+        this.updateAuth(endpoint, auth, homePage, token, defaultUri, debug);
     }
 
-    updateAuth(endpoint, auth, homePage, token, defaultUri) {
+    updateAuth(endpoint, auth, homePage, token, defaultUri, debug) {
         this.online=false;
         this.endpoint = endpoint;
         this.auth = auth;
@@ -23,6 +23,7 @@ export default class xAPITrackerAsset {
             });
         }
         this.defaultUri=defaultUri;
+        this.debug=debug;
         this.statementsToSend=[];
         if(this.auth) { 
             this.online=true;
@@ -30,6 +31,8 @@ export default class xAPITrackerAsset {
             if(this.statementsToSend.length > 0) {
                 this.sendEnqueuedStatements();
             }
+        } else {
+            console.log("XAPI Tracker for Serious Games Offline");
         }
     }
     
@@ -39,6 +42,7 @@ export default class xAPITrackerAsset {
     homePage;
     token;
     defaultUri;
+    debug;
     statementsToSend=[];
     
     Trace(verbId, objectType, objectId) {
@@ -49,22 +53,22 @@ export default class xAPITrackerAsset {
     async sendEnqueuedStatements() {
         await this.xapi.sendStatements({statements: this.statementsToSend})
             .then((result) => {
-                console.log("Statement send");
-                console.log(result);
                 this.statementsToSend = [];
             }).catch(console.error);
     }
 
     async enqueue(statement) {
-        console.log("Sending to LRS ")
-        console.log(statement);
+        if(this.debug) {
+            console.debug(statement);
+        }
         if(this.online) {
             this.statementsToSend.push(statement);
             await this.xapi.sendStatements({statements: this.statementsToSend})
             .then((result) => {
-                console.log("Statement send");
-                console.log(result);
                 this.statementsToSend = [];
+                if(this.debug) {
+                    console.debug(result);
+                }
             }).catch(console.error);
         } else {
             this.statementsToSend.push(statement);
