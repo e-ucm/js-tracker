@@ -13,7 +13,7 @@ export default class Statement {
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
-        this.result = new ResultStatements();
+        this.result = new ResultStatements(this.defautURI);
     }
     
     actor;
@@ -37,19 +37,19 @@ export default class Statement {
     }
 
     setScore(raw, min, max, scaled) {
-        if (exists(raw)) {
+        if (! raw == null) {
             this.setScoreRaw(raw);
         }
 
-        if (exists(min)) {
+        if (! min== null) {
             this.setScoreMin(min);
         }
 
-        if (exists(max)) {
+        if (! max== null) {
             this.setScoreMax(max);
         }
 
-        if (exists(scaled)) {
+        if (! scaled== null) {
             this.setScoreScaled(scaled);
         }
     };
@@ -79,6 +79,17 @@ export default class Statement {
         this.addResultExtension('success', value);
     };
 
+    setDuration(diffInSeconds) {
+        const seconds = diffInSeconds % 60;
+        const minutes = Math.floor(diffInSeconds / 60) % 60;
+        const hours = Math.floor(diffInSeconds / 3600) % 24;
+        const days = Math.floor(diffInSeconds / 86400);
+
+        // Construct the ISO 8601 duration string
+        const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
+        this.addResultExtension('duration', isoDuration);
+    };
+
     setResponse(value) {
         this.addResultExtension('response', value);
     };
@@ -92,7 +103,7 @@ export default class Statement {
     };
 
     addResultExtension(key,value) {
-        this.result.setExtension(this.setAsUri(key), value);
+        this.result.setExtension(key, value);
     };
 
     toXAPI() {

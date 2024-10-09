@@ -1,15 +1,17 @@
 export default class ResultStatements {
-    constructor() {
+    constructor(defautURI) {
+        this.defautURI = defautURI;
         this.parent = null;
         this.Score = null;
         this.Success = null;
         this.Completion = null;
         this.Response = null;
+        this.Duration = null;
         this.Extensions = {};
     }
 
     isEmpty() {
-        return (this.parent == null) && (this.Score == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
+        return (this.parent == null) && (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
     }
 
     ExtensionIDs = {
@@ -31,12 +33,26 @@ export default class ResultStatements {
             case 'completion': { this.Completion = value; break; }
             case 'response': { this.Response = value; break; }
             case 'score': { this.Score = value; break; }
+            case 'duration': { this.Duration = value; break; }
             default: { this.Extensions[key] = value; break; }
         }
     };
+
+    setAsUri(id) {
+        if(this.isUri(id)) {
+            return id;
+        } else {
+            return `${this.defautURI}://${id}`;
+        }
+    }
     
+    isUri(id) {
+        const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
+        return pattern.test(id);
+    }
+
     setScoreValue(key, value) {
-        if (exists(this.Extensions.score)) {
+        if (! this.Extensions.score == null) {
             this.Extensions.score = {};
         }
         this.Extensions.score[key] = Number(value);
@@ -61,12 +77,20 @@ export default class ResultStatements {
             ret.score = this.Score;
         }
 
+        if (this.Duration !== null) {
+            ret.duration = this.Duration;
+        }
+
+
         if (this.Extensions !== null && obsize(this.Extensions) > 0) {
             ret.extensions = this.Extensions;
 
             for (var key in this.Extensions) {
                 if (this.ExtensionIDs.hasOwnProperty(key)) {
                     this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
+                    delete this.Extensions[key];
+                } else {
+                    this.Extensions[this.setAsUri(key)] = this.Extensions[key];
                     delete this.Extensions[key];
                 }
             }
