@@ -52,10 +52,10 @@ export default class ResultStatements {
     }
 
     setScoreValue(key, value) {
-        if (! this.Extensions.score == null) {
-            this.Extensions.score = {};
+        if(! this.Score) {
+            this.Score = {};
         }
-        this.Extensions.score[key] = Number(value);
+        this.Score[key] = Number(value);
     };
 
     toXAPI() {
@@ -90,8 +90,11 @@ export default class ResultStatements {
                     this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
                     delete this.Extensions[key];
                 } else {
-                    this.Extensions[this.setAsUri(key)] = this.Extensions[key];
-                    delete this.Extensions[key];
+                    var newuri= this.setAsUri(key);
+                    this.Extensions[newuri] = this.Extensions[key];
+                    if(newuri !== key) {
+                        delete this.Extensions[key];
+                    }
                 }
             }
         }

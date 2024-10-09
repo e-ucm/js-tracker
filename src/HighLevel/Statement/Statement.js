@@ -37,19 +37,19 @@ export default class Statement {
     }
 
     setScore(raw, min, max, scaled) {
-        if (! raw == null) {
+        if (raw) {
             this.setScoreRaw(raw);
         }
 
-        if (! min== null) {
+        if (min) {
             this.setScoreMin(min);
         }
 
-        if (! max== null) {
+        if (max) {
             this.setScoreMax(max);
         }
 
-        if (! scaled== null) {
+        if (scaled) {
             this.setScoreScaled(scaled);
         }
     };

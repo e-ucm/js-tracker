@@ -162,7 +162,11 @@ export default class OAuth2Protocol {
   listenForCallback() {
     // You need to handle redirect/callback logic here.
     // For example, listening on a local server or using a deep-linking URL.
-    return 'http://localhost:3000/callback';  // Example redirect URL
+    if (typeof window !== 'undefined' && window.location) {
+      return 'http://localhost:3000/callback';  // Example redirect URL
+    } else {
+      return 'http://localhost:3000/callback';  // Example redirect URL
+    }
   }
 
   appendParamsToExistingQueryString(url, params) {
@@ -170,6 +174,43 @@ export default class OAuth2Protocol {
     return `${url}${query.toString()}`;
   }
 
+
+  // A function to handle the authorization callback
+  async handleCallback() {
+    // Check if the current URL is the callback URL
+    const currentUrl = window.location.href;
+    const callbackUrl = this.listenForCallback(); // Replace with your actual callback URL
+
+    if (currentUrl.startsWith(callbackUrl)) {
+        // Extract the authorization code from the URL
+        const params = new URLSearchParams(window.location.search);
+        const authCode = params.get('code'); // Assuming the code is passed as a query parameter
+
+        // Handle the authorization code
+        if (authCode) {
+            console.log("Authorization code received:", authCode);
+            // Perform further actions with the auth code, e.g., exchange for access token
+        } else {
+            const error = params.get('error');
+            if (error) {
+                console.error("Authorization error:", error);
+            }
+        }
+
+        // Optionally, clean up the URL (remove query parameters)
+        window.history.replaceState({}, document.title, window.location.pathname);
+        const form = {
+          code: authCode,
+          redirect_uri: redirectUrl
+        };
+    
+        if (codeVerifier) {
+          form.code_verifier = codeVerifier;
+        }
+    
+        return await this.doTokenRequest(tokenUrl, clientId, "authorization_code", form);
+    }
+  }
 
   async doAuthorizeRequest(authorizeEndpoint, clientId, scope, state, redirectUrl, pkceType, codeChallenge = null) {
     const parameters = {
@@ -193,13 +234,63 @@ export default class OAuth2Protocol {
 
         // Check if running in Node.js or browser
         if (typeof window !== 'undefined' && window.location) {
+            // Define a listener that will handle the authorization code
+            const listener = {
+                registerListener: function(callback) {
+                    this.callback = callback;
+                },
+                notify: function(data) {
+                    if (this.callback) {
+                        this.callback(data);
+                    }
+                }
+            };
+
+            // Register a listener to handle the authorization response
+            listener.registerListener(authCode => {
+                console.log("Authorization code received:", authCode);
+                authorizeResponse = authCode; // Store the authorization code
+            });
+
             // Browser-based redirect
             window.location.href = url;
             // This needs to handle the actual authorization callback flow.
-            return new Promise(resolve => {
-              // Resolve with authorization code after user login
-              // e.g. resolve('authCode');
-            });
+            // Set up a listener for the callback after redirection
+            return new Promise((resolve, reject) => {
+              // Function to check the URL for authorization response
+              const checkForAuthCode = () => {
+                  // Check if the current URL has the authorization code
+                  const params = new URLSearchParams(window.location.search);
+                  const authCode = params.get('code'); // Assuming the code is passed as a query parameter
+
+                  if (authCode) {
+                      // Clean up any listeners if necessary
+                      // You can also redirect the user to the original page if needed
+                      window.history.replaceState({}, document.title, window.location.pathname);
+
+                      // Resolve with the authorization code
+                      resolve(authCode);
+                  } else {
+                      // Optional: handle error cases or timeouts
+                      const error = params.get('error');
+                      if (error) {
+                          reject(new Error(`Authorization error: ${error}`));
+                      }
+                  }
+              };
+
+              // Polling or using a more sophisticated method to check for the authorization code
+              const interval = setInterval(() => {
+                  checkForAuthCode();
+                  // Optionally clear the interval after a certain amount of time or after a successful response
+              }, 1000);
+
+              // Optional: set a timeout to stop checking after a certain period
+              setTimeout(() => {
+                  clearInterval(interval);
+                  reject(new Error("Authorization timeout"));
+              }, 30000); // 30 seconds timeout, for example
+          });
         } else {
             // Node.js environment: Manual handling (use `open` npm package to open in browser)
             //const express = require('express');
@@ -224,8 +315,8 @@ export default class OAuth2Protocol {
             app.listen(3000, () => {
               console.log(`Server is running at http://localhost:${PORT}`);
             });
-            console.log(url);
-            open(url);
+            const open = await import('open'); // Use dynamic import here
+            await open.default(url); // Access the `default` export for ES modules
             // Polling to wait for the authorization response
             while (authorizeResponse === null) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Wait for a while
