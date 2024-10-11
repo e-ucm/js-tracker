@@ -23,13 +23,15 @@ export class CompletableTracker {
         return statement;
     };
 
-    Completed(completableId, type, success, score) {
+    Completed(completableId, type, success, completion, score) {
         if (typeof type === 'undefined') {type = 8;}
         if (typeof success === 'undefined') {success = true;}
+        if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
         var statement = this.tracker.Trace('completed',this.CompletableType[type],completableId);
         statement.setSuccess(success);
+        statement.setCompletion(completion);
         statement.setScore(score);
         return statement;
     };
