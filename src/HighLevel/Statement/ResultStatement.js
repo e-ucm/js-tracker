@@ -39,7 +39,7 @@ export default class ResultStatements {
             case 'duration': { this.Duration = value; break; }
             default: { this.Extensions[key] = value; break; }
         }
-    };
+    }
 
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -59,7 +59,7 @@ export default class ResultStatements {
             this.Score = {};
         }
         this.Score[key] = Number(value);
-    };
+    }
 
     toXAPI() {
         var ret = {};
@@ -103,7 +103,7 @@ export default class ResultStatements {
         }
 
         return ret;
-    };
+    }
     
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
@@ -162,7 +162,8 @@ export default class ResultStatements {
 
         return result;
     }
-};
+}
+
 var obsize = function(obj) {
     var size = 0, key;
     for (key in obj) {

@@ -31,7 +31,7 @@ export default class VerbStatement {
     verbDisplay;
 
     toXAPI() {
-        var verb = {}
+        var verb = {};
         if(this.verbId) {
             verb.id = this.verbId;
         }

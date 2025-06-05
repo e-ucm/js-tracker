@@ -52,32 +52,31 @@ export default class Statement {
         if (scaled) {
             this.setScoreScaled(scaled);
         }
-    };
+    }
 
     setScoreRaw(raw) {
         this.result.setScoreValue('raw', raw);
-
-    };
+    }
 
     setScoreMin(min) {
         this.result.setScoreValue('min', min);
-    };
+    }
 
     setScoreMax(max) {
         this.result.setScoreValue('max', max);
-    };
+    }
 
     setScoreScaled(scaled) {
         this.result.setScoreValue('scaled', scaled);
-    };
+    }
 
     setCompletion(value) {
         this.addResultExtension('completion', value);
-    };
+    }
 
     setSuccess(value) {
         this.addResultExtension('success', value);
-    };
+    }
 
     setDuration(diffInSeconds) {
         const seconds = diffInSeconds % 60;
@@ -88,26 +87,26 @@ export default class Statement {
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
         this.addResultExtension('duration', isoDuration);
-    };
+    }
 
     setResponse(value) {
         this.addResultExtension('response', value);
-    };
+    }
 
     setProgress(value) {
         this.addResultExtension('progress', value);
-    };
+    }
 
     setVar(key,value) {
         this.addResultExtension(key,value);
-    };
+    }
 
     addResultExtension(key,value) {
         this.result.setExtension(key, value);
-    };
+    }
 
     toXAPI() {
-        var xapiTrace={}
+        var xapiTrace={};
         if(this.id) {
             xapiTrace.id = this.id;
         }

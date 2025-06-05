@@ -14,7 +14,7 @@ export default class ActorStatement {
                 name: this.accountName,
                 homePage: this.homepage
             }
-        }
+        };
     }
     
     toCSV() {

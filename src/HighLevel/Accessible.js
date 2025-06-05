@@ -11,14 +11,14 @@ export class AccessibleTracker {
 
         var statement = this.tracker.Trace('accessed',this.AccessibleType[type],accessibleId);
         return statement;
-    };
+    }
 
     Skipped(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
         var statement = this.tracker.Trace('skipped',this.AccessibleType[type],accessibleId);
         return statement;
-    };
+    }
 
     async enqueue(statement) {
         await this.tracker.enqueue(statement);

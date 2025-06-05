@@ -13,7 +13,7 @@ export class CompletableTracker {
 
         var statement = this.tracker.Trace('initialized',this.CompletableType[type],completableId);
         return statement;
-    };
+    }
 
     Progressed(completableId, type, progress) {
         if (typeof type === 'undefined') {type = 8;}
@@ -21,7 +21,7 @@ export class CompletableTracker {
         var statement = this.tracker.Trace('progressed',this.CompletableType[type],completableId);
         statement.setProgress(progress);
         return statement;
-    };
+    }
 
     Completed(completableId, type, success, completion, score) {
         if (typeof type === 'undefined') {type = 8;}
@@ -34,7 +34,7 @@ export class CompletableTracker {
         statement.setCompletion(completion);
         statement.setScore(score);
         return statement;
-    };
+    }
     
     /**
      * @param {Statement} statement

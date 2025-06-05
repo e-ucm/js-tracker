@@ -28,7 +28,7 @@ export default class ContextStatement {
                     }
                 }]
             }
-        }
+        };
     }
 
     toCSV() {

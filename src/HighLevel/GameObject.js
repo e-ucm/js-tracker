@@ -14,14 +14,14 @@ export class GameObjectTracker {
 
         var statement = this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
         return statement;
-    };
+    }
 
     Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('used',this.GameObjectType[type],gameobjectId);
         return statement;
-    };
+    }
     
     /**
      * @param {Statement} statement

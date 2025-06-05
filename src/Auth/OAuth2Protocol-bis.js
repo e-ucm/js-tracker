@@ -95,8 +95,8 @@ export default class OAuth2Protocol {
       // Generate PKCE verifier and challenge
       const pkceGenerator = new PkceGenerator();
       var pkce  = await pkceGenerator.generatePkceChallenge();
-      codeVerifier=pkce["codeVerifier"];
-      codeChallenge=pkce["codeChallenge"];
+      codeVerifier=pkce.codeVerifier;
+      codeChallenge=pkce.codeChallenge;
       console.log('Code Verifier:', codeVerifier);
       console.log('Code Challenge:', codeChallenge);
     }

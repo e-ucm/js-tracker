@@ -11,36 +11,36 @@ export class ScormTracker {
     Initialized(scoId) {
         var statement = this.tracker.Trace('initialized', 'SCO', scoId);
         return statement;
-    };
+    }
 
     Suspended(scoId) {
         var statement = this.tracker.Trace('suspended', 'SCO', scoId);
         return statement;
-    };
+    }
 
     Resumed(scoId) {
         var statement = this.tracker.Trace('resumed', 'SCO', scoId);
         return statement;
-    };
+    }
 
     Terminated(scoId) {
         var statement = this.tracker.Trace('terminated', 'SCO', scoId);
         return statement;
-    };
+    }
 
     Passed(activityId, type) {
         if (typeof type === 'undefined') {type = 0;}
 
         var statement = this.tracker.Trace('passed',this.ScormType[type],activityId);
         return statement;
-    };
+    }
 
     Failed(activityId, type) {
         if (typeof type === 'undefined') {type = 0;}
 
         var statement = this.tracker.Trace('failed',this.ScormType[type],activityId);
         return statement;
-    };
+    }
 
     Scored(activityId, type, score) {
         if (typeof type === 'undefined') {type = 0;}
@@ -49,7 +49,7 @@ export class ScormTracker {
         var statement = this.tracker.Trace('scored',this.ScormType[type],activityId);
         statement.setScore(score);
         return statement;
-    };
+    }
 
     Completed(activityId, type, success, completion, score) {
         if (typeof type === 'undefined') {type = 0;}
@@ -62,7 +62,7 @@ export class ScormTracker {
         statement.setCompletion(completion);
         statement.setScore(score);
         return statement;
-    };
+    }
     
     /**
      * @param {Statement} statement

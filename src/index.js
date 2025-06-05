@@ -9,7 +9,7 @@ import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 //import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
 function generateXAPITrackerFromURLParams(default_uri) {
-  const xAPIConfig = {}
+  const xAPIConfig = {};
   const urlParams = new URLSearchParams(window.location.search);
   var result_uri,backup_uri, backup_type, actor_username, actor_homepage, debug, batchLength, batchTimeout, maxRetryDelay;
   var username, password, auth_token;

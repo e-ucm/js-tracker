@@ -15,7 +15,7 @@ export class AlternativeTracker {
         var statement = this.tracker.Trace('selected',this.AlternativeType[type],alternativeId);
         statement.setResponse(optionId);
         return statement;
-    };
+    }
 
     Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
@@ -23,7 +23,7 @@ export class AlternativeTracker {
         var statement = this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId);
         statement.setResponse(optionId);
         return statement;
-    };
+    }
 
     /**
      * @param {Statement} statement

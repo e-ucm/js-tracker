@@ -3,7 +3,7 @@ export default class ObjectStatement {
         this.id = id;
         this.type = type;
         this.name = name;
-        this.description = description
+        this.description = description;
     }
     
     typeIds = {
@@ -61,11 +61,11 @@ export default class ObjectStatement {
     description;
 
     toXAPI() {
-        var object= {}
+        var object= {};
         if(this.id) {
             object.id = this.id;
         }
-        object.definition={}
+        object.definition={};
         if(this.name) {
             object.definition.name = { "en-US": this.name };
         }
