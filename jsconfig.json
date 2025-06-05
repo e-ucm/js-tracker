@@ -1,10 +1,17 @@
 {
     "compilerOptions": {
-        "allowJs": true,
-        "checkJs": true,
-        "skipLibCheck": true
-    },
-    "include": [
-        "src/**/*",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "moduleResolution": "node",
+    // point at your custom types first, then at @types in node_modules
+    "typeRoots": [
+    "./types",
+    "./node_modules/@types"
     ]
+},
+    "include": [
+    "src//*", // your .js/.ts sources
+    "types//*" // your new ambient typings
+, "types/jsxapitracker/index.ts"    ]
 }
