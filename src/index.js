@@ -101,7 +101,7 @@ function generateXAPITrackerFromURLParams(default_uri) {
   }
 }
 
-module.exports = {
+export {
   generateXAPITrackerFromURLParams,
   xAPITrackerAsset,
   xAPITrackerAssetOAuth1,
