@@ -16,7 +16,16 @@ export default class VerbStatement {
         unlocked: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
         //GameObject Verbs
         interacted: 'http://adlnet.gov/expapi/verbs/interacted',
-        used: 'https://w3id.org/xapi/seriousgames/verbs/used'
+        used: 'https://w3id.org/xapi/seriousgames/verbs/used',
+
+        //SCORM Verbs
+        responded: 'http://adlnet.gov/expapi/verbs/responded',
+        resumed: 'http://adlnet.gov/expapi/verbs/resumed',
+        suspended: 'http://adlnet.gov/expapi/verbs/suspended',
+        terminated: 'http://adlnet.gov/expapi/verbs/resumed',
+        passed: 'http://adlnet.gov/expapi/verbs/passed',
+        failed: 'http://adlnet.gov/expapi/verbs/failed',
+        scored: 'http://adlnet.gov/expapi/verbs/scored',
     };
     verbId;
     verbDisplay;

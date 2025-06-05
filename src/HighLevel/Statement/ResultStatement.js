@@ -17,7 +17,10 @@ export default class ResultStatements {
     ExtensionIDs = {
         health: 'https://w3id.org/xapi/seriousgames/extensions/health',
         position: 'https://w3id.org/xapi/seriousgames/extensions/position',
-        progress: 'https://w3id.org/xapi/seriousgames/extensions/progress'
+        progress: 'https://w3id.org/xapi/seriousgames/extensions/progress',
+        interactionID: 'https://w3id.org/xapi/netc-assessment/extensions/activity/id-number',
+        response_explanation: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-explanation',
+        response_type: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
     };
 
     setExtensions(extensions) {

@@ -1,13 +1,20 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export default class ContextStatement {
-    constructor() {
-        this.registration=uuidv4();
+    constructor(categoryId="seriousgame", registrationId=null) {
+        if(registrationId != null) {
+            this.registration=uuidv4();
+        } else {
+            this.registration=uuidv4();
+        }
+        this.categoryId=this.categoryIDs[categoryId];
+        this.category=categoryId;
     }
     registration;
 
     categoryIDs = {
-        seriousgame : 'https://w3id.org/xapi/seriousgame'
+        seriousgame : 'https://w3id.org/xapi/seriousgame',
+        scorm: 'https://w3id.org/xapi/scorm'
     };
     
     toXAPI() {
@@ -15,7 +22,10 @@ export default class ContextStatement {
             registration: this.registration,
             contextActivities: { 
                 category:[{
-                    id: this.categoryIDs.seriousgame
+                    id: this.categoryId,
+                    definition: {
+                        type : "http://adlnet.gov/expapi/activities/profile"
+                    }
                 }]
             }
         }

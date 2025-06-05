@@ -10,7 +10,6 @@ export default class ActorStatement {
     
     toXAPI() {
         return {
-            name: this.token,
             account: {
                 name: this.accountName,
                 homePage: this.homepage
@@ -19,6 +18,6 @@ export default class ActorStatement {
     }
     
     toCSV() {
-        return this.token.replaceAll(',', '\\,') ;
+        return this.accountName.replaceAll(',', '\\,') ;
     }
 }

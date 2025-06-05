@@ -37,8 +37,24 @@ export default class ObjectStatement {
         enemy: 'https://w3id.org/xapi/seriousgames/activity-types/enemy' ,
         npc: 'https://w3id.org/xapi/seriousgames/activity-types/non-player-character',
         item: 'https://w3id.org/xapi/seriousgames/activity-types/item',
-        gameobject: 'https://w3id.org/xapi/seriousgames/activity-types/game-object'
+        gameobject: 'https://w3id.org/xapi/seriousgames/activity-types/game-object',
+
+        // SCORM
+        course: 'http://adlnet.gov/expapi/activities/course',
+        module: 'http://adlnet.gov/expapi/activities/module',
+        SCO: 'http://adlnet.gov/expapi/activities/lesson',
+        assessment: 'http://adlnet.gov/expapi/activities/assessment',
+        interaction: 'http://adlnet.gov/expapi/activities/interaction',
+        cmi_interaction: "http://adlnet.gov/expapi/activities/cmi.interaction",
+        objective: 'http://adlnet.gov/expapi/activities/objective',
+        attempt: 'http://adlnet.gov/expapi/activities/attempt',
+        profile: 'http://adlnet.gov/expapi/activities/profile'
     };
+
+    ExtensionIDs = {
+      extended_interaction_type: "https://w3id.org/xapi/netc-assessment/extensions/activity/extended-interaction-type",
+    };
+
     id;
     type;
     name;
