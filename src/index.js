@@ -6,7 +6,7 @@ import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/Accessible.js';
 import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js';
 import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
-import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
+//import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
 function generateXAPITrackerFromURLParams(default_uri) {
   const xAPIConfig = {}
@@ -110,11 +110,11 @@ export {
   CompletableTracker,
   AlternativeTracker,
   GameObjectTracker,
-  ScormTracker,
+  //ScormTracker,
   ACCESSIBLETYPE,
   COMPLETABLETYPE,
   ALTERNATIVETYPE,
   GAMEOBJECTTYPE,
-  SCORMTYPE
+  //SCORMTYPE
 };
 
