@@ -1,13 +1,11 @@
-// src/index.js
-import xAPITrackerAsset from './src/xAPITrackerAsset.js';
-import xAPITrackerAssetOAuth1 from './src/Auth/OAuth1.js';
-import xAPITrackerAssetOAuth2 from './src/Auth/OAuth2.js';
-import { AccessibleTracker, ACCESSIBLETYPE } from './src/HighLevel/Accessible.js';
-import { CompletableTracker, COMPLETABLETYPE } from './src/HighLevel/Completable.js';
-import { AlternativeTracker, ALTERNATIVETYPE } from './src/HighLevel/Alternative.js';
-import { GameObjectTracker, GAMEOBJECTTYPE } from './src/HighLevel/GameObject.js';
-import { ScormTracker, SCORMTYPE  } from './src/HighLevel/SCORM.js';
-
+import xAPITrackerAsset from './xAPITrackerAsset.js';
+import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
+import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
+import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/Accessible.js';
+import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js';
+import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
+import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
+import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
 class JSTracker {
     static ACCESSIBLETYPE=ACCESSIBLETYPE;
@@ -24,7 +22,7 @@ class JSTracker {
     scormTracker;
 
     constructor() {
-        
+
     }
 
     generateXAPITrackerFromURLParams(default_uri) {
