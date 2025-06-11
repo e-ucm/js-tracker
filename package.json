@@ -5,7 +5,10 @@
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
   "main": "src/js-tracker.js",
   "exports": {
-        ".": "./src/js-tracker.js"
+    ".": {
+      "import": "./src/js-tracker.js",
+      "require": "./src/js-tracker.cjs"
+    }
   },
   "repository": "https://github.com/e-ucm/js-tracker",
   "author": "e-UCM Research Group",
