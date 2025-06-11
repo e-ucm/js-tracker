@@ -23,6 +23,10 @@ class JSTracker {
     gameObjectTracker;
     scormTracker;
 
+    constructor() {
+        
+    }
+
     generateXAPITrackerFromURLParams(default_uri) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
