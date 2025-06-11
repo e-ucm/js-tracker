@@ -129,5 +129,5 @@ class JSTracker {
     }
 }
 
-module.exports = JSTracker;
+export default JSTracker;
 
