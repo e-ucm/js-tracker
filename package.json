@@ -1,9 +1,12 @@
 {
-  "name": "jsxapitracker",
+  "name": "js-tracker",
   "version": "1.0.0",
   "type":"module",
+  "exports": {
+    ".": "./js-tracker.js"
+  },
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
-  "main": "index.js",
+  "main": "js-tracker.js",
   "repository": "https://github.com/e-ucm/js-tracker",
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
