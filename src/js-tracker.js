@@ -21,8 +21,13 @@ class JSTracker {
     gameObjectTracker;
     scormTracker;
 
-    constructor() {
-
+    constructor(result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null) {
+        this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
+        this.accessibleTracker=new AccessibleTracker(this.tracker);
+        this.completableTracker=new CompletableTracker(this.tracker);
+        this.alternativeTracker=new AlternativeTracker(this.tracker);
+        this.gameObjectTracker=new GameObjectTracker(this.tracker);
+        this.scormTracker=new ScormTracker(this.tracker);
     }
 
     generateXAPITrackerFromURLParams(default_uri) {
@@ -122,10 +127,7 @@ class JSTracker {
         this.gameObjectTracker=new GameObjectTracker(this.tracker);
         this.scormTracker=new ScormTracker(this.tracker);
     }
-
 }
-
-
 
 module.exports = JSTracker;
 
