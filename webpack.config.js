@@ -6,14 +6,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default {
-  entry: './src/index.js',
+  entry: './src/js-tracker.js',
   mode: "development",
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'xapiTracker.bundle.js',
-    //library: 'xapi-sg-tracker-js',        // This name will be used as a global variable
+    filename: 'js-tracker-webpack.bundle.js',
+    //library: 'js-tracker',              // This name will be used as a global variable
     libraryTarget: 'umd',                 // Universal Module Definition
-    //globalObject: 'this',                 // Ensures compatibility across environments
+    //globalObject: 'this',                // Ensures compatibility across environments
   },
   optimization: {
     minimize: true,
