@@ -7,6 +7,7 @@
   "types": "dist/types/js-tracker.bundle.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/js-tracker.bundle.d.ts",
       "import": "./dist/js-tracker.bundle.js",
       "require": "./dist/js-tracker.bundle.cjs"
     }
