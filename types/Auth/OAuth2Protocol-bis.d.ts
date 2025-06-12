@@ -1,0 +1,30 @@
+export = OAuth2Protocol;
+declare class OAuth2Protocol {
+    fieldMissingMessage: string;
+    unsupportedGrantTypeMessage: string;
+    unsupportedCodeChallengeMethodMessage: string;
+    authEndpoint: any;
+    tokenEndpoint: any;
+    grantType: any;
+    username: any;
+    password: any;
+    clientId: any;
+    scope: any;
+    state: any;
+    login_hint: any;
+    codeChallengeMethod: string;
+    token: any;
+    onAuthorizationInfoUpdate: any;
+    init(config: any): Promise<void>;
+    getRequiredValue(config: any, key: any): any;
+    doAccessCodeFlow(authUrl: any, tokenUrl: any, clientId: any, pkceType: any, scope: any, state: any): Promise<any>;
+    doResourceOwnedPasswordCredentialsFlow(tokenUrl: any, clientId: any, username: any, password: any, scope: any, state: any, login_hint: any): Promise<any>;
+    doTokenRequest(tokenUrl: any, clientId: any, grantType: any, otherParams: any): Promise<any>;
+    doRefreshToken(tokenUrl: any, clientId: any, refreshToken: any): Promise<any>;
+    listenForCallback(): string;
+    appendParamsToExistingQueryString(url: any, params: any): string;
+    handleCallback(): Promise<any>;
+    doAuthorizeRequest(authorizeEndpoint: any, clientId: any, scope: any, state: any, redirectUrl: any, pkceType: any, codeChallenge?: any): Promise<any>;
+    updateParamsForAuth(request: any): Promise<void>;
+    registerAuthInfoUpdate(callback: any): void;
+}

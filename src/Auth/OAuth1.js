@@ -1,5 +1,5 @@
 const xAPITrackerAsset = require("../xAPITrackerAsset.js");
-const XAPI = require("@xapi/xapi");
+const XAPI = require("@xapi/xapi").default;
 
 class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, username, password, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {

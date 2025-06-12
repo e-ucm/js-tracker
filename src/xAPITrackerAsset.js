@@ -1,8 +1,8 @@
-const XAPI = require("@xapi/xapi");
+const XAPI = require("@xapi/xapi").default;
 const ActorStatement = require("./HighLevel/Statement/ActorStatement.js");
 const ContextStatement = require("./HighLevel/Statement/ContextStatement.js");
 const Statement = require("./HighLevel/Statement/Statement.js");
-const axios = require('axios');
+const axios = require('axios').default;
 const ms = require('ms');
 
 class xAPITrackerAsset {

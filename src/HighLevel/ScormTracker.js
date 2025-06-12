@@ -1,3 +1,5 @@
+const Statement = require("./Statement/Statement.js");
+
 class ScormTracker {
     constructor(tracker) {
         this.tracker = tracker;

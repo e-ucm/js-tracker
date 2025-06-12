@@ -3,18 +3,20 @@
         "allowJs": true,
         "declaration": true,
         "emitDeclarationOnly": true,
-        "outDir": "dist/types",
+        "outDir": "types",
         "checkJs": true,
         "moduleResolution": "node10",
         "target": "es2021"
     },
         "include": [
         "declarations.d.ts",
-        "dist//js-tracker.bundle.js",
-        "dist//types//*",
+        "src//*.js",
+        "src//*//*.js",
+        "src//*//*//*.js",
+        "src//*//*//*//*.js"
     ],
     "files": [
         "declarations.d.ts",
-        "dist/js-tracker.bundle.js"
+        "src/js-tracker.js"
     ]
 }
