@@ -8,8 +8,13 @@
         "moduleResolution": "node10",
         "target": "es2021"
     },
-    "include": [
+        "include": [
+        "declarations.d.ts",
         "dist//js-tracker.bundle.js",
         "dist//types//*",
+    ],
+    "files": [
+        "declarations.d.ts",
+        "dist/js-tracker.bundle.js"
     ]
 }
