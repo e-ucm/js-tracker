@@ -6,8 +6,8 @@
   "module": "dist/js-tracker.bundle.js",
   "exports": {
     ".": {
-      "import": "./src/js-tracker.bundle.js",
-      "require": "./src/js-tracker.bundle.cjs"
+      "import": "./dist/js-tracker.bundle.js",
+      "require": "./dist/js-tracker.bundle.cjs"
     }
   },
   "repository": "https://github.com/e-ucm/js-tracker",
