@@ -1,4 +1,5 @@
 export { JSTracker as default };
+declare module 'js-tracker';
 declare class JSTracker {
     static ACCESSIBLETYPE: Readonly<{
         SCREEN: 0;

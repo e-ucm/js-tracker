@@ -3,10 +3,13 @@
         "allowJs": true,
         "declaration": true,
         "emitDeclarationOnly": true,
-        "outDir": "types",
+        "outDir": "dist/types",
         "checkJs": true,
-        "moduleResolution": "node",
+        "moduleResolution": "node10",
         "target": "es2021"
     },
-    "include": ["dist/js-tracker.bundle.js"]
+    "include": [
+        "dist//js-tracker.bundle.js",
+        "dist//types//*",
+    ]
 }

@@ -4,7 +4,7 @@
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
   "main": "dist/js-tracker.bundle.cjs",
   "module": "dist/js-tracker.bundle.js",
-  "types": "types/js-tracker.d.ts",
+  "types": "dist/types/js-tracker.bundle.d.ts",
   "exports": {
     ".": {
       "import": "./dist/js-tracker.bundle.js",
@@ -15,7 +15,7 @@
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
   "scripts": {
-    "build:types": "npx tsc --project ts-config.json",
+    "build:types": "npx tsc --project tsconfig.json",
     "build": "webpack && rollup -c && npm run build:types",
     "eslint-fix": "eslint . --fix",
     "lint": "jshint --verbose . && npm run eslint-fix",
