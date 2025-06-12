@@ -1,11 +1,11 @@
-import xAPITrackerAsset from './xAPITrackerAsset.js';
-import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
-import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
-import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/Accessible.js';
-import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js';
-import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
-import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
-import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
+const xAPITrackerAsset = require('./xAPITrackerAsset.js');
+const xAPITrackerAssetOAuth1 = require('./Auth/OAuth1.js');
+const xAPITrackerAssetOAuth2 = require('./Auth/OAuth2.js');
+const { AccessibleTracker, ACCESSIBLETYPE } = require('./HighLevel/Accessible.js');
+const { CompletableTracker, COMPLETABLETYPE } = require('./HighLevel/Completable.js');
+const { AlternativeTracker, ALTERNATIVETYPE } = require('./HighLevel/Alternative.js');
+const { GameObjectTracker, GAMEOBJECTTYPE } = require('./HighLevel/GameObject.js');
+const { ScormTracker, SCORMTYPE  } = require('./HighLevel/SCORM.js');
 
 class JSTracker {
     static ACCESSIBLETYPE=ACCESSIBLETYPE;
@@ -129,5 +129,5 @@ class JSTracker {
     }
 }
 
-export default JSTracker;
+module.exports = JSTracker;
 

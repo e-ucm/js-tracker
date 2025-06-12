@@ -1,4 +1,4 @@
-export default class VerbStatement {
+class VerbStatement {
     constructor(verbId) {
         this.verbId = this.verbIds[verbId];
         this.verbDisplay = verbId;
@@ -46,3 +46,5 @@ export default class VerbStatement {
         return this.verbId;
     }
 }
+
+module.exports = VerbStatement;

@@ -1,4 +1,4 @@
-export default class ObjectStatement {
+class ObjectStatement {
     constructor(id, type, name = null, description = null) {
         this.id = id;
         this.type = type;
@@ -82,3 +82,5 @@ export default class ObjectStatement {
         return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
     }
 }
+
+module.exports = ObjectStatement;

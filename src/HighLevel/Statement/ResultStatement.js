@@ -1,4 +1,4 @@
-export default class ResultStatements {
+class ResultStatements {
     constructor(defautURI) {
         this.defautURI = defautURI;
         this.parent = null;
@@ -186,3 +186,5 @@ var ismap = function(obj) {
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
 };
+
+module.exports = ResultStatements;

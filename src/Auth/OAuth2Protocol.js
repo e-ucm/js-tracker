@@ -1,4 +1,4 @@
-export default class OAuth2Protocol {
+class OAuth2Protocol {
   constructor() {
     this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
     this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
@@ -192,3 +192,5 @@ export default class OAuth2Protocol {
     }
   }
 }
+
+module.exports = OAuth2Protocol;

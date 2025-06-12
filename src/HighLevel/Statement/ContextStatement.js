@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
+const uuidv4 = require('uuid').v4;
 
-export default class ContextStatement {
+class ContextStatement {
     constructor(categoryId="seriousgame", registrationId=null) {
         if(registrationId != null) {
             this.registration=uuidv4();
@@ -35,3 +35,5 @@ export default class ContextStatement {
         return this.registration.replaceAll(',', '\\,') ;
     }
 }
+
+module.exports = ContextStatement;

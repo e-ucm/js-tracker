@@ -1,10 +1,10 @@
-import axios from 'axios';
-import crypto from 'crypto';
-import express from 'express';
-import open from 'open';
-import PkceGenerator from './PkceGenerator.js';
+const axios = require('axios');
+const crypto = require('crypto');
+const express = require('express');
+const open = require('open');
+const PkceGenerator = require('./PkceGenerator.js');
 
-export default class OAuth2Protocol {
+class OAuth2Protocol {
   constructor() {
     this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
     this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
@@ -185,7 +185,7 @@ export default class OAuth2Protocol {
     const callbackUrl = this.listenForCallback(); // Replace with your actual callback URL
 
     if (currentUrl.startsWith(callbackUrl)) {
-        // Extract the authorization code from the URL
+        // Extract the authorization code = require(the URL
         const params = new URLSearchParams(window.location.search);
         const authCode = params.get('code'); // Assuming the code is passed as a query parameter
 
@@ -356,3 +356,5 @@ export default class OAuth2Protocol {
     }
   }
 }
+
+module.exports = OAuth2Protocol;

@@ -1,6 +1,6 @@
-import Statement from "./Statement/Statement.js";
+const Statement = require("./Statement/Statement.js");
 
-export class ScormTracker {
+class ScormTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -82,3 +82,5 @@ export const SCORMTYPE = Object.freeze({
     OBJECTIVE: 5,
     ATTEMPT: 6
 });
+
+module.exports = { ScormTracker, SCORMTYPE };

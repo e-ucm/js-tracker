@@ -1,4 +1,4 @@
-export class AccessibleTracker {
+class AccessibleTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -25,10 +25,12 @@ export class AccessibleTracker {
     }
 }
 
-export const ACCESSIBLETYPE = Object.freeze({
+const ACCESSIBLETYPE = Object.freeze({
     SCREEN: 0,
     AREA: 1,
     ZONE: 2,
     CUTSCENE: 3,
     ACCESSIBLE: 4
 });
+
+module.exports = { AccessibleTracker, ACCESSIBLETYPE };

@@ -1,9 +1,9 @@
-import VerbStatement from "./VerbStatement.js";
-import ObjectStatement from "./ObjectStatement.js";
-import ResultStatements from "./ResultStatement.js";
-import { v4 as uuidv4 } from 'uuid';
+const VerbStatement = require("./VerbStatement.js");
+const ObjectStatement = require("./ObjectStatement.js");
+const ResultStatements = require("./ResultStatement.js");
+const uuidv4 = require('uuid').v4;
 
-export default class Statement {
+class Statement {
     constructor(actor, verbId, objectId, objectType, context, defautURI) {
         this.id = uuidv4();
         this.actor = actor;
@@ -146,3 +146,5 @@ export default class Statement {
         return `${csv.join(",")}${result}`;
     }
 }
+
+module.exports = Statement;

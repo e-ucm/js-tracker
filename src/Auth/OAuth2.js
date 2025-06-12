@@ -1,8 +1,7 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-//import OAuth2Keycloak from "./OAuth2Keycloak.js";
-import OAuth2Protocol from "./OAuth2Protocol.js";
+const xAPITrackerAsset = require("../xAPITrackerAsset.js");
+const OAuth2Protocol = require("./OAuth2Protocol.js");
 
-export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     oauth2Config;
     oauth2;
     constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, config, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
@@ -65,3 +64,5 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     }
 
 }
+
+module.exports = xAPITrackerAssetOAuth2;

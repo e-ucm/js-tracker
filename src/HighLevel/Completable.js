@@ -1,6 +1,6 @@
-import Statement from "./Statement/Statement.js";
+const Statement = require("./Statement/Statement.js");
 
-export class CompletableTracker {
+class CompletableTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -45,7 +45,7 @@ export class CompletableTracker {
     }
 }
 
-export const COMPLETABLETYPE = Object.freeze({
+const COMPLETABLETYPE = Object.freeze({
     GAME: 0,
     SESSION: 1,
     LEVEL: 2,
@@ -56,3 +56,5 @@ export const COMPLETABLETYPE = Object.freeze({
     RACE: 7,
     COMPLETABLE: 8
 });
+
+module.exports = { CompletableTracker, COMPLETABLETYPE };

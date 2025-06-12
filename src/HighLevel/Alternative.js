@@ -1,6 +1,6 @@
-import Statement from "./Statement/Statement.js";
+const Statement = require("./Statement/Statement.js");
 
-export class AlternativeTracker {
+class AlternativeTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -34,7 +34,7 @@ export class AlternativeTracker {
     }
 }
 
-export const ALTERNATIVETYPE = Object.freeze({
+const ALTERNATIVETYPE = Object.freeze({
     QUESTION: 0,
     MENU: 1,
     DIALOG: 2,
@@ -42,3 +42,5 @@ export const ALTERNATIVETYPE = Object.freeze({
     ARENA: 4,
     ALTERNATIVE: 5
 });
+
+module.exports = { AlternativeTracker, ALTERNATIVETYPE };

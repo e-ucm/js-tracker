@@ -1,6 +1,6 @@
-import crypto from "crypto";
+const crypto = require("crypto");
 
-export default class PkceGenerator {
+class PkceGenerator {
     // Function to generate a random string of the specified length
     generateRandomString(length) {
         if (typeof window !== 'undefined' && window.location) {
@@ -43,3 +43,6 @@ export default class PkceGenerator {
         return { codeVerifier, codeChallenge };
     }
 }
+
+
+module.exports = PkceGenerator;

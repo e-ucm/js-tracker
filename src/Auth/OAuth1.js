@@ -1,7 +1,7 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import XAPI from "@xapi/xapi";
+const xAPITrackerAsset = require("../xAPITrackerAsset.js");
+const XAPI = require("@xapi/xapi");
 
-export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
+class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, username, password, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
         super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, XAPI.toBasicAuth(username, password), defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
         window.addEventListener('beforeunload', () => {
@@ -19,3 +19,5 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         super.logout();
     }
 }
+
+module.exports = xAPITrackerAssetOAuth1;

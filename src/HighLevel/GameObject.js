@@ -1,6 +1,6 @@
-import Statement from "./Statement/Statement.js";
+const Statement = require("./Statement/Statement.js");
 
-export class GameObjectTracker {
+class GameObjectTracker {
     constructor(tracker) {
         this.tracker = tracker;
     }
@@ -32,9 +32,11 @@ export class GameObjectTracker {
     }
 }
 
-export const GAMEOBJECTTYPE = Object.freeze({
+const GAMEOBJECTTYPE = Object.freeze({
     ENEMY: 0,
     NPC: 1,
     ITEM: 2,
     GAMEOBJECT: 3,
 });
+
+module.exports = { GameObjectTracker, GAMEOBJECTTYPE };

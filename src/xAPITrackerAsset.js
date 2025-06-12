@@ -1,11 +1,11 @@
-import XAPI from "@xapi/xapi";
-import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
-import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
-import Statement from "./HighLevel/Statement/Statement.js";
-import axios from 'axios';
-import ms from 'ms';
+const XAPI = require("@xapi/xapi");
+const ActorStatement = require("./HighLevel/Statement/ActorStatement.js");
+const ContextStatement = require("./HighLevel/Statement/ContextStatement.js");
+const Statement = require("./HighLevel/Statement/Statement.js");
+const axios = require('axios');
+const ms = require('ms');
 
-export default class xAPITrackerAsset {
+class xAPITrackerAsset {
     //XAPI PARAMETERS
     xapi;
     endpoint;
@@ -220,7 +220,7 @@ export default class xAPITrackerAsset {
                 data: JSON.stringify(body, null, 2)
             };
 
-            // Add custom parameters from config file
+            // Add custom parameters = require(config file
             if (this.backupRequestParameters) {
                 // Content type
                 if (this.backupRequestParameters.content_type) {
@@ -292,3 +292,5 @@ export default class xAPITrackerAsset {
         this.startTimer();
     }
 }
+
+module.exports = xAPITrackerAsset;

@@ -1,4 +1,4 @@
-export default class ActorStatement {
+class ActorStatement {
     constructor(token, accountName, homepage) {
         this.token = token;
         this.accountName = accountName;
@@ -21,3 +21,5 @@ export default class ActorStatement {
         return this.accountName.replaceAll(',', '\\,') ;
     }
 }
+
+module.exports = ActorStatement;
