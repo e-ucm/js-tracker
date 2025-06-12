@@ -227,7 +227,7 @@ class ResultStatements {
     setExtensions(extensions) {
         this.Extensions = {};
         for (var key in extensions) {
-            setExtension(key,extensions[key]);
+            this.setExtension(key,extensions[key]);
         }
     }
 
@@ -595,7 +595,7 @@ class xAPITrackerAsset {
 
     logout() {
         this.auth_token = null;
-        onOffline();
+        this.onOffline();
     }
 
     // Event handler: When the client goes offline

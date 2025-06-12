@@ -26,7 +26,7 @@ export default class ResultStatements {
     setExtensions(extensions) {
         this.Extensions = {};
         for (var key in extensions) {
-            setExtension(key,extensions[key]);
+            this.setExtension(key,extensions[key]);
         }
     }
 

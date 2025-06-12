@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "types",
+        "checkJs": true,
+        "moduleResolution": "node",
+        "target": "es2021"
+    },
+    "include": ["dist/js-tracker.bundle.js"]
+}

@@ -68,7 +68,7 @@ export default class xAPITrackerAsset {
 
     logout() {
         this.auth_token = null;
-        onOffline();
+        this.onOffline();
     }
 
     // Event handler: When the client goes offline
