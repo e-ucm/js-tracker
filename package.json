@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
-  "main": "dist/js-tracker.bundle.min.js",
-  "module": "dist/js-tracker.bundle.min.cjs",
+  "main": "dist/js-tracker.bundle.js",
+  "module": "dist/js-tracker.bundle.cjs",
   "exports": {
     ".": {
-      "import": "./src/js-tracker.bundle.min.js",
-      "require": "./src/js-tracker.bundle.min.cjs"
+      "import": "./src/js-tracker.bundle.js",
+      "require": "./src/js-tracker.bundle.cjs"
     }
   },
   "repository": "https://github.com/e-ucm/js-tracker",
