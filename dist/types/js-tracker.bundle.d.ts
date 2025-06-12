@@ -1,5 +1,5 @@
 export { JSTracker as default };
-declare module 'js-tracker';
+declare module 'js-tracker' {
 declare class JSTracker {
     static ACCESSIBLETYPE: Readonly<{
         SCREEN: 0;
@@ -365,4 +365,5 @@ declare class ResultStatements {
         extensions: {};
     };
     toCSV(): string;
+}
 }
