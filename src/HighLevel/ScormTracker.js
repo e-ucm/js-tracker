@@ -1,5 +1,3 @@
-const Statement = require("./Statement/Statement.js");
-
 class ScormTracker {
     constructor(tracker) {
         this.tracker = tracker;
@@ -73,7 +71,7 @@ class ScormTracker {
     }
 }
 
-export const SCORMTYPE = Object.freeze({
+const SCORMTYPE = Object.freeze({
     SCO: 0,
     COURSE: 1,
     MODULE: 2,

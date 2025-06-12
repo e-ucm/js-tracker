@@ -5,7 +5,7 @@ const { AccessibleTracker, ACCESSIBLETYPE } = require('./HighLevel/Accessible.js
 const { CompletableTracker, COMPLETABLETYPE } = require('./HighLevel/Completable.js');
 const { AlternativeTracker, ALTERNATIVETYPE } = require('./HighLevel/Alternative.js');
 const { GameObjectTracker, GAMEOBJECTTYPE } = require('./HighLevel/GameObject.js');
-const { ScormTracker, SCORMTYPE  } = require('./HighLevel/SCORM.js');
+const { ScormTracker, SCORMTYPE  } = require('./HighLevel/ScormTracker.js');
 
 class JSTracker {
     static ACCESSIBLETYPE=ACCESSIBLETYPE;
@@ -14,20 +14,20 @@ class JSTracker {
     static GAMEOBJECTTYPE=GAMEOBJECTTYPE;
     static SCORMTYPE=SCORMTYPE;
 
-    tracker;
-    accessibleTracker;
-    completableTracker;
-    alternativeTracker;
-    gameObjectTracker;
-    scormTracker;
+    Tracker;
+    AccessibleTracker;
+    CompletableTracker;
+    AlternativeTracker;
+    GameObjectTracker;
+    ScormTracker;
 
     constructor(result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null) {
-        this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
+        this.Tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
+        this.AccessibleTracker=new AccessibleTracker(this.Tracker);
+        this.CompletableTracker=new CompletableTracker(this.Tracker);
+        this.AlternativeTracker=new AlternativeTracker(this.Tracker);
+        this.GameObjectTracker=new GameObjectTracker(this.Tracker);
+        this.ScormTracker=new ScormTracker(this.Tracker);
     }
 
     generateXAPITrackerFromURLParams(default_uri) {
@@ -115,17 +115,17 @@ class JSTracker {
         }
 
         if(xAPIConfig.token_endpoint) {
-            this.tracker=new xAPITrackerAssetOAuth2(result_uri, backup_uri, backup_type, actor_homepage, actor_username, xAPIConfig,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
+            this.Tracker=new xAPITrackerAssetOAuth2(result_uri, backup_uri, backup_type, actor_homepage, actor_username, xAPIConfig,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
         } else if(username && password) {
-            this.tracker=new xAPITrackerAssetOAuth1(result_uri, backup_uri, backup_type, actor_homepage, actor_username, username, password, default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
+            this.Tracker=new xAPITrackerAssetOAuth1(result_uri, backup_uri, backup_type, actor_homepage, actor_username, username, password, default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
         } else {
-            this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
+            this.Tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
         }
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
+        this.AccessibleTracker=new AccessibleTracker(this.Tracker);
+        this.completableTracker=new CompletableTracker(this.Tracker);
+        this.AlternativeTracker=new AlternativeTracker(this.Tracker);
+        this.GameObjectTracker=new GameObjectTracker(this.Tracker);
+        this.ScormTracker=new ScormTracker(this.Tracker);
     }
 }
 
