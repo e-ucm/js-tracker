@@ -1,14 +1,22 @@
 export = ActorStatement;
 declare class ActorStatement {
-    constructor(token: any, accountName: any, homepage: any);
-    token: any;
-    accountName: any;
-    homepage: any;
+    /**
+     * @param {string} token
+     * @param {string} accountName
+     * @param {string} homepage
+     */
+    constructor(token: string, accountName: string, homepage: string);
+    token: string;
+    accountName: string;
+    homepage: string;
     toXAPI(): {
         account: {
-            name: any;
-            homePage: any;
+            name: string;
+            homePage: string;
         };
     };
-    toCSV(): any;
+    /**
+     * @returns {string}
+     */
+    toCSV(): string;
 }

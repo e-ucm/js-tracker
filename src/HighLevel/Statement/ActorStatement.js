@@ -1,4 +1,9 @@
 class ActorStatement {
+    /**
+     * @param {string} token
+     * @param {string} accountName
+     * @param {string} homepage
+     */
     constructor(token, accountName, homepage) {
         this.token = token;
         this.accountName = accountName;
@@ -17,6 +22,9 @@ class ActorStatement {
         };
     }
     
+    /**
+     * @returns {string}
+     */
     toCSV() {
         return this.accountName.replaceAll(',', '\\,') ;
     }

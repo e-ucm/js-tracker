@@ -1,10 +1,16 @@
 export = ObjectStatement;
 declare class ObjectStatement {
-    constructor(id: any, type: any, name?: any, description?: any);
-    id: any;
-    type: any;
-    name: any;
-    description: any;
+    /**
+     * @param {string} id
+     * @param {string} type
+     * @param {string} name
+     * @param {string} description
+     */
+    constructor(id: string, type: string, name?: string, description?: string);
+    id: string;
+    type: string;
+    name: string;
+    description: string;
     typeIds: {
         game: string;
         session: string;
@@ -44,16 +50,19 @@ declare class ObjectStatement {
         extended_interaction_type: string;
     };
     toXAPI(): {
-        id: any;
+        id: string;
         definition: {
             name: {
-                "en-US": any;
+                "en-US": string;
             };
             description: {
-                "en-US": any;
+                "en-US": string;
             };
             type: any;
         };
     };
+    /**
+     * @returns {string}
+     */
     toCSV(): string;
 }

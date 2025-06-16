@@ -1,9 +1,29 @@
 export class AlternativeTracker {
-    constructor(tracker: any);
-    tracker: any;
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
+    constructor(tracker: xAPITrackerAsset);
+    /**
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
     AlternativeType: string[];
-    Selected(alternativeId: any, optionId: any, type: any): any;
-    Unlocked(alternativeId: any, optionId: any, type: any): any;
+    /**
+     * @param {string} alternativeId
+     * @param {string} optionId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Selected(alternativeId: string, optionId: string, type: number): Statement;
+    /**
+     * @param {string} alternativeId
+     * @param {string} optionId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Unlocked(alternativeId: string, optionId: string, type: number): Statement;
     /**
      * @param {Statement} statement
      *
@@ -18,4 +38,5 @@ export const ALTERNATIVETYPE: Readonly<{
     ARENA: 4;
     ALTERNATIVE: 5;
 }>;
+import xAPITrackerAsset = require("../xAPITrackerAsset.js");
 import Statement = require("./Statement/Statement.js");

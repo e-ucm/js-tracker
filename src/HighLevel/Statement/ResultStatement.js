@@ -1,4 +1,7 @@
 class ResultStatements {
+    /**
+     * @param {string} defautURI
+     */
     constructor(defautURI) {
         this.defautURI = defautURI;
         this.parent = null;
@@ -10,6 +13,9 @@ class ResultStatements {
         this.Extensions = {};
     }
 
+    /**
+     * @returns {boolean}
+     */
     isEmpty() {
         return (this.parent == null) && (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
     }
@@ -23,6 +29,9 @@ class ResultStatements {
         response_type: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
     };
 
+    /**
+     * @param {Array} extensions
+     */
     setExtensions(extensions) {
         this.Extensions = {};
         for (var key in extensions) {
@@ -30,6 +39,10 @@ class ResultStatements {
         }
     }
 
+    /**
+     * @param {string} key
+     * @param {any} value
+     */
     setExtension(key, value) {
         switch (key.toLowerCase()) {
             case 'success': { this.Success = value; break; }
@@ -41,6 +54,10 @@ class ResultStatements {
         }
     }
 
+    /**
+     * @param {string} id
+     * @returns {string}
+     */
     setAsUri(id) {
         if(this.isUri(id)) {
             return id;
@@ -49,11 +66,19 @@ class ResultStatements {
         }
     }
     
+    /**
+     * @param {string} id
+     * @returns {boolean}
+     */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
         return pattern.test(id);
     }
 
+    /**
+     * @param {string} key
+     * @param {number} value
+     */
     setScoreValue(key, value) {
         if(! this.Score) {
             this.Score = {};
@@ -105,6 +130,9 @@ class ResultStatements {
         return ret;
     }
     
+    /**
+     * @returns {string}
+     */
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
         var completion = (this.Completion !== null) ? ',completion,' + this.Completion.toString() : '';
@@ -164,6 +192,10 @@ class ResultStatements {
     }
 }
 
+/**
+ * @param {any} obj
+ * @returns {number}
+ */
 var obsize = function(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -174,6 +206,10 @@ var obsize = function(obj) {
     return size;
 };
 
+/**
+ * @param {any} obj
+ * @returns {boolean}
+ */
 var ismap = function(obj) {
     for (var key in obj) {
         if (typeof obj[key] === 'object') {
@@ -183,6 +219,10 @@ var ismap = function(obj) {
     return true;
 };
 
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
 };

@@ -41,14 +41,49 @@ declare class JSTracker {
         OBJECTIVE: 5;
         ATTEMPT: 6;
     }>;
-    constructor(result_uri?: any, backup_uri?: any, backup_type?: any, actor_homepage?: any, actor_username?: any, auth_token?: any, default_uri?: any, debug?: any);
+    /**
+     * @param {string} endpoint
+     * @param {string} backup_endpoint
+     * @param {string} backup_type
+     * @param {string} actor_homePage
+     * @param {string} actor_name
+     * @param {string} auth_token
+     * @param {string}  default_uri
+     * @param {boolean} debug
+     * @param {string} batchLength
+     * @param {string} batchTimeout
+     * @param {string} maxRetryDelay
+     *
+     */
+    constructor(endpoint?: string, backup_endpoint?: string, backup_type?: string, actor_homePage?: string, actor_name?: string, auth_token?: string, default_uri?: string, debug?: boolean, batchLength?: string, batchTimeout?: string, maxRetryDelay?: string);
+    /**
+     * @type {xAPITrackerAsset}
+     */
     Tracker: xAPITrackerAsset;
+    /**
+     * @type {AccessibleTracker}
+     */
     AccessibleTracker: AccessibleTracker;
+    /**
+     * @type {CompletableTracker}
+     */
     CompletableTracker: CompletableTracker;
+    /**
+     * @type {AlternativeTracker}
+     */
     AlternativeTracker: AlternativeTracker;
+    /**
+     * @type {GameObjectTracker}
+     */
     GameObjectTracker: GameObjectTracker;
+    /**
+     * @type {ScormTracker}
+     */
     ScormTracker: ScormTracker;
-    generateXAPITrackerFromURLParams(default_uri: any): void;
+    /**
+     * @param {string} default_uri
+     */
+    generateXAPITrackerFromURLParams(default_uri: string): void;
     completableTracker: CompletableTracker;
 }
 import xAPITrackerAsset = require("./xAPITrackerAsset.js");

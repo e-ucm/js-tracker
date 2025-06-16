@@ -1,9 +1,19 @@
 const VerbStatement = require("./VerbStatement.js");
 const ObjectStatement = require("./ObjectStatement.js");
 const ResultStatements = require("./ResultStatement.js");
+const ContextStatement = require("./ContextStatement.js");
+const ActorStatement = require("./ActorStatement.js");
 const uuidv4 = require('uuid').v4;
 
 class Statement {
+    /**
+     * @param {ActorStatement} actor 
+     * @param {string} verbId
+     * @param {string} objectId 
+     * @param {string} objectType
+     * @param {ContextStatement} context
+     * @param {string} defautURI
+     */
     constructor(actor, verbId, objectId, objectType, context, defautURI) {
         this.id = uuidv4();
         this.actor = actor;
@@ -23,6 +33,10 @@ class Statement {
     context;
     result;
 
+    /**
+     * @param {string} id
+     * @returns {string}
+     */
     setAsUri(id) {
         if(this.isUri(id)) {
             return id;
@@ -31,12 +45,22 @@ class Statement {
         }
     }
     
+    /**
+     * @param {string} id
+     * @returns {boolean}
+     */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
         return pattern.test(id);
     }
 
-    setScore(raw, min, max, scaled) {
+    /**
+     * @param {number} raw
+     * @param {number} min
+     * @param {number} max
+     * @param {number} scaled
+     */
+    setScore(raw, min=null, max=null, scaled=null) {
         if (raw) {
             this.setScoreRaw(raw);
         }
@@ -54,30 +78,51 @@ class Statement {
         }
     }
 
+    /**
+     * @param {number} raw
+     */
     setScoreRaw(raw) {
         this.result.setScoreValue('raw', raw);
     }
 
+    /**
+     * @param {number} min
+     */
     setScoreMin(min) {
         this.result.setScoreValue('min', min);
     }
 
+    /**
+     * @param {number} max
+     */
     setScoreMax(max) {
         this.result.setScoreValue('max', max);
     }
 
+    /**
+     * @param {number} scaled
+     */
     setScoreScaled(scaled) {
         this.result.setScoreValue('scaled', scaled);
     }
 
+    /**
+     * @param {boolean} value
+     */
     setCompletion(value) {
         this.addResultExtension('completion', value);
     }
 
+    /**
+     * @param {boolean} value
+     */
     setSuccess(value) {
         this.addResultExtension('success', value);
     }
 
+    /**
+     * @param {number} diffInSeconds
+     */
     setDuration(diffInSeconds) {
         const seconds = diffInSeconds % 60;
         const minutes = Math.floor(diffInSeconds / 60) % 60;
@@ -89,18 +134,32 @@ class Statement {
         this.addResultExtension('duration', isoDuration);
     }
 
+    /**
+     * @param {string} value
+     */
     setResponse(value) {
         this.addResultExtension('response', value);
     }
 
+    /**
+     * @param {number} value
+     */
     setProgress(value) {
         this.addResultExtension('progress', value);
     }
 
+    /**
+     * @param {string} key 
+     * @param {any} value
+     */
     setVar(key,value) {
         this.addResultExtension(key,value);
     }
 
+    /**
+     * @param {string} key 
+     * @param {any} value
+     */
     addResultExtension(key,value) {
         this.result.setExtension(key, value);
     }
@@ -134,6 +193,9 @@ class Statement {
         return xapiTrace;
     }
 
+    /**
+     * @returns {string}
+     */
     toCSV() {
         var csv=[];
         csv.push(this.timestamp.toISOString());

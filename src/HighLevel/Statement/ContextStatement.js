@@ -1,6 +1,10 @@
 const uuidv4 = require('uuid').v4;
 
 class ContextStatement {
+    /**
+     * @param {string} categoryId
+     * @param {string} registrationId
+     */
     constructor(categoryId="seriousgame", registrationId=null) {
         if(registrationId != null) {
             this.registration=uuidv4();
@@ -10,6 +14,9 @@ class ContextStatement {
         this.categoryId=this.categoryIDs[categoryId];
         this.category=categoryId;
     }
+    /**
+     * @type {string}
+     */
     registration;
 
     categoryIDs = {
@@ -31,6 +38,9 @@ class ContextStatement {
         };
     }
 
+    /**
+     * @returns {string}
+     */
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;
     }

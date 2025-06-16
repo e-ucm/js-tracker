@@ -8,34 +8,111 @@ const ms = require('ms');
 class xAPITrackerAsset {
     //XAPI PARAMETERS
     xapi;
+    /**
+     * @type {string}
+     */
     endpoint;
+    /**
+     * @type {string}
+     */
     auth_token;
+    /**
+     * @type {boolean}
+     */
     online;
     //STATEMENTS PARAMETERS
+    /**
+     * @type {Array}
+     */
     statementsToSend;
+    /**
+     * @type {boolean}
+     */
     sendingInProgress;
+    /**
+     * @type {number}
+     */
     offset;
     //BACKUP PARAMETERS
+    /**
+     * @type {boolean}
+     */
     backup;
+    /**
+     * @type {string}
+     */
     backup_endpoint;
+    /**
+     * @type {string}
+     */
     backup_type;
+    /**
+     * @type {{ content_type: string; headers: { [s: string]: any; } | ArrayLike<any>; query_parameters: string | string[][] | Record<string, string> | URLSearchParams; }}
+     */
     backupRequestParameters;
     //ACTOR PARAMETERS
+    /**
+     * @type {ActorStatement}
+     */
     actor;
+    /**
+     * @type {string}
+     */
     actor_homePage;
+    /**
+     * @type {string}
+     */
     actor_name;
+    /**
+     * @type {ContextStatement}
+     */
     context;
     //DEFAULT_URI PARAMETERS
+    /**
+     * @type {string}
+     */
     default_uri;
     //DEBUG PARAMETERS
+    /**
+     * @type {boolean}
+     */
     debug;
     //BATCH AND RETRY PARAMETERS
+    /**
+     * @type {number}
+     */
     batchlength;
+    /**
+     * @type {number}
+     */
     batchtimeout;
+    /**
+     * @type {number}
+     */
     retryDelay;
+    /**
+     * @type {number}
+     */
     maxRetryDelay;
+    /**
+     * @type {NodeJS.Timeout}
+     */
     timer;
 
+    /**
+     * @param {string} endpoint
+     * @param {string} backup_endpoint
+     * @param {string} backup_type
+     * @param {string} actor_homePage
+     * @param {string} actor_name
+     * @param {string} auth_token
+     * @param {string}  default_uri
+     * @param {boolean} debug
+     * @param {string} batchLength
+     * @param {string} batchTimeout
+     * @param {string} maxRetryDelay
+     *
+     */
     constructor(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug, batchLength, batchTimeout, maxRetryDelay) {
         this.default_uri=default_uri;
         this.debug=debug;
@@ -182,6 +259,12 @@ class xAPITrackerAsset {
         }, timeout);
     }
 
+    /**
+     * @param {string} verbId
+     * @param {string} objectType
+     * @param {string} objectId
+     * @returns {Statement}
+     */
     Trace(verbId, objectType, objectId) {
         var statement=new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
         return statement;
@@ -274,6 +357,9 @@ class xAPITrackerAsset {
         }
     }
     
+    /**
+     * @param {Statement} statement
+     */
     async enqueue(statement) {
         if(this.debug !== null && this.debug) {
             console.debug(statement.toXAPI());

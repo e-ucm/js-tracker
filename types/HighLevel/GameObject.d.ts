@@ -1,9 +1,27 @@
 export class GameObjectTracker {
-    constructor(tracker: any);
-    tracker: any;
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
+    constructor(tracker: xAPITrackerAsset);
+    /**
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
     GameObjectType: string[];
-    Interacted(gameobjectId: any, type: any): any;
-    Used(gameobjectId: any, type: any): any;
+    /**
+     * @param {string} gameobjectId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Interacted(gameobjectId: string, type: number): Statement;
+    /**
+     * @param {string} gameobjectId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Used(gameobjectId: string, type: number): Statement;
     /**
      * @param {Statement} statement
      *
@@ -16,4 +34,5 @@ export const GAMEOBJECTTYPE: Readonly<{
     ITEM: 2;
     GAMEOBJECT: 3;
 }>;
+import xAPITrackerAsset = require("../xAPITrackerAsset.js");
 import Statement = require("./Statement/Statement.js");

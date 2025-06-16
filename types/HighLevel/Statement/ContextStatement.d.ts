@@ -1,6 +1,13 @@
 export = ContextStatement;
 declare class ContextStatement {
-    constructor(categoryId?: string, registrationId?: any);
+    /**
+     * @param {string} categoryId
+     * @param {string} registrationId
+     */
+    constructor(categoryId?: string, registrationId?: string);
+    /**
+     * @type {string}
+     */
     registration: string;
     categoryId: any;
     category: string;
@@ -19,5 +26,8 @@ declare class ContextStatement {
             }[];
         };
     };
+    /**
+     * @returns {string}
+     */
     toCSV(): string;
 }

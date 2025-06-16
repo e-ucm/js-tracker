@@ -1,15 +1,69 @@
 export class ScormTracker {
-    constructor(tracker: any);
-    tracker: any;
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
+    constructor(tracker: xAPITrackerAsset);
+    /**
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
     ScormType: string[];
-    Initialized(scoId: any): any;
-    Suspended(scoId: any): any;
-    Resumed(scoId: any): any;
-    Terminated(scoId: any): any;
-    Passed(activityId: any, type: any): any;
-    Failed(activityId: any, type: any): any;
-    Scored(activityId: any, type: any, score: any): any;
-    Completed(activityId: any, type: any, success: any, completion: any, score: any): any;
+    /**
+     * @param {string} scoId
+     * @returns {Statement}
+     *
+     */
+    Initialized(scoId: string): Statement;
+    /**
+     * @param {string} scoId
+     * @returns {Statement}
+     *
+     */
+    Suspended(scoId: string): Statement;
+    /**
+     * @param {string} scoId
+     * @returns {Statement}
+     *
+     */
+    Resumed(scoId: string): Statement;
+    /**
+     * @param {string} scoId
+     * @returns {Statement}
+     *
+     */
+    Terminated(scoId: string): Statement;
+    /**
+     * @param {string} activityId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Passed(activityId: string, type: number): Statement;
+    /**
+     * @param {string} activityId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Failed(activityId: string, type: number): Statement;
+    /**
+     * @param {string} activityId
+     * @param {number} type
+     * @param {number} score
+     * @returns {Statement}
+     *
+     */
+    Scored(activityId: string, type: number, score: number): Statement;
+    /**
+     * @param {string} activityId
+     * @param {number} type
+     * @param {boolean} success
+     * @param {boolean} completion
+     * @param {number} score
+     * @returns {Statement}
+     *
+     */
+    Completed(activityId: string, type: number, success: boolean, completion: boolean, score: number): Statement;
     /**
      * @param {Statement} statement
      *
@@ -25,4 +79,5 @@ export const SCORMTYPE: Readonly<{
     OBJECTIVE: 5;
     ATTEMPT: 6;
 }>;
+import xAPITrackerAsset = require("../xAPITrackerAsset.js");
 import Statement = require("./Statement/Statement.js");

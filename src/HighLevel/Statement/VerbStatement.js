@@ -1,4 +1,7 @@
 class VerbStatement {
+    /**
+     * @param {string} verbId
+     */
     constructor(verbId) {
         this.verbId = this.verbIds[verbId];
         this.verbDisplay = verbId;
@@ -27,7 +30,15 @@ class VerbStatement {
         failed: 'http://adlnet.gov/expapi/verbs/failed',
         scored: 'http://adlnet.gov/expapi/verbs/scored',
     };
+
+    /**
+     * @type {string}
+     */
     verbId;
+
+    /**
+     * @type {string}
+     */
     verbDisplay;
 
     toXAPI() {
@@ -42,6 +53,9 @@ class VerbStatement {
         return verb;
     }
 
+    /**
+     * @returns {string}
+     */
     toCSV() {
         return this.verbId;
     }

@@ -14,15 +14,47 @@ class JSTracker {
     static GAMEOBJECTTYPE=GAMEOBJECTTYPE;
     static SCORMTYPE=SCORMTYPE;
 
+    /**
+     * @type {xAPITrackerAsset}
+     */
     Tracker;
+    /**
+     * @type {AccessibleTracker}
+     */
     AccessibleTracker;
+    /**
+     * @type {CompletableTracker}
+     */
     CompletableTracker;
+    /**
+     * @type {AlternativeTracker}
+     */
     AlternativeTracker;
+    /**
+     * @type {GameObjectTracker}
+     */
     GameObjectTracker;
+    /**
+     * @type {ScormTracker}
+     */
     ScormTracker;
 
-    constructor(result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null) {
-        this.Tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
+    /**
+     * @param {string} endpoint
+     * @param {string} backup_endpoint
+     * @param {string} backup_type
+     * @param {string} actor_homePage
+     * @param {string} actor_name
+     * @param {string} auth_token
+     * @param {string}  default_uri
+     * @param {boolean} debug
+     * @param {string} batchLength
+     * @param {string} batchTimeout
+     * @param {string} maxRetryDelay
+     *
+     */
+    constructor(endpoint=null, backup_endpoint=null, backup_type=null, actor_homePage=null, actor_name=null, auth_token=null,  default_uri=null, debug=null, batchLength=null, batchTimeout=null, maxRetryDelay=null) {
+        this.Tracker=new xAPITrackerAsset(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
         this.AccessibleTracker=new AccessibleTracker(this.Tracker);
         this.CompletableTracker=new CompletableTracker(this.Tracker);
         this.AlternativeTracker=new AlternativeTracker(this.Tracker);
@@ -30,6 +62,9 @@ class JSTracker {
         this.ScormTracker=new ScormTracker(this.Tracker);
     }
 
+    /**
+     * @param {string} default_uri
+     */
     generateXAPITrackerFromURLParams(default_uri) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
@@ -87,13 +122,13 @@ class JSTracker {
             // OAUTH 0 : VIA AUTHTOKEN DIRECTLY NOT RECOMENDED
             auth_token = urlParams.get('auth_token');
             // DEBUG 
-            debug=urlParams.get('debug');
+            var stringDebug=urlParams.get('debug');
             // BATCH
             batchLength=urlParams.get('batch_length');
             batchTimeout=urlParams.get('batch_timeout');
             maxRetryDelay=urlParams.get('max_retry_delay');
-            if(debug !== null && debug == "true") {
-                debug = Boolean(debug);
+            if(stringDebug !== null && stringDebug == "true") {
+                debug = true;
                 console.debug(result_uri);
                 console.debug(result_uri);
                 console.debug(backup_type);

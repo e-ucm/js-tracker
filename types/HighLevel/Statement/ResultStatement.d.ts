@@ -1,7 +1,10 @@
 export = ResultStatements;
 declare class ResultStatements {
-    constructor(defautURI: any);
-    defautURI: any;
+    /**
+     * @param {string} defautURI
+     */
+    constructor(defautURI: string);
+    defautURI: string;
     parent: any;
     Score: any;
     Success: any;
@@ -9,6 +12,9 @@ declare class ResultStatements {
     Response: any;
     Duration: any;
     Extensions: {};
+    /**
+     * @returns {boolean}
+     */
     isEmpty(): boolean;
     ExtensionIDs: {
         health: string;
@@ -18,11 +24,30 @@ declare class ResultStatements {
         response_explanation: string;
         response_type: string;
     };
-    setExtensions(extensions: any): void;
-    setExtension(key: any, value: any): void;
-    setAsUri(id: any): any;
-    isUri(id: any): boolean;
-    setScoreValue(key: any, value: any): void;
+    /**
+     * @param {Array} extensions
+     */
+    setExtensions(extensions: any[]): void;
+    /**
+     * @param {string} key
+     * @param {any} value
+     */
+    setExtension(key: string, value: any): void;
+    /**
+     * @param {string} id
+     * @returns {string}
+     */
+    setAsUri(id: string): string;
+    /**
+     * @param {string} id
+     * @returns {boolean}
+     */
+    isUri(id: string): boolean;
+    /**
+     * @param {string} key
+     * @param {number} value
+     */
+    setScoreValue(key: string, value: number): void;
     toXAPI(): {
         success: boolean;
         completion: boolean;
@@ -31,5 +56,8 @@ declare class ResultStatements {
         duration: any;
         extensions: {};
     };
+    /**
+     * @returns {string}
+     */
     toCSV(): string;
 }

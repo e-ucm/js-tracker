@@ -1,4 +1,10 @@
 class ObjectStatement {
+    /**
+     * @param {string} id
+     * @param {string} type
+     * @param {string} name
+     * @param {string} description
+     */
     constructor(id, type, name = null, description = null) {
         this.id = id;
         this.type = type;
@@ -78,6 +84,9 @@ class ObjectStatement {
         return object;
     }
 
+    /**
+     * @returns {string}
+     */
     toCSV() {
         return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
     }

@@ -1,8 +1,17 @@
 export = VerbStatement;
 declare class VerbStatement {
-    constructor(verbId: any);
-    verbId: any;
-    verbDisplay: any;
+    /**
+     * @param {string} verbId
+     */
+    constructor(verbId: string);
+    /**
+     * @type {string}
+     */
+    verbId: string;
+    /**
+     * @type {string}
+     */
+    verbDisplay: string;
     verbIds: {
         initialized: string;
         progressed: string;
@@ -22,10 +31,13 @@ declare class VerbStatement {
         scored: string;
     };
     toXAPI(): {
-        id: any;
+        id: string;
         display: {
-            en: any;
+            en: string;
         };
     };
-    toCSV(): any;
+    /**
+     * @returns {string}
+     */
+    toCSV(): string;
 }

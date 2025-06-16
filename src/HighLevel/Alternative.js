@@ -1,14 +1,28 @@
+const xAPITrackerAsset = require("../xAPITrackerAsset.js");
 const Statement = require("./Statement/Statement.js");
 
 class AlternativeTracker {
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
     constructor(tracker) {
         this.tracker = tracker;
     }
     
+    /**
+     * @type {xAPITrackerAsset}
+     */
     tracker;
 
     AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
-
+    
+    /**
+     * @param {string} alternativeId
+     * @param {string} optionId
+     * @param {number} type
+     * @returns {Statement}
+     * 
+     */
     Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
@@ -16,7 +30,14 @@ class AlternativeTracker {
         statement.setResponse(optionId);
         return statement;
     }
-
+    
+    /**
+     * @param {string} alternativeId
+     * @param {string} optionId
+     * @param {number} type
+     * @returns {Statement}
+     * 
+     */
     Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         

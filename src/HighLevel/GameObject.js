@@ -1,21 +1,40 @@
+const xAPITrackerAsset = require("../xAPITrackerAsset.js");
 const Statement = require("./Statement/Statement.js");
 
 class GameObjectTracker {
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
     constructor(tracker) {
         this.tracker = tracker;
     }
     
+    /**
+     * @type {xAPITrackerAsset}
+     */
     tracker;
 
     GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
+    /**
+     * @param {string} gameobjectId
+     * @param {number} type
+     * @returns {Statement}
+     * 
+     */
     Interacted(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
         var statement = this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
         return statement;
     }
-
+    
+    /**
+     * @param {string} gameobjectId
+     * @param {number} type
+     * @returns {Statement}
+     * 
+     */
     Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 

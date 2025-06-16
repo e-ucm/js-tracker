@@ -1,10 +1,32 @@
 export class AccessibleTracker {
-    constructor(tracker: any);
-    tracker: any;
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
+    constructor(tracker: xAPITrackerAsset);
+    /**
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
     AccessibleType: string[];
-    Accessed(accessibleId: any, type: any): any;
-    Skipped(accessibleId: any, type: any): any;
-    enqueue(statement: any): Promise<void>;
+    /**
+     * @param {string} accessibleId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Accessed(accessibleId: string, type: number): Statement;
+    /**
+     * @param {string} accessibleId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Skipped(accessibleId: string, type: number): Statement;
+    /**
+     * @param {Statement} statement
+     *
+     */
+    enqueue(statement: Statement): Promise<void>;
 }
 export const ACCESSIBLETYPE: Readonly<{
     SCREEN: 0;
@@ -13,3 +35,5 @@ export const ACCESSIBLETYPE: Readonly<{
     CUTSCENE: 3;
     ACCESSIBLE: 4;
 }>;
+import xAPITrackerAsset = require("../xAPITrackerAsset.js");
+import Statement = require("./Statement/Statement.js");

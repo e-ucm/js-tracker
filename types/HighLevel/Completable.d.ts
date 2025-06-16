@@ -1,10 +1,38 @@
 export class CompletableTracker {
-    constructor(tracker: any);
-    tracker: any;
+    /**
+     * @param {xAPITrackerAsset} tracker
+     */
+    constructor(tracker: xAPITrackerAsset);
+    /**
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
     CompletableType: string[];
-    Initialized(completableId: any, type: any): any;
-    Progressed(completableId: any, type: any, progress: any): any;
-    Completed(completableId: any, type: any, success: any, completion: any, score: any): any;
+    /**
+     * @param {string} completableId
+     * @param {number} type
+     * @returns {Statement}
+     *
+     */
+    Initialized(completableId: string, type: number): Statement;
+    /**
+     * @param {string} completableId
+     * @param {number} type
+     * @param {number} progress
+     * @returns {Statement}
+     *
+     */
+    Progressed(completableId: string, type: number, progress: number): Statement;
+    /**
+     * @param {string} completableId
+     * @param {number} type
+     * @param {boolean} success
+     * @param {boolean} completion
+     * @param {number} score
+     * @returns {Statement}
+     *
+     */
+    Completed(completableId: string, type: number, success: boolean, completion: boolean, score: number): Statement;
     /**
      * @param {Statement} statement
      *
@@ -22,4 +50,5 @@ export const COMPLETABLETYPE: Readonly<{
     RACE: 7;
     COMPLETABLE: 8;
 }>;
+import xAPITrackerAsset = require("../xAPITrackerAsset.js");
 import Statement = require("./Statement/Statement.js");
