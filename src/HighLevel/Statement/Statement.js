@@ -105,6 +105,10 @@ export default class Statement {
         this.result.setExtension(key, value);
     }
 
+    addResultExtensions(extensions) {
+        this.result.setExtensions(extensions);
+    }
+
     toXAPI() {
         var xapiTrace={};
         if(this.id) {

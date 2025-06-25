@@ -12,25 +12,15 @@ export class AlternativeTracker {
     Selected(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
-        var statement = this.tracker.Trace('selected',this.AlternativeType[type],alternativeId);
-        statement.setResponse(optionId);
-        return statement;
+        return this.tracker.Trace('selected',this.AlternativeType[type],alternativeId)
+            .withResponse(optionId);
     }
 
     Unlocked(alternativeId, optionId, type) {
         if (typeof type === 'undefined') {type = 5;}
         
-        var statement = this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId);
-        statement.setResponse(optionId);
-        return statement;
-    }
-
-    /**
-     * @param {Statement} statement
-     * 
-     */
-    async enqueue(statement) {
-        await this.tracker.enqueue(statement);
+        return this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId)
+                .withResponse(optionId);
     }
 }
 

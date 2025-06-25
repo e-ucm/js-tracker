@@ -9,19 +9,13 @@ export class AccessibleTracker {
     Accessed(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        var statement = this.tracker.Trace('accessed',this.AccessibleType[type],accessibleId);
-        return statement;
+        return this.tracker.Trace('accessed',this.AccessibleType[type],accessibleId);
     }
 
     Skipped(accessibleId, type) {
         if (typeof type === 'undefined') {type = 4;}
 
-        var statement = this.tracker.Trace('skipped',this.AccessibleType[type],accessibleId);
-        return statement;
-    }
-
-    async enqueue(statement) {
-        await this.tracker.enqueue(statement);
+        return this.tracker.Trace('skipped',this.AccessibleType[type],accessibleId);
     }
 }
 

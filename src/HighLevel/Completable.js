@@ -11,16 +11,14 @@ export class CompletableTracker {
     Initialized(completableId, type) {
         if (typeof type === 'undefined') {type = 8;}
 
-        var statement = this.tracker.Trace('initialized',this.CompletableType[type],completableId);
-        return statement;
+        return this.tracker.Trace('initialized',this.CompletableType[type],completableId);
     }
 
     Progressed(completableId, type, progress) {
         if (typeof type === 'undefined') {type = 8;}
 
-        var statement = this.tracker.Trace('progressed',this.CompletableType[type],completableId);
-        statement.setProgress(progress);
-        return statement;
+        return this.tracker.Trace('progressed',this.CompletableType[type],completableId)
+            .withProgress(progress);
     }
 
     Completed(completableId, type, success, completion, score) {
@@ -29,19 +27,10 @@ export class CompletableTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        var statement = this.tracker.Trace('completed',this.CompletableType[type],completableId);
-        statement.setSuccess(success);
-        statement.setCompletion(completion);
-        statement.setScore(score);
-        return statement;
-    }
-    
-    /**
-     * @param {Statement} statement
-     * 
-     */
-    async enqueue(statement) {
-        await this.tracker.enqueue(statement);
+        return this.tracker.Trace('completed',this.CompletableType[type],completableId)
+            .withSuccess(success)
+            .withCompletion(completion)
+            .withScore(score);
     }
 }
 

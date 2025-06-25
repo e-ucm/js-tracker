@@ -12,23 +12,13 @@ export class GameObjectTracker {
     Interacted(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
-        var statement = this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
-        return statement;
+        return this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
     }
 
     Used(gameobjectId, type) {
         if (typeof type === 'undefined') {type = 3;}
 
-        var statement = this.tracker.Trace('used',this.GameObjectType[type],gameobjectId);
-        return statement;
-    }
-    
-    /**
-     * @param {Statement} statement
-     * 
-     */
-    async enqueue(statement) {
-        await this.tracker.enqueue(statement);
+        return this.tracker.Trace('used',this.GameObjectType[type],gameobjectId);
     }
 }
 

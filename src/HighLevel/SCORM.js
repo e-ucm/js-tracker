@@ -9,46 +9,39 @@ export class ScormTracker {
     ScormType = ['SCO', 'course', 'module', 'assessment', 'interaction', 'objective', 'attempt'];
 
     Initialized(scoId) {
-        var statement = this.tracker.Trace('initialized', 'SCO', scoId);
-        return statement;
+        return this.tracker.Trace('initialized', 'SCO', scoId);
     }
 
     Suspended(scoId) {
-        var statement = this.tracker.Trace('suspended', 'SCO', scoId);
-        return statement;
+        return this.tracker.Trace('suspended', 'SCO', scoId);
     }
 
     Resumed(scoId) {
-        var statement = this.tracker.Trace('resumed', 'SCO', scoId);
-        return statement;
+        return this.tracker.Trace('resumed', 'SCO', scoId);
     }
 
     Terminated(scoId) {
-        var statement = this.tracker.Trace('terminated', 'SCO', scoId);
-        return statement;
+        return this.tracker.Trace('terminated', 'SCO', scoId);
     }
 
     Passed(activityId, type) {
         if (typeof type === 'undefined') {type = 0;}
 
-        var statement = this.tracker.Trace('passed',this.ScormType[type],activityId);
-        return statement;
+        return this.tracker.Trace('passed',this.ScormType[type],activityId);
     }
 
     Failed(activityId, type) {
         if (typeof type === 'undefined') {type = 0;}
 
-        var statement = this.tracker.Trace('failed',this.ScormType[type],activityId);
-        return statement;
+        return this.tracker.Trace('failed',this.ScormType[type],activityId);
     }
 
     Scored(activityId, type, score) {
         if (typeof type === 'undefined') {type = 0;}
         if (typeof score === 'undefined') {score = 1;}
 
-        var statement = this.tracker.Trace('scored',this.ScormType[type],activityId);
-        statement.setScore(score);
-        return statement;
+        return this.tracker.Trace('scored',this.ScormType[type],activityId)
+            .withScore(score);
     }
 
     Completed(activityId, type, success, completion, score) {
@@ -57,19 +50,10 @@ export class ScormTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        var statement = this.tracker.Trace('completed',this.ScormType[type],activityId);
-        statement.setSuccess(success);
-        statement.setCompletion(completion);
-        statement.setScore(score);
-        return statement;
-    }
-    
-    /**
-     * @param {Statement} statement
-     * 
-     */
-    async enqueue(statement) {
-        await this.tracker.enqueue(statement);
+        return this.tracker.Trace('completed',this.ScormType[type],activityId)
+            .withSuccess(success)
+            .withCompletion(completion)
+            .withScore(score);
     }
 }
 

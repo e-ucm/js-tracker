@@ -4,6 +4,7 @@ import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
 import axios from 'axios';
 import ms from 'ms';
+import { StatementBuilder } from "./HighLevel/StatementBuilder.js";
 
 export default class xAPITrackerAsset {
     //XAPI PARAMETERS
@@ -184,7 +185,7 @@ export default class xAPITrackerAsset {
 
     Trace(verbId, objectType, objectId) {
         var statement=new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
-        return statement;
+        return new StatementBuilder(this, statement);
     }
 
     async sendBackup() {
