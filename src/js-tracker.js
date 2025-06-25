@@ -7,7 +7,7 @@ import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js'
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
-class JSTracker {
+export class JSTracker {
     static ACCESSIBLETYPE=ACCESSIBLETYPE;
     static COMPLETABLETYPE=COMPLETABLETYPE;
     static ALTERNATIVETYPE=ALTERNATIVETYPE;
@@ -28,6 +28,18 @@ class JSTracker {
         this.alternativeTracker=new AlternativeTracker(this.tracker);
         this.gameObjectTracker=new GameObjectTracker(this.tracker);
         this.scormTracker=new ScormTracker(this.tracker);
+    }
+
+    enqueue(statement) {
+        this.tracker.enqueue(statement);
+    }
+
+    sendBatch() {
+        this.tracker.sendBatch();
+    }
+
+    sendBackup() {
+        this.tracker.sendBackup();
     }
 
     generateXAPITrackerFromURLParams(default_uri) {
@@ -128,6 +140,4 @@ class JSTracker {
         this.scormTracker=new ScormTracker(this.tracker);
     }
 }
-
-export default JSTracker;
 
