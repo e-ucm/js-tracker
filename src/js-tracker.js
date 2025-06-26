@@ -30,16 +30,12 @@ export class JSTracker {
         this.scormTracker=new ScormTracker(this.tracker);
     }
 
-    enqueue(statement) {
-        this.tracker.enqueue(statement);
+    async sendBatch() {
+        await this.tracker.sendBatch();
     }
 
-    sendBatch() {
-        this.tracker.sendBatch();
-    }
-
-    sendBackup() {
-        this.tracker.sendBackup();
+    async sendBackup() {
+        await this.tracker.sendBackup();
     }
 
     generateXAPITrackerFromURLParams(default_uri) {
@@ -115,7 +111,6 @@ export class JSTracker {
                 console.debug(batchLength);
                 console.debug(batchTimeout);
                 console.debug(maxRetryDelay);
-                //console.debug(xAPIConfig);
             }
         } else {
             result_uri = null;
@@ -140,4 +135,3 @@ export class JSTracker {
         this.scormTracker=new ScormTracker(this.tracker);
     }
 }
-
