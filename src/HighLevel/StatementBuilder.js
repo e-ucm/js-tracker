@@ -82,7 +82,21 @@ export class StatementBuilder {
     this.statement.setExtensions(ext);
     return this;
   }
-  
+
+  /**
+   * let me run any function on the statement
+   * fn can either mutate `stmt` in‐place, or return a brand new statement
+   */
+  apply(fn) {
+    const result = fn(this.statement);
+    // if your fn returns a new statement, pick that up, otherwise
+    // assume it has mutated in place
+    if (result !== undefined && typeof result == Statement) {
+      this.statement = result;
+    }
+    return this;
+  }
+
   //— make this builder awaitable (thenable) ————————————————————————
   then(onFulfilled, onRejected) {
     return this._promise.then(onFulfilled, onRejected)
