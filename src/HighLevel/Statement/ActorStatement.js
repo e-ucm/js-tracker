@@ -1,13 +1,34 @@
+/**
+ * Actor Class of a Statement
+ */
 export default class ActorStatement {
-    constructor(token, accountName, homepage) {
-        this.token = token;
+    /**
+     * Actor constructor
+     * @param {string} accountName account name
+     * @param {string} homepage account homepage 
+     */
+    constructor(accountName, homepage) {
         this.accountName = accountName;
         this.homepage = homepage;
     }
-    token;
+
+    /**
+     * Account name
+     * @type {string}
+     */
     accountName;
+
+    /**
+     * Account homePage
+     * @type {string}
+     */
     homepage;
-    
+
+    /**
+     * convert to XAPI
+     * 
+     * @returns Object
+     */
     toXAPI() {
         return {
             account: {
@@ -16,7 +37,12 @@ export default class ActorStatement {
             }
         };
     }
-    
+
+    /**
+     * convert to CSV
+     * 
+     * @returns String
+     */
     toCSV() {
         return this.accountName.replaceAll(',', '\\,') ;
     }

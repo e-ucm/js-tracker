@@ -1,4 +1,15 @@
+/**
+ * The Object Class of a Statement
+ */
 export default class ObjectStatement {
+    /**
+     * The constructor of the ObjectStatement class
+     * 
+     * @param {string} id the id of the object
+     * @param {string} type the type of the object
+     * @param {string} name the name of the object
+     * @param {string} description the description of the object
+     */
     constructor(id, type, name = null, description = null) {
         this.id = id;
         this.type = type;
@@ -6,6 +17,9 @@ export default class ObjectStatement {
         this.description = description;
     }
     
+    /**
+     * The Type IDs list for Objects
+     */
     typeIds = {
         // Completable
         game: 'https://w3id.org/xapi/seriousgames/activity-types/serious-game' ,
@@ -51,15 +65,43 @@ export default class ObjectStatement {
         profile: 'http://adlnet.gov/expapi/activities/profile'
     };
 
+    /**
+     * The Extensions IDs for Objects
+     */
     ExtensionIDs = {
       extended_interaction_type: "https://w3id.org/xapi/netc-assessment/extensions/activity/extended-interaction-type",
     };
 
+    /**
+     * The ID of the Object
+     * 
+     * @type {string}
+     */
     id;
+    /**
+     * The type of the Object
+     * 
+     * @type {string}
+     */
     type;
+    /**
+     * The name of the Object
+     * 
+     * @type {string}
+     */
     name;
+    /**
+     * The description of the Object
+     * 
+     * @type {string}
+     */
     description;
 
+    /**
+     * convert to XAPI
+     * 
+     * @returns Object
+     */
     toXAPI() {
         var object= {};
         if(this.id) {
@@ -78,6 +120,11 @@ export default class ObjectStatement {
         return object;
     }
 
+    /**
+     * convert to CSV
+     * 
+     * @returns String
+     */
     toCSV() {
         return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
     }

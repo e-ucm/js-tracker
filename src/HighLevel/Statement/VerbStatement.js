@@ -1,8 +1,20 @@
+/**
+ * The Verb Class  of a Statement
+ */
 export default class VerbStatement {
-    constructor(verbId) {
-        this.verbId = this.verbIds[verbId];
-        this.verbDisplay = verbId;
+    /**
+     * Constructor of VerbStatement class
+     * 
+     * @param {string} verbDisplay The verb display id of the statement
+     */
+    constructor(verbDisplay) {
+        this.verbId = this.verbIds[verbDisplay];
+        this.verbDisplay = verbDisplay;
     }
+    
+    /**
+     * The Verb Ids array
+     */
     verbIds = {
         //Completable Verbs
         initialized: 'http://adlnet.gov/expapi/verbs/initialized',
@@ -27,9 +39,23 @@ export default class VerbStatement {
         failed: 'http://adlnet.gov/expapi/verbs/failed',
         scored: 'http://adlnet.gov/expapi/verbs/scored',
     };
+    /**
+     * The Verb Id 
+     * @type {string}
+     */
     verbId;
+
+    /**
+     * The Verb display 
+     * @type {string}
+     */
     verbDisplay;
 
+    /**
+     * convert to XAPI
+     * 
+     * @returns Object
+     */
     toXAPI() {
         var verb = {};
         if(this.verbId) {
@@ -42,6 +68,11 @@ export default class VerbStatement {
         return verb;
     }
 
+    /**
+     * convert to CSV
+     * 
+     * @returns String
+     */
     toCSV() {
         return this.verbId;
     }

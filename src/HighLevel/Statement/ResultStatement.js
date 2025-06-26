@@ -1,7 +1,14 @@
-export default class ResultStatements {
+/**
+ * The Result Class of a Statement
+ */
+export default class ResultStatement {
+    /**
+     * Constructor of the ResultStatement class
+     * 
+     * @param {string} defautURI The default URI for the extensions
+     */
     constructor(defautURI) {
         this.defautURI = defautURI;
-        this.parent = null;
         this.Score = null;
         this.Success = null;
         this.Completion = null;
@@ -10,10 +17,61 @@ export default class ResultStatements {
         this.Extensions = {};
     }
 
+    /**
+     * The ID of the Result
+     * 
+     * @type {string}
+     */
+    defautURI;
+
+    /**
+     * The Score of the Result
+     * 
+     * @type {Object}
+     */
+    Score;
+    /**
+     * The success status of the Result
+     * 
+     * @type {boolean}
+     */
+    Success;
+    /**
+     * The Completion status of the Result
+     * 
+     * @type {boolean}
+     */
+    Completion;
+    /**
+     * The response of the Result
+     * 
+     * @type {string}
+     */
+    Response;
+    /**
+     * The duration of the Result
+     * 
+     * @type {string}
+     */
+    Duration;
+    /**
+     * The Extensions of the Result
+     * 
+     * @type {Object}
+     */
+    Extensions;
+
+    /**
+     * Check if the result is empty or not
+     * @returns boolean
+     */
     isEmpty() {
-        return (this.parent == null) && (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
+        return (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
     }
 
+    /**
+     * The possible extensions of a result statement
+     */
     ExtensionIDs = {
         health: 'https://w3id.org/xapi/seriousgames/extensions/health',
         position: 'https://w3id.org/xapi/seriousgames/extensions/position',
@@ -23,6 +81,15 @@ export default class ResultStatements {
         response_type: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
     };
 
+    /**
+     * The Score Keys for the result
+     */
+    ScoreKey = ["raw", "min", "max", "scaled"];
+
+    /**
+     * Set extensions from list
+     * @param {Object} extensions extension list
+     */
     setExtensions(extensions) {
         this.Extensions = {};
         for (var key in extensions) {
@@ -30,17 +97,28 @@ export default class ResultStatements {
         }
     }
 
+    /**
+     * Set result extension for key value
+     * @param {string} key the key of the extension
+     * @param {string} value the value of the extension
+     */
     setExtension(key, value) {
         switch (key.toLowerCase()) {
             case 'success': { this.Success = value; break; }
             case 'completion': { this.Completion = value; break; }
             case 'response': { this.Response = value; break; }
-            case 'score': { this.Score = value; break; }
+            case 'score': { this.Score = this.setScoreValue("raw", value); break; }
             case 'duration': { this.Duration = value; break; }
             default: { this.Extensions[key] = value; break; }
         }
     }
 
+    /**
+     * Set as URI if it is not an URI already
+
+     * @param {string} id the id of the part of the statement
+     * @returns string
+     */
     setAsUri(id) {
         if(this.isUri(id)) {
             return id;
@@ -49,18 +127,35 @@ export default class ResultStatements {
         }
     }
     
+    /**
+     * Check if the string is an URI
+     * @param {string} id 
+     * @returns boolean
+     */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
         return pattern.test(id);
     }
 
+    /**
+     * Set the score of the statement
+     * @param {string} key the key for the score 
+     * @param {number} value the score 
+     */
     setScoreValue(key, value) {
         if(! this.Score) {
             this.Score = {};
         }
-        this.Score[key] = Number(value);
+        if(this.ScoreKey.includes(key)) {
+            this.Score[key] = Number(value);
+        }    
     }
 
+    /**
+     * convert to XAPI
+     * 
+     * @returns Object
+     */
     toXAPI() {
         var ret = {};
 
@@ -105,6 +200,11 @@ export default class ResultStatements {
         return ret;
     }
     
+    /**
+     * convert to CSV
+     * 
+     * @returns String
+     */
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
         var completion = (this.Completion !== null) ? ',completion,' + this.Completion.toString() : '';
@@ -164,6 +264,11 @@ export default class ResultStatements {
     }
 }
 
+/**
+ * Get the size of the object
+ * @param {Object} obj the object to get the size
+ * @returns number
+ */
 var obsize = function(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -174,6 +279,11 @@ var obsize = function(obj) {
     return size;
 };
 
+/**
+ * Check if is map
+ * @param {Object} obj the object to check
+ * @returns boolean
+ */
 var ismap = function(obj) {
     for (var key in obj) {
         if (typeof obj[key] === 'object') {
@@ -183,6 +293,11 @@ var ismap = function(obj) {
     return true;
 };
 
+/**
+ * Check if exist
+ * @param {Object} value the object to check
+ * @returns boolean
+ */
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
 };

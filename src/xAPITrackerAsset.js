@@ -62,7 +62,7 @@ export default class xAPITrackerAsset {
         this.auth_token = auth_token;
         this.actor_homePage = actor_homePage;
         this.actor_name = actor_name;
-        this.actor=new ActorStatement(this.actor_name, this.actor_name, this.actor_homePage);
+        this.actor=new ActorStatement(this.actor_name, this.actor_homePage);
         this.context = new ContextStatement();
         this.updateAuth();
     }
