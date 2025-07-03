@@ -17,7 +17,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "build:types": "npx tsc --project tsconfig.json",
-    "build": "webpack && rollup -c && npm run build:types",
+    "build:webpack": "webpack && rollup -c",
+    "build": "npm run build:webpack && npm run build:types",
     "eslint-fix": "eslint . --fix",
     "lint": "jshint --verbose . && npm run eslint-fix",
     "test": "npm run lint && mocha",
@@ -45,10 +46,10 @@
     "lodash.clonedeep": "^4.5.0",
     "mocha": "^10.8.2",
     "moment": "2.30.1",
-    "rollup": "^4.43.0",
-    "terser-webpack-plugin": "5.3.10",
+    "rollup": "^4.44.1",
+    "terser-webpack-plugin": "5.3.14",
     "typescript": "^5.8.3",
-    "webpack": "^5.92.1",
+    "webpack": "^5.99.9",
     "webpack-cli": "5.1.4"
   }
 }

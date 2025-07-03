@@ -3,7 +3,7 @@ import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
 import axios from 'axios';
-import { default as ms } from 'ms';
+import ms from 'ms';
 import { StatementBuilder } from "./HighLevel/StatementBuilder.js";
 
 export default class xAPITrackerAsset {

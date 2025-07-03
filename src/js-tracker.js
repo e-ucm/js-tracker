@@ -7,7 +7,7 @@ import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js'
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
-export class JSTracker {
+export default class JSTracker {
     static ACCESSIBLETYPE=ACCESSIBLETYPE;
     static COMPLETABLETYPE=COMPLETABLETYPE;
     static ALTERNATIVETYPE=ALTERNATIVETYPE;
