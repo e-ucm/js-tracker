@@ -1,7 +1,9 @@
-import XAPI from '@xapi/xapi';
-import { v4 } from 'uuid';
-import axios from 'axios';
-import ms from 'ms';
+'use strict';
+
+var XAPI = require('@xapi/xapi');
+var uuid = require('uuid');
+var axios = require('axios');
+var ms = require('ms');
 
 /**
  * Actor Class of a Statement
@@ -67,7 +69,7 @@ class ContextStatement {
         if(registrationId != null) {
             this.registration=registrationId;
         } else {
-            this.registration=v4();
+            this.registration=uuid.v4();
         }
         this.categoryId=this.categoryIDs[categoryId];
         this.category=categoryId;
@@ -646,7 +648,7 @@ class Statement {
      * @param {string} defaultURI default URI for the statement construction
      */
     constructor(actor, verbId, objectId, objectType, context, defaultURI) {
-        this.id = v4();
+        this.id = uuid.v4();
         this.actor = actor;
         this.verb = new VerbStatement(verbId);
         this.defaultURI = defaultURI;
@@ -1917,4 +1919,4 @@ class JSTracker {
     }
 }
 
-export { JSTracker as default };
+module.exports = JSTracker;
