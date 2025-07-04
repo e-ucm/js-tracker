@@ -1,7 +1,10 @@
 import Statement from "./Statement/Statement.js";
 
 export class GameObjectTracker {
-    constructor(tracker) {
+    constructor(tracker,id, type) {
+        if (typeof type === 'undefined') {type = 3;}
+        this.gameobjectId=id;
+        this.type=type;
         this.tracker = tracker;
     }
     
@@ -9,16 +12,12 @@ export class GameObjectTracker {
 
     GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
-    Interacted(gameobjectId, type) {
-        if (typeof type === 'undefined') {type = 3;}
-
-        return this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
+    Interacted() {
+        return this.tracker.Trace('interacted',this.GameObjectType[this.type],this.gameobjectId);
     }
 
-    Used(gameobjectId, type) {
-        if (typeof type === 'undefined') {type = 3;}
-
-        return this.tracker.Trace('used',this.GameObjectType[type],gameobjectId);
+    Used() {
+        return this.tracker.Trace('used',this.GameObjectType[this.type],this.gameobjectId);
     }
 }
 

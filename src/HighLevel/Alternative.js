@@ -1,25 +1,30 @@
 import Statement from "./Statement/Statement.js";
 
 export class AlternativeTracker {
-    constructor(tracker) {
+    constructor(tracker, id, type) {
+        if (typeof type === 'undefined') {type = 5;}
+        this.alternativeId=id;
+        this.type=type;
         this.tracker = tracker;
     }
     
     tracker;
+    alternativeId;
+    type;
 
-    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
+    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative'];
 
-    Selected(alternativeId, optionId, type) {
+    Selected(optionId) {
         if (typeof type === 'undefined') {type = 5;}
         
-        return this.tracker.Trace('selected',this.AlternativeType[type],alternativeId)
+        return this.tracker.Trace('selected',this.AlternativeType[this.type],this.alternativeId)
             .withResponse(optionId);
     }
 
-    Unlocked(alternativeId, optionId, type) {
+    Unlocked(optionId) {
         if (typeof type === 'undefined') {type = 5;}
         
-        return this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId)
+        return this.tracker.Trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
                 .withResponse(optionId);
     }
 }

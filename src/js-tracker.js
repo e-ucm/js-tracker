@@ -7,38 +7,25 @@ import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js'
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE  } from './HighLevel/SCORM.js';
 
-export default class JSTracker {
-    static ACCESSIBLETYPE=ACCESSIBLETYPE;
-    static COMPLETABLETYPE=COMPLETABLETYPE;
-    static ALTERNATIVETYPE=ALTERNATIVETYPE;
-    static GAMEOBJECTTYPE=GAMEOBJECTTYPE;
-    static SCORMTYPE=SCORMTYPE;
-
+export class JSTracker {
     tracker;
-    accessibleTracker;
-    completableTracker;
-    alternativeTracker;
-    gameObjectTracker;
-    scormTracker;
 
-    constructor(result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null) {
+    constructor({result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null} = {}) {
         this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
     }
 
-    async sendBatch() {
-        await this.tracker.sendBatch();
+    /**
+     * 
+     * @param {object} opts
+     * @param {boolean} [opts.withBackup]
+     * 
+     * @returns {Promise<void>}
+     */
+    flush({withBackup = false} = {}) {
+        return this.tracker.flush({withBackup:withBackup});
     }
 
-    async sendBackup() {
-        await this.tracker.sendBackup();
-    }
-
-    generateXAPITrackerFromURLParams(default_uri) {
+    generateXAPITrackerFromURLParams({default_uri=null} = {}) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
         var result_uri,backup_uri, backup_type, actor_username, actor_homepage, debug, batchLength, batchTimeout, maxRetryDelay;
@@ -128,10 +115,65 @@ export default class JSTracker {
         } else {
             this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
         }
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
+    }
+}
+
+export class ScormTracker extends JSTracker {
+    SCORMTYPE=SCORMTYPE;
+
+    scorm(id, type) {
+        return new ScormTracker(this, id, type);
+    }
+}
+
+export class SeriousGameTracker extends JSTracker {
+    ACCESSIBLETYPE=ACCESSIBLETYPE;
+    COMPLETABLETYPE=COMPLETABLETYPE;
+    ALTERNATIVETYPE=ALTERNATIVETYPE;
+    GAMEOBJECTTYPE=GAMEOBJECTTYPE;
+    
+    scormTracker;
+
+    constructor({result_uri=null, backup_uri=null, activityId=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null} = {}) {
+        this.scormTracker = new ScormTracker(this, activityId, SCORMTYPE.SCO);
+        super({result_uri:result_uri, backup_uri:backup_uri, backup_type:backup_type, actor_homepage:actor_homepage, actor_username:actor_username, auth_token:auth_token, default_uri:default_uri, debug:debug});
+    }
+
+    start() {
+        return this.scormTracker.Initialized();
+    }
+
+    pause() {
+        return this.scormTracker.Suspended();
+    }
+
+    resumed() {
+        return this.scormTracker.Resumed();
+    }
+    
+    finish() {
+        return this.scormTracker.Terminated();
+    }
+    
+    /**
+     * 
+     * @param {*} type 
+     * @param {*} id 
+     * @returns 
+     */
+    accesible(id, type) {
+        return new AccessibleTracker(this, id, type);
+    }
+
+    gameObject(id, type) {
+        return new GameObjectTracker(this, id, type);
+    }
+
+    completable(id, type) {
+        return new CompletableTracker(this, id, type);
+    }
+
+    alternative(id, type) {
+        return new AlternativeTracker(this, id, type);
     }
 }

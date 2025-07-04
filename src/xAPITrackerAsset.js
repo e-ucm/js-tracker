@@ -292,4 +292,22 @@ export default class xAPITrackerAsset {
         // Start the timer for timeout-based sending
         this.startTimer();
     }
+
+    /**
+     * 
+     * @param {object} opts
+     * @param {boolean} [opts.withBackup]
+     * 
+     * @returns {Promise<void>}
+     */
+    flush({withBackup = false} = {}) {
+        if(withBackup) {
+            return Promise.all([
+                this.sendBatch(),
+                this.sendBackup()
+            ]);
+        } else {
+            return this.sendBatch();
+        }
+    }
 }

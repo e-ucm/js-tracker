@@ -1,21 +1,22 @@
 export class AccessibleTracker {
-    constructor(tracker) {
+    constructor(tracker, id, type) {
+        if (typeof type === 'undefined') {type = 4;}
+        this.accessibleId=id;
+        this.type=type;
         this.tracker = tracker;
     }
     
+    accessibleId;
+    type;
     tracker;
     AccessibleType = ['screen', 'area', 'zone', 'cutscene', 'accessible']
 
-    Accessed(accessibleId, type) {
-        if (typeof type === 'undefined') {type = 4;}
-
-        return this.tracker.Trace('accessed',this.AccessibleType[type],accessibleId);
+    Accessed() {
+        return this.tracker.Trace('accessed',this.AccessibleType[this.type],this.accessibleId);
     }
 
-    Skipped(accessibleId, type) {
-        if (typeof type === 'undefined') {type = 4;}
-
-        return this.tracker.Trace('skipped',this.AccessibleType[type],accessibleId);
+    Skipped() {
+        return this.tracker.Trace('skipped',this.AccessibleType[this.type],this.accessibleId);
     }
 }
 
