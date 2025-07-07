@@ -6,84 +6,229 @@ import axios from 'axios';
 import ms from 'ms';
 import { StatementBuilder } from "./HighLevel/StatementBuilder.js";
 
+/**
+ * XAPI Tracker Asset Class
+ * Handles xAPI tracking with batch processing, retry logic, and backup capabilities
+ */
 export default class xAPITrackerAsset {
-    //XAPI PARAMETERS
-    xapi;
-    endpoint;
-    auth_token;
-    online;
-    //STATEMENTS PARAMETERS
-    statementsToSend;
-    sendingInProgress;
-    offset;
-    //BACKUP PARAMETERS
-    backup;
-    backup_endpoint;
-    backup_type;
-    backupRequestParameters;
-    //ACTOR PARAMETERS
-    actor;
-    actor_homePage;
-    actor_name;
-    context;
-    //DEFAULT_URI PARAMETERS
-    default_uri;
-    //DEBUG PARAMETERS
-    debug;
-    //BATCH AND RETRY PARAMETERS
-    batchlength;
-    batchtimeout;
-    retryDelay;
-    maxRetryDelay;
-    timer;
+    // XAPI PARAMETERS
 
+    /**
+     * XAPI Tracker instance
+     * @type {XAPI|null}
+     */
+    xapi = null;
+
+    /**
+     * Primary xAPI endpoint URL
+     * @type {string}
+     */
+    endpoint;
+
+    /**
+     * Authentication token for xAPI requests
+     * @type {string|null}
+     */
+    auth_token = null;
+
+    /**
+     * Current online status
+     * @type {boolean}
+     */
+    online = false;
+
+    // STATEMENTS PARAMETERS
+
+    /**
+     * Queue of statements to be sent
+     * @type {Array<Statement>}
+     */
+    statementsToSend = [];
+
+    /**
+     * Flag indicating if sending is currently in progress
+     * @type {boolean}
+     */
+    sendingInProgress = false;
+
+    /**
+     * Current offset in the statements queue
+     * @type {number}
+     */
+    offset = 0;
+
+    // BACKUP PARAMETERS
+
+    /**
+     * Whether backup is enabled
+     * @type {boolean}
+     */
+    backup = false;
+
+    /**
+     * Backup endpoint URL
+     * @type {string|null}
+     */
+    backup_endpoint = null;
+
+    /**
+     * Backup type (XAPI or CSV)
+     * @type {string|null}
+     */
+    backup_type = null;
+
+    /**
+     * Additional parameters for backup requests
+     * @type {Object|null}
+     */
+    backupRequestParameters = null;
+
+    // ACTOR PARAMETERS
+
+    /**
+     * Actor statement object
+     * @type {ActorStatement}
+     */
+    actor;
+
+    /**
+     * Actor's homepage URL
+     * @type {string}
+     */
+    actor_homePage;
+
+    /**
+     * Actor's name
+     * @type {string}
+     */
+    actor_name;
+
+    /**
+     * Context statement object
+     * @type {ContextStatement}
+     */
+    context;
+
+    // DEFAULT_URI PARAMETERS
+
+    /**
+     * Default URI for statements
+     * @type {string}
+     */
+    default_uri;
+
+    // DEBUG PARAMETERS
+
+    /**
+     * Debug mode flag
+     * @type {boolean}
+     */
+    debug;
+
+    // BATCH AND RETRY PARAMETERS
+
+    /**
+     * Number of statements to send in each batch
+     * @type {number}
+     */
+    batchlength;
+
+    /**
+     * Timeout between batch sends in milliseconds
+     * @type {number}
+     */
+    batchtimeout;
+
+    /**
+     * Current retry delay in milliseconds
+     * @type {number|null}
+     */
+    retryDelay = null;
+
+    /**
+     * Maximum retry delay in milliseconds
+     * @type {number}
+     */
+    maxRetryDelay;
+
+    /**
+     * Timer reference for batch processing
+     * @type {NodeJS.Timeout|null}
+     */
+    timer = null;
+
+    /**
+     * Creates an instance of xAPITrackerAsset
+     *
+     * @param {string} endpoint - Primary xAPI endpoint URL
+     * @param {string} backup_endpoint - Backup endpoint URL
+     * @param {string} backup_type - Type of backup (XAPI or CSV)
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {string} auth_token - Authentication token
+     * @param {string} default_uri - Default URI for statements
+     * @param {boolean} debug - Debug mode flag
+     * @param {number|string} batchLength - Number of statements per batch
+     * @param {number|string} batchTimeout - Timeout between batches
+     * @param {number|string} maxRetryDelay - Maximum retry delay
+     */
     constructor(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug, batchLength, batchTimeout, maxRetryDelay) {
-        this.default_uri=default_uri;
-        this.debug=debug;
-        this.online=false;
+        this.default_uri = default_uri;
+        this.debug = debug;
+        this.online = false;
         this.endpoint = endpoint;
+
         if(backup_endpoint) {
             this.backup = true;
             if(backup_type == null) {
-                backup_type="CSV";
+                backup_type = "CSV";
             }
             this.backup_type = backup_type;
             this.backup_endpoint = backup_endpoint;
         }
-        this.batchlength = parseInt(batchLength) || 100; // Default batch length (100 statements)
-        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec"); // Default timeout in milliseconds (30 seconds)
-        this.offset = 0; // Tracks the starting index of the next batch
 
-        this.retryDelay = null;
-        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min"); // Maximum retry delay (120 seconds)
-        this.statementsToSend=[];
+        this.batchlength = parseInt(batchLength) || 100;
+        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
+        this.offset = 0;
+        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
+        this.statementsToSend = [];
         this.timer = null;
-        this.xapi=null;
         this.auth_token = auth_token;
         this.actor_homePage = actor_homePage;
         this.actor_name = actor_name;
-        this.actor=new ActorStatement(this.actor_name, this.actor_homePage);
+        this.actor = new ActorStatement(this.actor_name, this.actor_homePage);
         this.context = new ContextStatement();
         this.updateAuth();
     }
 
+    /**
+     * Logs out the current session by clearing the authentication token
+     */
     logout() {
         this.auth_token = null;
         this.onOffline();
     }
 
-    // Event handler: When the client goes offline
+    /**
+     * Event handler called when the client goes offline
+     */
     onOffline() {
         this.online = false;
         if (this.debug) console.warn("XAPI Tracker for Serious Games went offline");
     }
 
-    // Event handler: When the client comes online
+    /**
+     * Event handler called when the client comes online
+     * @returns {Promise<void>}
+     */
     async onOnline() {
         this.online = true;
         if (this.debug) console.info("XAPI Tracker for Serious Games back Online");
     }
 
+    /**
+     * Updates the authentication configuration
+     */
     updateAuth() {
         if(this.auth_token != null) {
             this.xapi = new XAPI({
@@ -100,98 +245,107 @@ export default class xAPITrackerAsset {
         }
     }
 
+    /**
+     * Sends a batch of statements to the xAPI endpoint
+     * @returns {Promise<void>}
+     */
     async sendBatch() {
-        if (!this.online) return; // Skip if offline
-        if (this.offset >= this.statementsToSend.length) return; // No statements to send
-        
+        if (!this.online) return;
+        if (this.offset >= this.statementsToSend.length) return;
+
         const end = Math.min(this.offset + this.batchlength, this.statementsToSend.length);
         const batch = this.statementsToSend.slice(this.offset, end);
         const statements = batch.map(statement => statement.toXAPI());
 
         try {
             if(!this.sendingInProgress) {
-                this.sendingInProgress=true;
-                const result = await this.xapi.sendStatements({statements: statements });
-                this.sendingInProgress=false;
+                this.sendingInProgress = true;
+                const result = await this.xapi.sendStatements({statements: statements});
+                this.sendingInProgress = false;
                 if (this.debug) {
                     console.debug("Batch sent successfully:", result);
                 }
-                // Move the offset forward
                 this.offset += batch.length;
-                // Reset retry delay on success
                 this.retryDelay = null;
             }
         } catch (error) {
             console.error("Error sending batch:", error.response);
             const status = error.response.status;
             const errorMessage = error.response.data.message || error.message;
+
             switch (status) {
                 case 401: // Unauthorized
-                    console.error(`Unauthorized: ${errorMessage}`);
-                    this.onOffline();
-                    await this.refreshAuth();
-                    this.sendingInProgress=false;
-                    // Attempt to send queued statements
-                    await this.sendBatch();
-                    break;
                 case 403: // Forbidden
-                    console.error(`Forbidden: ${errorMessage}`);
+                    console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
                     this.onOffline();
                     await this.refreshAuth();
-                    this.sendingInProgress=false;
-                    // Attempt to send queued statements
+                    this.sendingInProgress = false;
                     await this.sendBatch();
                     break;
                 default:
                     console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
-                    this.sendingInProgress=false;
+                    this.sendingInProgress = false;
                     this.onOffline();
                     break;
             }
 
             if(this.retryDelay == null) {
-                this.retryDelay=this.batchtimeout;
+                this.retryDelay = this.batchtimeout;
             }
-            // Retry logic: Increase delay and retry sending
-            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay); // Exponential backoff with a cap
-            this.timer=null; // Reset timer
+            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay);
+            this.timer = null;
         }
 
-        // Continue sending if more items are in the queue
         if (this.offset < this.statementsToSend.length) {
-            this.startTimer(); // Start a new timer to process the next batch
+            this.startTimer();
         }
     }
 
+    /**
+     * Refreshes the authentication token
+     * @returns {Promise<void>}
+     */
     async refreshAuth() {
-        // Now that we have the token, update the authorization in the super class
         this.updateAuth();
     }
 
+    /**
+     * Starts the timer for batch processing
+     */
     startTimer() {
-        if (this.timer) return; // Timer already running
-        let timeout=this.batchtimeout;
-        if(this.retryDelay) {
-            timeout=this.retryDelay;
-        }
+        if (this.timer) return;
+        let timeout = this.retryDelay ? this.retryDelay : this.batchtimeout;
+
         this.timer = setTimeout(async () => {
             await this.sendBatch();
-            this.timer = null; // Reset timer
+            this.timer = null;
             if (this.offset < this.statementsToSend.length) {
-                this.startTimer(); // Restart timer if more statements are queued
+                this.startTimer();
             }
         }, timeout);
     }
 
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
     Trace(verbId, objectType, objectId) {
-        var statement=new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
+        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
         return new StatementBuilder(this, statement);
     }
 
+    /**
+     * Sends statements to the backup endpoint
+     * @returns {Promise<void>}
+     */
     async sendBackup() {
         if (this.online && this.backup_endpoint && this.backup_endpoint.trim()) {
             let contentType;
             let statements;
+
             switch (this.backup_type) {
                 case 'XAPI':
                     statements = this.statementsToSend.map(statement => JSON.stringify(statement.toXAPI()));
@@ -201,16 +355,16 @@ export default class xAPITrackerAsset {
                     statements = this.statementsToSend.map(statement => statement.toCSV());
                     contentType = 'text/csv';
                     break;
-                default: 
+                default:
                     return;
             }
-            const body =  {
+
+            const body = {
                 tofile: true,
                 result: statements.join('\n'),
                 contentType: contentType
             };
 
-            // Initialize request object
             const myRequest = {
                 url: this.backup_endpoint,
                 method: 'POST',
@@ -221,21 +375,17 @@ export default class xAPITrackerAsset {
                 data: JSON.stringify(body, null, 2)
             };
 
-            // Add custom parameters from config file
             if (this.backupRequestParameters) {
-                // Content type
                 if (this.backupRequestParameters.content_type) {
                     myRequest.headers['Content-Type'] = this.backupRequestParameters.content_type;
                 }
 
-                // Request headers
                 if (this.backupRequestParameters.headers && typeof this.backupRequestParameters.headers === 'object') {
                     Object.entries(this.backupRequestParameters.headers).forEach(([key, value]) => {
                         myRequest.headers[key] = value;
                     });
                 }
 
-                // Request query parameters
                 if (this.backupRequestParameters.query_parameters && typeof this.backupRequestParameters.query_parameters === 'object') {
                     const queryParams = new URLSearchParams(this.backupRequestParameters.query_parameters).toString();
                     myRequest.url += `?${queryParams}`;
@@ -243,7 +393,6 @@ export default class xAPITrackerAsset {
             }
 
             try {
-                // Perform the HTTP request
                 const response = await axios(myRequest);
                 console.log(response);
             } catch (error) {
@@ -253,14 +402,9 @@ export default class xAPITrackerAsset {
 
                     switch (status) {
                         case 401: // Unauthorized
-                            this.onOffline();
-                            console.error(`Unauthorized: ${errorMessage}`);
-                            await this.refreshAuth();
-                            await this.sendBackup();
-                            break;
                         case 403: // Forbidden
                             this.onOffline();
-                            console.error(`Forbidden: ${errorMessage}`);
+                            console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
                             await this.refreshAuth();
                             await this.sendBackup();
                             break;
@@ -274,31 +418,32 @@ export default class xAPITrackerAsset {
             }
         }
     }
-    
+
+    /**
+     * Adds a statement to the queue and starts processing if needed
+     * @param {Statement} statement - The statement to enqueue
+     * @returns {Promise<void>}
+     */
     async enqueue(statement) {
-        if(this.debug !== null && this.debug) {
+        if(this.debug) {
             console.debug(statement.toXAPI());
             console.debug(statement.toCSV());
         }
-        
-        // Add statement to queue
+
         this.statementsToSend.push(statement);
 
-        // Start sending immediately if online and batch size is reached
         if (this.online && this.statementsToSend.length >= this.offset + this.batchlength) {
             await this.sendBatch();
         }
 
-        // Start the timer for timeout-based sending
         this.startTimer();
     }
 
     /**
-     * 
-     * @param {object} opts
-     * @param {boolean} [opts.withBackup]
-     * 
-     * @returns {Promise<void>}
+     * Flushes the statement queue
+     * @param {Object} [opts] - Options object
+     * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
+     * @returns {Promise<void|Array<Promise>>} Promise that resolves when flushing is complete
      */
     flush({withBackup = false} = {}) {
         if(withBackup) {
