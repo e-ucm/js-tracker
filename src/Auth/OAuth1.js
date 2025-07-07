@@ -8,22 +8,23 @@ import XAPI from "@xapi/xapi";
 export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     /**
      * Creates an instance of xAPITrackerAssetOAuth1.
-     *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} username - Username for authentication
-     * @param {string} password - Password for authentication
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.username - Username for authentication (required)
+     * @param {string} opts.password - Password for authentication (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, username, password, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
-        super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, XAPI.toBasicAuth(username, password), defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
+    constructor({endpoint, actor_homePage, actor_name, default_uri, username, password, backup_endpoint=null, backup_type="XAPI", debug=null, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
+        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name, auth_token:XAPI.toBasicAuth(username, password), default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
 
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {

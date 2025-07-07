@@ -20,22 +20,23 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAssetOAuth2.
-     *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {Object} config - OAuth2 configuration
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {Object} opts.config - OAuth2 configuration (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, config, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
+    constructor({endpoint, actor_homePage, actor_name, config,  default_uri, backup_endpoint=null, backup_type='XAPI', debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
         // Call the parent constructor without the token (since we don't have it yet)
-        super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, null, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
+        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name,default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
 
         this.oauth2Config = config;
         this.oauth2 = null;

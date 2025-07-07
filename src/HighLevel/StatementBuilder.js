@@ -1,8 +1,8 @@
 // ------------------------------------------------------------------
 // 1) THE BUILDER
 
-import xAPITrackerAsset from "../xAPITrackerAsset";
-import Statement from "./Statement/Statement";
+import xAPITrackerAsset from "../xAPITrackerAsset.js";
+import Statement from "./Statement/Statement.js";
 
 // ------------------------------------------------------------------
 /**

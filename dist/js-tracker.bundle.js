@@ -1269,20 +1269,21 @@ class xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAsset
-     *
-     * @param {string} endpoint - Primary xAPI endpoint URL
-     * @param {string} backup_endpoint - Backup endpoint URL
-     * @param {string} backup_type - Type of backup (XAPI or CSV)
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} auth_token - Authentication token
-     * @param {string} default_uri - Default URI for statements
-     * @param {boolean} debug - Debug mode flag
-     * @param {number|string} batchLength - Number of statements per batch
-     * @param {number|string} batchTimeout - Timeout between batches
-     * @param {number|string} maxRetryDelay - Maximum retry delay
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.default_uri - Default URI for statements (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
+     * @param {string} [opts.auth_token=null] - Authentication token (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
+     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
      */
-    constructor(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug, batchLength, batchTimeout, maxRetryDelay) {
+    constructor({endpoint, actor_homePage, actor_name, default_uri=null, backup_endpoint=null, backup_type="XAPI", auth_token=null, debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
         this.default_uri = default_uri;
         this.debug = debug;
         this.online = false;
@@ -1290,14 +1291,11 @@ class xAPITrackerAsset {
 
         if(backup_endpoint) {
             this.backup = true;
-            if(backup_type == null) {
-                backup_type = "CSV";
-            }
             this.backup_type = backup_type;
             this.backup_endpoint = backup_endpoint;
         }
 
-        this.batchlength = typeof batchLength === 'string' ? parseInt(batchLength) : batchLength || 100;
+        this.batchlength = batchLength || 100;
         this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
         this.offset = 0;
         this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
@@ -1574,22 +1572,23 @@ class xAPITrackerAsset {
 class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     /**
      * Creates an instance of xAPITrackerAssetOAuth1.
-     *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} username - Username for authentication
-     * @param {string} password - Password for authentication
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.username - Username for authentication (required)
+     * @param {string} opts.password - Password for authentication (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, username, password, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
-        super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, XAPI.toBasicAuth(username, password), defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
+    constructor({endpoint, actor_homePage, actor_name, default_uri, username, password, backup_endpoint=null, backup_type="XAPI", debug=null, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
+        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name, auth_token:XAPI.toBasicAuth(username, password), default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
 
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
@@ -2003,22 +2002,23 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAssetOAuth2.
-     *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {Object} config - OAuth2 configuration
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {Object} opts.config - OAuth2 configuration (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, config, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
+    constructor({endpoint, actor_homePage, actor_name, config,  default_uri, backup_endpoint=null, backup_type='XAPI', debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
         // Call the parent constructor without the token (since we don't have it yet)
-        super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, null, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
+        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name,default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
 
         this.oauth2Config = config;
         this.oauth2 = null;
@@ -2109,7 +2109,7 @@ class AccessibleTracker {
      * @param {string} id the id of the accessible object
      * @param {number} type the type of the accessible object
      */
-    constructor(tracker, id, type=4) {
+    constructor(tracker, id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         this.accessibleId=id;
         this.type=type;
         this.tracker = tracker;
@@ -2154,7 +2154,6 @@ class AccessibleTracker {
 
 /**
  * the list of types possible for the accessible object
- * @type {object}
  */
 const ACCESSIBLETYPE = Object.freeze({
     SCREEN: 0,
@@ -2174,7 +2173,7 @@ class CompletableTracker {
      * @param {string} id the id of the completable object
      * @param {number} type the type of the completable object
      */
-    constructor(tracker, id, type=8) {
+    constructor(tracker, id, type=COMPLETABLETYPE.COMPLETABLE) {
         this.completableId=id;
         this.type=type;
         this.tracker = tracker;
@@ -2243,7 +2242,6 @@ class CompletableTracker {
 
 /**
  * the list of types possible for the completable object
- * @type {object}
  */
 const COMPLETABLETYPE = Object.freeze({
     GAME: 0,
@@ -2267,7 +2265,7 @@ class AlternativeTracker {
      * @param {string} id the id of the accessible object
      * @param {number} type the type of the accessible object
      */
-    constructor(tracker, id, type=5) {
+    constructor(tracker, id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         this.alternativeId=id;
         this.type=type;
         this.tracker = tracker;
@@ -2316,7 +2314,6 @@ class AlternativeTracker {
 
 /**
  * the list of types possible for the alternative object
- * @type {object}
  */
 const ALTERNATIVETYPE = Object.freeze({
     QUESTION: 0,
@@ -2337,7 +2334,7 @@ class GameObjectTracker {
      * @param {string} id the id of the Game Object object
      * @param {number} type the type of the Game Object object
      */
-    constructor(tracker,id, type=3) {
+    constructor(tracker,id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         this.gameobjectId=id;
         this.type=type;
         this.tracker = tracker;
@@ -2382,7 +2379,6 @@ class GameObjectTracker {
 
 /**
  * the list of types possible for the gameobject object
- * @type {object}
  */
 const GAMEOBJECTTYPE = Object.freeze({
     ENEMY: 0,
@@ -2401,7 +2397,7 @@ class ScormTracker {
      * @param {string} id the id of the Scorm object
      * @param {number} type the type of the Scorm object
      */
-    constructor(tracker, id, type=0) {
+    constructor(tracker, id, type=SCORMTYPE.SCO) {
         this.scormId=id;
         this.type=type;
         this.tracker = tracker;
@@ -2432,7 +2428,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     Initialized() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
         return this.tracker.Trace('initialized', this.ScormType[this.type], this.scormId);
@@ -2443,7 +2439,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     Suspended() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
         return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId);
@@ -2454,7 +2450,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     Resumed() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
         return this.tracker.Trace('resumed', this.ScormType[this.type], this.scormId);
@@ -2465,7 +2461,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     Terminated() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
         return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId);
@@ -2520,7 +2516,6 @@ class ScormTracker {
 
 /**
  * the list of types possible for the scorm object
- * @type {object}
  */
 const SCORMTYPE = Object.freeze({
     SCO: 0,
@@ -2548,8 +2543,8 @@ class JSTracker {
      * @param {string} [config.result_uri] - Primary xAPI endpoint URI
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
@@ -2558,22 +2553,22 @@ class JSTracker {
         result_uri = null,
         backup_uri = null,
         backup_type = null,
-        actor_homepage = null,
-        actor_username = null,
+        actor_homePage = null,
+        actor_name = null,
         auth_token = null,
         default_uri = null,
         debug = null
     } = {}) {
-        this.tracker = new xAPITrackerAsset(
-            result_uri,
-            backup_uri,
-            backup_type,
-            actor_homepage,
-            actor_username,
-            auth_token,
-            default_uri,
-            debug
-        );
+        this.tracker = new xAPITrackerAsset({
+            endpoint:result_uri,
+            backup_endpoint:backup_uri,
+            backup_type:backup_type,
+            actor_homePage:actor_homePage,
+            actor_name:actor_name,
+            auth_token:auth_token,
+            default_uri:default_uri,
+            debug:debug
+        });
     }
 
     /**
@@ -2594,7 +2589,7 @@ class JSTracker {
     generateXAPITrackerFromURLParams({ default_uri = null } = {}) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_username, actor_homepage, debug;
+        let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -2607,8 +2602,8 @@ class JSTracker {
             backup_type = urlParams.get('backup_type');
 
             // ACTOR DATA
-            actor_homepage = urlParams.get('actor_homepage');
-            actor_username = urlParams.get('actor_user');
+            actor_homePage = urlParams.get('actor_homePage');
+            actor_name = urlParams.get('actor_user');
 
             // SSO OAUTH 2.0 DATA
             const sso_token_endpoint = urlParams.get('sso_token_endpoint');
@@ -2652,19 +2647,19 @@ class JSTracker {
             auth_token = urlParams.get('auth_token');
 
             // DEBUG
-            debug = urlParams.get('debug');
+            strDebug = urlParams.get('debug');
 
             // BATCH
-            batchLength = urlParams.get('batch_length');
-            batchTimeout = urlParams.get('batch_timeout');
-            maxRetryDelay = urlParams.get('max_retry_delay');
+            batchLength = parseInt(urlParams.get('batch_length'));
+            batchTimeout = parseInt(urlParams.get('batch_timeout'));
+            maxRetryDelay = parseInt(urlParams.get('max_retry_delay'));
 
-            if (debug !== null && debug === "true") {
-                debug = Boolean(debug);
+            if (strDebug !== null && strDebug === "true") {
+                debug = Boolean(strDebug);
                 console.debug(result_uri);
                 console.debug(backup_type);
-                console.debug(actor_username);
-                console.debug(actor_homepage);
+                console.debug(actor_name);
+                console.debug(actor_homePage);
                 console.debug(debug);
                 console.debug(batchLength);
                 console.debug(batchTimeout);
@@ -2673,54 +2668,54 @@ class JSTracker {
         } else {
             result_uri = null;
             backup_type = "XAPI";
-            actor_homepage = null;
-            actor_username = null;
+            actor_homePage = null;
+            actor_name = null;
             debug = false;
         }
 
         if (xAPIConfig.token_endpoint) {
-            this.tracker = new xAPITrackerAssetOAuth2(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                xAPIConfig,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAssetOAuth2({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                config:xAPIConfig,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         } else if (username && password) {
-            this.tracker = new xAPITrackerAssetOAuth1(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                username,
-                password,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAssetOAuth1({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                username:username,
+                password:password,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         } else {
-            this.tracker = new xAPITrackerAsset(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                auth_token,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAsset({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                auth_token:auth_token,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         }
     }
 }
@@ -2741,7 +2736,7 @@ class JSScormTracker extends JSTracker {
      * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type) {
+    scorm(id, type=SCORMTYPE.SCO) {
         return new ScormTracker(this.tracker, id, type);
     }
 }
@@ -2787,8 +2782,8 @@ class SeriousGameTracker extends JSTracker {
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.activityId] - Activity ID
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
@@ -2798,8 +2793,8 @@ class SeriousGameTracker extends JSTracker {
         backup_uri = null,
         activityId = null,
         backup_type = null,
-        actor_homepage = null,
-        actor_username = null,
+        actor_homePage = null,
+        actor_name = null,
         auth_token = null,
         default_uri = null,
         debug = null
@@ -2808,8 +2803,8 @@ class SeriousGameTracker extends JSTracker {
             result_uri: result_uri,
             backup_uri: backup_uri,
             backup_type: backup_type,
-            actor_homepage: actor_homepage,
-            actor_username: actor_username,
+            actor_homePage: actor_homePage,
+            actor_name: actor_name,
             auth_token: auth_token,
             default_uri: default_uri,
             debug: debug
@@ -2855,7 +2850,7 @@ class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accesible(id, type) {
+    accesible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         return new AccessibleTracker(this.tracker, id, type);
     }
 
@@ -2865,7 +2860,7 @@ class SeriousGameTracker extends JSTracker {
      * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type) {
+    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         return new GameObjectTracker(this.tracker, id, type);
     }
 
@@ -2875,7 +2870,7 @@ class SeriousGameTracker extends JSTracker {
      * @param {number} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type) {
+    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
         return new CompletableTracker(this.tracker, id, type);
     }
 
@@ -2885,7 +2880,7 @@ class SeriousGameTracker extends JSTracker {
      * @param {number} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type) {
+    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         return new AlternativeTracker(this.tracker, id, type);
     }
 }

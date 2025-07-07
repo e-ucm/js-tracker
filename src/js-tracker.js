@@ -24,8 +24,8 @@ export class JSTracker {
      * @param {string} [config.result_uri] - Primary xAPI endpoint URI
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
@@ -34,22 +34,22 @@ export class JSTracker {
         result_uri = null,
         backup_uri = null,
         backup_type = null,
-        actor_homepage = null,
-        actor_username = null,
+        actor_homePage = null,
+        actor_name = null,
         auth_token = null,
         default_uri = null,
         debug = null
     } = {}) {
-        this.tracker = new xAPITrackerAsset(
-            result_uri,
-            backup_uri,
-            backup_type,
-            actor_homepage,
-            actor_username,
-            auth_token,
-            default_uri,
-            debug
-        );
+        this.tracker = new xAPITrackerAsset({
+            endpoint:result_uri,
+            backup_endpoint:backup_uri,
+            backup_type:backup_type,
+            actor_homePage:actor_homePage,
+            actor_name:actor_name,
+            auth_token:auth_token,
+            default_uri:default_uri,
+            debug:debug
+        });
     }
 
     /**
@@ -70,7 +70,7 @@ export class JSTracker {
     generateXAPITrackerFromURLParams({ default_uri = null } = {}) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_username, actor_homepage, debug;
+        let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -83,8 +83,8 @@ export class JSTracker {
             backup_type = urlParams.get('backup_type');
 
             // ACTOR DATA
-            actor_homepage = urlParams.get('actor_homepage');
-            actor_username = urlParams.get('actor_user');
+            actor_homePage = urlParams.get('actor_homePage');
+            actor_name = urlParams.get('actor_user');
 
             // SSO OAUTH 2.0 DATA
             const sso_token_endpoint = urlParams.get('sso_token_endpoint');
@@ -128,19 +128,19 @@ export class JSTracker {
             auth_token = urlParams.get('auth_token');
 
             // DEBUG
-            debug = urlParams.get('debug');
+            strDebug = urlParams.get('debug');
 
             // BATCH
-            batchLength = urlParams.get('batch_length');
-            batchTimeout = urlParams.get('batch_timeout');
-            maxRetryDelay = urlParams.get('max_retry_delay');
+            batchLength = parseInt(urlParams.get('batch_length'));
+            batchTimeout = parseInt(urlParams.get('batch_timeout'));
+            maxRetryDelay = parseInt(urlParams.get('max_retry_delay'));
 
-            if (debug !== null && debug === "true") {
-                debug = Boolean(debug);
+            if (strDebug !== null && strDebug === "true") {
+                debug = Boolean(strDebug);
                 console.debug(result_uri);
                 console.debug(backup_type);
-                console.debug(actor_username);
-                console.debug(actor_homepage);
+                console.debug(actor_name);
+                console.debug(actor_homePage);
                 console.debug(debug);
                 console.debug(batchLength);
                 console.debug(batchTimeout);
@@ -149,54 +149,54 @@ export class JSTracker {
         } else {
             result_uri = null;
             backup_type = "XAPI";
-            actor_homepage = null;
-            actor_username = null;
+            actor_homePage = null;
+            actor_name = null;
             debug = false;
         }
 
         if (xAPIConfig.token_endpoint) {
-            this.tracker = new xAPITrackerAssetOAuth2(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                xAPIConfig,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAssetOAuth2({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                config:xAPIConfig,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         } else if (username && password) {
-            this.tracker = new xAPITrackerAssetOAuth1(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                username,
-                password,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAssetOAuth1({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                username:username,
+                password:password,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         } else {
-            this.tracker = new xAPITrackerAsset(
-                result_uri,
-                backup_uri,
-                backup_type,
-                actor_homepage,
-                actor_username,
-                auth_token,
-                default_uri,
-                debug,
-                batchLength,
-                batchTimeout,
-                maxRetryDelay
-            );
+            this.tracker = new xAPITrackerAsset({
+                endpoint:result_uri,
+                backup_endpoint:backup_uri,
+                backup_type:backup_type,
+                actor_homePage:actor_homePage,
+                actor_name:actor_name,
+                auth_token:auth_token,
+                default_uri:default_uri,
+                debug:debug,
+                batchLength:batchLength,
+                batchTimeout:batchTimeout,
+                maxRetryDelay:maxRetryDelay
+            });
         }
     }
 }
@@ -217,7 +217,7 @@ export class JSScormTracker extends JSTracker {
      * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type) {
+    scorm(id, type=SCORMTYPE.SCO) {
         return new ScormTracker(this.tracker, id, type);
     }
 }
@@ -263,8 +263,8 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.activityId] - Activity ID
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
@@ -274,8 +274,8 @@ export class SeriousGameTracker extends JSTracker {
         backup_uri = null,
         activityId = null,
         backup_type = null,
-        actor_homepage = null,
-        actor_username = null,
+        actor_homePage = null,
+        actor_name = null,
         auth_token = null,
         default_uri = null,
         debug = null
@@ -284,8 +284,8 @@ export class SeriousGameTracker extends JSTracker {
             result_uri: result_uri,
             backup_uri: backup_uri,
             backup_type: backup_type,
-            actor_homepage: actor_homepage,
-            actor_username: actor_username,
+            actor_homePage: actor_homePage,
+            actor_name: actor_name,
             auth_token: auth_token,
             default_uri: default_uri,
             debug: debug
@@ -331,7 +331,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accesible(id, type) {
+    accesible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         return new AccessibleTracker(this.tracker, id, type);
     }
 
@@ -341,7 +341,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type) {
+    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         return new GameObjectTracker(this.tracker, id, type);
     }
 
@@ -351,7 +351,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type) {
+    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
         return new CompletableTracker(this.tracker, id, type);
     }
 
@@ -361,7 +361,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type) {
+    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         return new AlternativeTracker(this.tracker, id, type);
     }
 }

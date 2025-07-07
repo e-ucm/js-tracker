@@ -159,20 +159,21 @@ export default class xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAsset
-     *
-     * @param {string} endpoint - Primary xAPI endpoint URL
-     * @param {string} backup_endpoint - Backup endpoint URL
-     * @param {string} backup_type - Type of backup (XAPI or CSV)
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} auth_token - Authentication token
-     * @param {string} default_uri - Default URI for statements
-     * @param {boolean} debug - Debug mode flag
-     * @param {number|string} batchLength - Number of statements per batch
-     * @param {number|string} batchTimeout - Timeout between batches
-     * @param {number|string} maxRetryDelay - Maximum retry delay
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.default_uri - Default URI for statements (required)
+     * 
+     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
+     * @param {string} [opts.auth_token=null] - Authentication token (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
+     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
      */
-    constructor(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug, batchLength, batchTimeout, maxRetryDelay) {
+    constructor({endpoint, actor_homePage, actor_name, default_uri=null, backup_endpoint=null, backup_type="XAPI", auth_token=null, debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
         this.default_uri = default_uri;
         this.debug = debug;
         this.online = false;
@@ -180,14 +181,11 @@ export default class xAPITrackerAsset {
 
         if(backup_endpoint) {
             this.backup = true;
-            if(backup_type == null) {
-                backup_type = "CSV";
-            }
             this.backup_type = backup_type;
             this.backup_endpoint = backup_endpoint;
         }
 
-        this.batchlength = typeof batchLength === 'string' ? parseInt(batchLength) : batchLength || 100;
+        this.batchlength = batchLength || 100;
         this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
         this.offset = 0;
         this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");

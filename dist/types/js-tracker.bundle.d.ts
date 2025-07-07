@@ -13,7 +13,7 @@ export class JSScormTracker extends JSTracker {
      * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id: string, type: number): ScormTracker;
+    scorm(id: string, type?: number): ScormTracker;
 }
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
@@ -25,18 +25,18 @@ export class JSTracker {
      * @param {string} [config.result_uri] - Primary xAPI endpoint URI
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({ result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token, default_uri, debug }?: {
+    constructor({ result_uri, backup_uri, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug }?: {
         result_uri?: string;
         backup_uri?: string;
         backup_type?: string;
-        actor_homepage?: string;
-        actor_username?: string;
+        actor_homePage?: string;
+        actor_name?: string;
         auth_token?: string;
         default_uri?: string;
         debug?: boolean;
@@ -75,19 +75,19 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} [config.backup_uri] - Backup endpoint URI
      * @param {string} [config.activityId] - Activity ID
      * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homepage] - Actor's homepage URL
-     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.actor_homePage] - Actor's homepage URL
+     * @param {string} [config.actor_name] - Actor's username
      * @param {string} [config.auth_token] - Authentication token
      * @param {string} [config.default_uri] - Default URI for statements
      * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({ result_uri, backup_uri, activityId, backup_type, actor_homepage, actor_username, auth_token, default_uri, debug }?: {
+    constructor({ result_uri, backup_uri, activityId, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug }?: {
         result_uri?: string;
         backup_uri?: string;
         activityId?: string;
         backup_type?: string;
-        actor_homepage?: string;
-        actor_username?: string;
+        actor_homePage?: string;
+        actor_name?: string;
         auth_token?: string;
         default_uri?: string;
         debug?: boolean;
@@ -143,28 +143,28 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accesible(id: string, type: number): AccessibleTracker;
+    accesible(id: string, type?: number): AccessibleTracker;
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
      * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id: string, type: number): GameObjectTracker;
+    gameObject(id: string, type?: number): GameObjectTracker;
     /**
      * Creates a completable tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id: string, type: number): CompletableTracker;
+    completable(id: string, type?: number): CompletableTracker;
     /**
      * Creates an alternative tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id: string, type: number): AlternativeTracker;
+    alternative(id: string, type?: number): AlternativeTracker;
 }
 /**
  * Scorm Tracker
@@ -250,20 +250,33 @@ declare class ScormTracker {
 declare class xAPITrackerAsset {
     /**
      * Creates an instance of xAPITrackerAsset
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.default_uri - Default URI for statements (required)
      *
-     * @param {string} endpoint - Primary xAPI endpoint URL
-     * @param {string} backup_endpoint - Backup endpoint URL
-     * @param {string} backup_type - Type of backup (XAPI or CSV)
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} auth_token - Authentication token
-     * @param {string} default_uri - Default URI for statements
-     * @param {boolean} debug - Debug mode flag
-     * @param {number|string} batchLength - Number of statements per batch
-     * @param {number|string} batchTimeout - Timeout between batches
-     * @param {number|string} maxRetryDelay - Maximum retry delay
+     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
+     * @param {string} [opts.auth_token=null] - Authentication token (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
+     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
      */
-    constructor(endpoint: string, backup_endpoint: string, backup_type: string, actor_homePage: string, actor_name: string, auth_token: string, default_uri: string, debug: boolean, batchLength: number | string, batchTimeout: number | string, maxRetryDelay: number | string);
+    constructor({ endpoint, actor_homePage, actor_name, default_uri, backup_endpoint, backup_type, auth_token, debug, batchLength, batchTimeout, maxRetryDelay }: {
+        endpoint: string;
+        actor_homePage: string;
+        actor_name: string;
+        default_uri: string;
+        backup_endpoint?: string;
+        backup_type?: string;
+        auth_token?: string;
+        debug?: boolean;
+        batchLength?: number;
+        batchTimeout?: number;
+        maxRetryDelay?: number;
+    });
     /**
      * XAPI Tracker instance
      * @type {XAPI|null}
@@ -441,21 +454,35 @@ declare class xAPITrackerAsset {
 declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     /**
      * Creates an instance of xAPITrackerAssetOAuth1.
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {string} opts.username - Username for authentication (required)
+     * @param {string} opts.password - Password for authentication (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
      *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {string} username - Username for authentication
-     * @param {string} password - Password for authentication
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint: string, backupEndpoint: string, backupType: string, actor_homePage: string, actor_name: string, username: string, password: string, defaultUri: string, debug: boolean, batchLength: number, batchTimeout: number, maxRetryDelay: number);
+    constructor({ endpoint, actor_homePage, actor_name, default_uri, username, password, backup_endpoint, backup_type, debug, batchLength, batchTimeout, maxRetryDelay }: {
+        endpoint: string;
+        actor_homePage: string;
+        actor_name: string;
+        username: string;
+        password: string;
+        default_uri: string;
+        backup_endpoint?: string;
+        backup_type?: string;
+        debug?: boolean;
+        batchLength?: number;
+        batchTimeout?: number;
+        maxRetryDelay?: number;
+    });
 }
 /**
  * A specialized tracker asset that implements OAuth2 authentication.
@@ -464,20 +491,33 @@ declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
 declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     /**
      * Creates an instance of xAPITrackerAssetOAuth2.
+     * @param {object} opts options for the xapi Tracker asset
+     * @param {string} opts.endpoint - Primary API endpoint (required)
+     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
+     * @param {string} opts.actor_name - Name of the actor (required)
+     * @param {Object} opts.config - OAuth2 configuration (required)
+     * @param {string} opts.default_uri - Default URI for requests (required)
      *
-     * @param {string} endpoint - Primary API endpoint
-     * @param {string} backupEndpoint - Backup API endpoint
-     * @param {string} backupType - Type of backup endpoint
-     * @param {string} actor_homePage - Home page URL of the actor
-     * @param {string} actor_name - Name of the actor
-     * @param {Object} config - OAuth2 configuration
-     * @param {string} defaultUri - Default URI for requests
-     * @param {boolean} debug - Debug mode flag
-     * @param {number} batchLength - Batch length for requests
-     * @param {number} batchTimeout - Batch timeout in milliseconds
-     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
+     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
+     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
+     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
+     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
+     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor(endpoint: string, backupEndpoint: string, backupType: string, actor_homePage: string, actor_name: string, config: any, defaultUri: string, debug: boolean, batchLength: number, batchTimeout: number, maxRetryDelay: number);
+    constructor({ endpoint, actor_homePage, actor_name, config, default_uri, backup_endpoint, backup_type, debug, batchLength, batchTimeout, maxRetryDelay }: {
+        endpoint: string;
+        actor_homePage: string;
+        actor_name: string;
+        config: any;
+        default_uri: string;
+        backup_endpoint?: string;
+        backup_type?: string;
+        debug?: boolean;
+        batchLength?: number;
+        batchTimeout?: number;
+        maxRetryDelay?: number;
+    });
     /**
      * Configuration object for OAuth2 authentication
      * @type {Object}
