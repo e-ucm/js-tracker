@@ -10,7 +10,7 @@ export class ScormTracker {
      * @param {string} id the id of the Scorm object
      * @param {number} type the type of the Scorm object
      */
-    constructor(tracker, id, type=0) {
+    constructor(tracker, id, type=SCORMTYPE.SCO) {
         this.scormId=id;
         this.type=type;
         this.tracker = tracker;
@@ -41,7 +41,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     Initialized() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
         return this.tracker.Trace('initialized', this.ScormType[this.type], this.scormId);
@@ -52,7 +52,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     Suspended() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
         return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId);
@@ -63,7 +63,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     Resumed() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
         return this.tracker.Trace('resumed', this.ScormType[this.type], this.scormId);
@@ -74,7 +74,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     Terminated() {
-        if(this.type != 0) {
+        if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
         return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId);
@@ -129,7 +129,6 @@ export class ScormTracker {
 
 /**
  * the list of types possible for the scorm object
- * @type {object}
  */
 export const SCORMTYPE = Object.freeze({
     SCO: 0,

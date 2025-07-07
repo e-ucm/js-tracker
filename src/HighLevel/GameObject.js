@@ -11,7 +11,7 @@ export class GameObjectTracker {
      * @param {string} id the id of the Game Object object
      * @param {number} type the type of the Game Object object
      */
-    constructor(tracker,id, type=3) {
+    constructor(tracker,id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         this.gameobjectId=id;
         this.type=type;
         this.tracker = tracker;
@@ -56,7 +56,6 @@ export class GameObjectTracker {
 
 /**
  * the list of types possible for the gameobject object
- * @type {object}
  */
 export const GAMEOBJECTTYPE = Object.freeze({
     ENEMY: 0,

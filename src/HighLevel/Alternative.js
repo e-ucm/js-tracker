@@ -10,7 +10,7 @@ export class AlternativeTracker {
      * @param {string} id the id of the accessible object
      * @param {number} type the type of the accessible object
      */
-    constructor(tracker, id, type=5) {
+    constructor(tracker, id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         this.alternativeId=id;
         this.type=type;
         this.tracker = tracker;
@@ -59,7 +59,6 @@ export class AlternativeTracker {
 
 /**
  * the list of types possible for the alternative object
- * @type {object}
  */
 export const ALTERNATIVETYPE = Object.freeze({
     QUESTION: 0,

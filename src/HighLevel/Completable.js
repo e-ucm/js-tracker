@@ -10,7 +10,7 @@ export class CompletableTracker {
      * @param {string} id the id of the completable object
      * @param {number} type the type of the completable object
      */
-    constructor(tracker, id, type=8) {
+    constructor(tracker, id, type=COMPLETABLETYPE.COMPLETABLE) {
         this.completableId=id;
         this.type=type;
         this.tracker = tracker;
@@ -79,7 +79,6 @@ export class CompletableTracker {
 
 /**
  * the list of types possible for the completable object
- * @type {object}
  */
 export const COMPLETABLETYPE = Object.freeze({
     GAME: 0,
