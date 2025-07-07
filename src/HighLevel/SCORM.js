@@ -10,8 +10,7 @@ export class ScormTracker {
      * @param {string} id the id of the Scorm object
      * @param {number} type the type of the Scorm object
      */
-    constructor(tracker, id, type) {
-        if (typeof type === 'undefined') {type = 0;}
+    constructor(tracker, id, type=0) {
         this.scormId=id;
         this.type=type;
         this.tracker = tracker;
@@ -106,7 +105,7 @@ export class ScormTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         return this.tracker.Trace('scored',this.ScormType[this.type], this.scormId)
-            .withScore(score);
+            .withScore({raw:score});
     }
 
     /**
@@ -124,7 +123,7 @@ export class ScormTracker {
         return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore(score);
+            .withScore({raw:score});
     }
 }
 

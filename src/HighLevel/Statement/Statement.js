@@ -13,8 +13,8 @@ export default class Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {number} verbId verb id of the statement
-     * @param {number} objectId object id of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
      * @param {string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
@@ -175,7 +175,7 @@ export default class Statement {
 
     /**
      * Set duration of the statement
-     * @param {number} value the duration in second
+     * @param {number} diffInSeconds the duration in second
      */
     setDuration(diffInSeconds) {
         const seconds = diffInSeconds % 60;

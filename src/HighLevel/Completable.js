@@ -10,8 +10,7 @@ export class CompletableTracker {
      * @param {string} id the id of the completable object
      * @param {number} type the type of the completable object
      */
-    constructor(tracker, id, type) {
-        if (typeof type === 'undefined') {type = 8;}
+    constructor(tracker, id, type=8) {
         this.completableId=id;
         this.type=type;
         this.tracker = tracker;
@@ -74,7 +73,7 @@ export class CompletableTracker {
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore(score);
+            .withScore({raw:score});
     }
 }
 

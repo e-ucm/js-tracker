@@ -10,8 +10,7 @@ export class AccessibleTracker {
      * @param {string} id the id of the accessible object
      * @param {number} type the type of the accessible object
      */
-    constructor(tracker, id, type) {
-        if (typeof type === 'undefined') {type = 4;}
+    constructor(tracker, id, type=4) {
         this.accessibleId=id;
         this.type=type;
         this.tracker = tracker;

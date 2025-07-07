@@ -6,6 +6,7 @@ import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js'
 import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE } from './HighLevel/SCORM.js';
+import { StatementBuilder } from './HighLevel/StatementBuilder.js';
 
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
@@ -203,7 +204,7 @@ export class JSTracker {
 /**
  * SCORM-specific tracker extending JSTracker
  */
-export class ScormTracker extends JSTracker {
+export class JSScormTracker extends JSTracker {
     /**
      * SCORM type constants
      * @type {Object}
@@ -213,11 +214,11 @@ export class ScormTracker extends JSTracker {
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
-     * @param {string} type - SCORM type
+     * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
     scorm(id, type) {
-        return new ScormTracker(this, id, type);
+        return new ScormTracker(this.tracker, id, type);
     }
 }
 
@@ -279,7 +280,6 @@ export class SeriousGameTracker extends JSTracker {
         default_uri = null,
         debug = null
     } = {}) {
-        this.scormTracker = new ScormTracker(this, activityId, SCORMTYPE.SCO);
         super({
             result_uri: result_uri,
             backup_uri: backup_uri,
@@ -290,11 +290,12 @@ export class SeriousGameTracker extends JSTracker {
             default_uri: default_uri,
             debug: debug
         });
+        this.scormTracker = new ScormTracker(this.tracker, activityId, SCORMTYPE.SCO);
     }
 
     /**
      * Marks the game as started
-     * @returns {Promise<void>} Promise that resolves when the start is recorded
+     * @returns {StatementBuilder} Promise that resolves when the start is recorded
      */
     start() {
         return this.scormTracker.Initialized();
@@ -302,7 +303,7 @@ export class SeriousGameTracker extends JSTracker {
 
     /**
      * Marks the game as paused
-     * @returns {Promise<void>} Promise that resolves when the pause is recorded
+     * @returns {StatementBuilder} Promise that resolves when the pause is recorded
      */
     pause() {
         return this.scormTracker.Suspended();
@@ -310,7 +311,7 @@ export class SeriousGameTracker extends JSTracker {
 
     /**
      * Marks the game as resumed
-     * @returns {Promise<void>} Promise that resolves when the resume is recorded
+     * @returns {StatementBuilder} Promise that resolves when the resume is recorded
      */
     resumed() {
         return this.scormTracker.Resumed();
@@ -318,7 +319,7 @@ export class SeriousGameTracker extends JSTracker {
 
     /**
      * Marks the game as finished
-     * @returns {Promise<void>} Promise that resolves when the finish is recorded
+     * @returns {StatementBuilder} Promise that resolves when the finish is recorded
      */
     finish() {
         return this.scormTracker.Terminated();
@@ -331,17 +332,17 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
     accesible(id, type) {
-        return new AccessibleTracker(this, id, type);
+        return new AccessibleTracker(this.tracker, id, type);
     }
 
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
-     * @param {string} type - Game object type
+     * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
     gameObject(id, type) {
-        return new GameObjectTracker(this, id, type);
+        return new GameObjectTracker(this.tracker, id, type);
     }
 
     /**
@@ -351,7 +352,7 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {CompletableTracker} New CompletableTracker instance
      */
     completable(id, type) {
-        return new CompletableTracker(this, id, type);
+        return new CompletableTracker(this.tracker, id, type);
     }
 
     /**
@@ -361,6 +362,6 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
     alternative(id, type) {
-        return new AlternativeTracker(this, id, type);
+        return new AlternativeTracker(this.tracker, id, type);
     }
 }

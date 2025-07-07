@@ -43,31 +43,31 @@ export class StatementBuilder {
   /**
    * Set success to statemement
    * @param {boolean} success 
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withSuccess(success) {
     this.statement.setSuccess(success);
     return this;
   }
 
-  /**
-   * Set score to statemement
-   * @param {object} opts the options of scores 
-   * @param {number} opts.raw the raw score value
-   * @param {number} opts.min the min score value
-   * @param {number} opts.max the max score value
-   * @param {number} opts.scaled the scaled score value
-   * @returns {StatementBuilder}
-   */
-  withScore({raw = null, min = null, max = null, scaled = null}={}) {
-    this.statement.setScore(raw, min, max, scaled);
+/**
+ * Sets score-related properties
+ * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
+ * @returns {this} Returns the current instance for chaining
+ */
+  withScore(score) {
+    this.statement.setScore(
+      score.raw ?? score?.raw, 
+      score.min ?? score?.min,
+      score.max ?? score?.max,
+      score.scaled ?? score?.scaled
+    );
     return this;
-  }
-
+}
   /**
    * Set raw score to statemement
    * @param {number} raw the raw score value
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withScoreRaw(raw) {
     this.statement.setScoreRaw(raw);
@@ -76,7 +76,7 @@ export class StatementBuilder {
   /**
    * Set min score to statemement
    * @param {number} min the min score value
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withScoreMin(min) {
     this.statement.setScoreMin(min);
@@ -85,7 +85,7 @@ export class StatementBuilder {
   /**
    * Set max score to statemement
    * @param {number} max the max score value
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withScoreMax(max) {
     this.statement.setScoreMax(max);
@@ -94,7 +94,7 @@ export class StatementBuilder {
   /**
    * Set scaled score to statemement
    * @param {number} scaled the scaled score value
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withScoreScaled(scaled) {
     this.statement.setScoreScaled(scaled);
@@ -104,7 +104,7 @@ export class StatementBuilder {
   /**
    * Set completion status to statement
    * @param {boolean} value completion status of statement
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withCompletion(value) {
     this.statement.setCompletion(value);
@@ -114,7 +114,7 @@ export class StatementBuilder {
   /**
    * Set duration to statement
    * @param {number} diffInSeconds duration in sec of statement
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withDuration(diffInSeconds) {
     this.statement.setDuration(diffInSeconds);
@@ -124,7 +124,7 @@ export class StatementBuilder {
   /**
    * Set response to statement
    * @param {string} value response of statement
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withResponse(value) {
     this.statement.setResponse(value);
@@ -134,7 +134,7 @@ export class StatementBuilder {
   /**
    * Set progress to statement
    * @param {number} value progress of statement
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   withProgress(value) {
     this.statement.setProgress(value);
@@ -145,7 +145,7 @@ export class StatementBuilder {
    * Add result extension to statement
    * @param {string} key key of the result extension
    * @param {*} value value of the result extension
-   * @returns {StatementBuilder}
+   * @returns {this} Returns the current instance for chaining
    */
   
   withResultExtension(key, value) {
@@ -165,13 +165,15 @@ export class StatementBuilder {
   /**
    * let me run any function on the statement
    * fn can either mutate `stmt` in‐place, or return a brand new statement
-   * @param {Function<Statement>} fn function to apply to statement
+   * Applies a function to the statement
+   * @param {(statement: Statement) => Statement} fn - Function to apply to statement
+   * @returns {this} Returns the current instance for chaining
    */
   apply(fn) {
     const result = fn(this.statement);
     // if your fn returns a new statement, pick that up, otherwise
     // assume it has mutated in place
-    if (result !== undefined && typeof result == Statement) {
+    if (result instanceof Statement) {
       this.statement = result;
     }
     return this;
@@ -190,7 +192,7 @@ export class StatementBuilder {
 
   /**
    * 
-   * @param {*} onFinally 
+   * @param {*} onRejected 
    * @returns {Promise<void>}
    */
   catch(onRejected) {

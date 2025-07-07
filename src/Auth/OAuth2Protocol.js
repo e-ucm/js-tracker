@@ -158,9 +158,9 @@ export default class OAuth2Protocol {
           this.clientId,
           this.username,
           this.password,
+          this.login_hint,
           this.scope,
           this.state,
-          this.login_hint
         );
         break;
       default:
@@ -199,7 +199,7 @@ export default class OAuth2Protocol {
    * @param {string} login_hint - The login hint
    * @returns {Promise<Object>} The token response
    */
-  async doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, scope, state, login_hint) {
+  async doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
     const form = {
       username,
       password,

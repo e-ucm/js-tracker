@@ -187,7 +187,7 @@ export default class xAPITrackerAsset {
             this.backup_endpoint = backup_endpoint;
         }
 
-        this.batchlength = parseInt(batchLength) || 100;
+        this.batchlength = typeof batchLength === 'string' ? parseInt(batchLength) : batchLength || 100;
         this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
         this.offset = 0;
         this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
@@ -443,16 +443,16 @@ export default class xAPITrackerAsset {
      * Flushes the statement queue
      * @param {Object} [opts] - Options object
      * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
-     * @returns {Promise<void|Array<Promise>>} Promise that resolves when flushing is complete
+     * @returns {Promise<void>} Promise that resolves when flushing is complete
      */
-    flush({withBackup = false} = {}) {
+    async flush({withBackup = false} = {}) {
         if(withBackup) {
-            return Promise.all([
+            await Promise.all([
                 this.sendBatch(),
                 this.sendBackup()
             ]);
         } else {
-            return this.sendBatch();
+            await this.sendBatch();
         }
     }
 }

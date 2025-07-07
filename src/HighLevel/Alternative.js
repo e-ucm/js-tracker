@@ -10,8 +10,7 @@ export class AlternativeTracker {
      * @param {string} id the id of the accessible object
      * @param {number} type the type of the accessible object
      */
-    constructor(tracker, id, type) {
-        if (typeof type === 'undefined') {type = 5;}
+    constructor(tracker, id, type=5) {
         this.alternativeId=id;
         this.type=type;
         this.tracker = tracker;
@@ -42,9 +41,7 @@ export class AlternativeTracker {
      * @param {string} optionId the optionId of the selected statement
      * @returns {StatementBuilder}
      */
-    Selected(optionId) {
-        if (typeof type === 'undefined') {type = 5;}
-        
+    Selected(optionId) {        
         return this.tracker.Trace('selected',this.AlternativeType[this.type],this.alternativeId)
             .withResponse(optionId);
     }
@@ -55,8 +52,6 @@ export class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     Unlocked(optionId) {
-        if (typeof type === 'undefined') {type = 5;}
-        
         return this.tracker.Trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
                 .withResponse(optionId);
     }

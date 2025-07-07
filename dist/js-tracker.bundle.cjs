@@ -34,7 +34,7 @@ class ActorStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         return {
@@ -48,7 +48,7 @@ class ActorStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.accountName.replaceAll(',', '\\,') ;
@@ -92,7 +92,7 @@ class ContextStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         return {
@@ -111,7 +111,7 @@ class ContextStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;
@@ -174,7 +174,7 @@ class VerbStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var verb = {};
@@ -191,7 +191,7 @@ class VerbStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.verbId;
@@ -300,7 +300,7 @@ class ObjectStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var object= {};
@@ -323,7 +323,7 @@ class ObjectStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
@@ -395,7 +395,7 @@ class ResultStatement {
 
     /**
      * Check if the result is empty or not
-     * @returns boolean
+     * @returns {boolean}
      */
     isEmpty() {
         return (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
@@ -432,7 +432,7 @@ class ResultStatement {
     /**
      * Set result extension for key value
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
     setExtension(key, value) {
         switch (key.toLowerCase()) {
@@ -449,7 +449,7 @@ class ResultStatement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -462,7 +462,7 @@ class ResultStatement {
     /**
      * Check if the string is an URI
      * @param {string} id 
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
@@ -486,7 +486,7 @@ class ResultStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var ret = {};
@@ -535,7 +535,7 @@ class ResultStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
@@ -599,7 +599,7 @@ class ResultStatement {
 /**
  * Get the size of the object
  * @param {Object} obj the object to get the size
- * @returns number
+ * @returns {number}
  */
 var obsize = function(obj) {
     var size = 0, key;
@@ -614,7 +614,7 @@ var obsize = function(obj) {
 /**
  * Check if is map
  * @param {Object} obj the object to check
- * @returns boolean
+ * @returns {boolean}
  */
 var ismap = function(obj) {
     for (var key in obj) {
@@ -628,7 +628,7 @@ var ismap = function(obj) {
 /**
  * Check if exist
  * @param {Object} value the object to check
- * @returns boolean
+ * @returns {boolean}
  */
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
@@ -641,8 +641,8 @@ class Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {number} verbId verb id of the statement
-     * @param {number} objectId object id of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
      * @param {string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
@@ -708,7 +708,7 @@ class Statement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -721,7 +721,7 @@ class Statement {
     /**
      * Check if the string is an URI
      * @param {string} id 
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
@@ -803,7 +803,7 @@ class Statement {
 
     /**
      * Set duration of the statement
-     * @param {number} value the duration in second
+     * @param {number} diffInSeconds the duration in second
      */
     setDuration(diffInSeconds) {
         const seconds = diffInSeconds % 60;
@@ -826,7 +826,7 @@ class Statement {
 
     /**
      * Set progress status of the statement
-     * @param {boolean} value the progress status
+     * @param {number} value the progress status
      */
     setProgress(value) {
         this.addResultExtension('progress', value);
@@ -844,7 +844,7 @@ class Statement {
     /**
      * Set result extension for key of the statement
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
     addResultExtension(key,value) {
         this.result.setExtension(key, value);
@@ -860,7 +860,7 @@ class Statement {
 
     /**
      * Convert to xAPI format
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var xapiTrace={};
@@ -894,7 +894,7 @@ class Statement {
     /**
      * Convert to CSV format
      * 
-     * @returns string
+     * @returns {String}
      */
     toCSV() {
         var csv=[];
@@ -914,9 +914,26 @@ class Statement {
 
 
 // ------------------------------------------------------------------
+/**
+ * Statement Builder Class
+ */
 class StatementBuilder {
+  /**
+   * XAPI Client 
+   * @type {xAPITrackerAsset}
+   */
     client;
+
+    /**
+     * Statement
+     * @type {Statement}
+     */
     statement;
+
+    /**
+     * Promise
+     * @type {Promise<void>}
+     */
     _promise;
 
   /**
@@ -932,172 +949,398 @@ class StatementBuilder {
   }
 
   // RESULT
+  /**
+   * Set success to statemement
+   * @param {boolean} success 
+   * @returns {this} Returns the current instance for chaining
+   */
   withSuccess(success) {
     this.statement.setSuccess(success);
     return this;
   }
 
-  withScore(raw = null, min = null, max = null, scaled = null) {
-    this.statement.setScore(raw, min, max, scaled);
+/**
+ * Sets score-related properties
+ * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
+ * @returns {this} Returns the current instance for chaining
+ */
+  withScore(score) {
+    this.statement.setScore(
+      score.raw ?? score?.raw, 
+      score.min ?? score?.min,
+      score.max ?? score?.max,
+      score.scaled ?? score?.scaled
+    );
     return this;
-  }
-
+}
+  /**
+   * Set raw score to statemement
+   * @param {number} raw the raw score value
+   * @returns {this} Returns the current instance for chaining
+   */
   withScoreRaw(raw) {
     this.statement.setScoreRaw(raw);
     return this;
   }
-
+  /**
+   * Set min score to statemement
+   * @param {number} min the min score value
+   * @returns {this} Returns the current instance for chaining
+   */
   withScoreMin(min) {
     this.statement.setScoreMin(min);
     return this;
   }
-
+  /**
+   * Set max score to statemement
+   * @param {number} max the max score value
+   * @returns {this} Returns the current instance for chaining
+   */
   withScoreMax(max) {
     this.statement.setScoreMax(max);
     return this;
   }
-
+  /**
+   * Set scaled score to statemement
+   * @param {number} scaled the scaled score value
+   * @returns {this} Returns the current instance for chaining
+   */
   withScoreScaled(scaled) {
     this.statement.setScoreScaled(scaled);
     return this;
   }
 
+  /**
+   * Set completion status to statement
+   * @param {boolean} value completion status of statement
+   * @returns {this} Returns the current instance for chaining
+   */
   withCompletion(value) {
     this.statement.setCompletion(value);
     return this;
   }
 
+  /**
+   * Set duration to statement
+   * @param {number} diffInSeconds duration in sec of statement
+   * @returns {this} Returns the current instance for chaining
+   */
   withDuration(diffInSeconds) {
     this.statement.setDuration(diffInSeconds);
     return this;
   }
 
+  /**
+   * Set response to statement
+   * @param {string} value response of statement
+   * @returns {this} Returns the current instance for chaining
+   */
   withResponse(value) {
     this.statement.setResponse(value);
     return this;
   }
 
+  /**
+   * Set progress to statement
+   * @param {number} value progress of statement
+   * @returns {this} Returns the current instance for chaining
+   */
   withProgress(value) {
     this.statement.setProgress(value);
     return this;
   }
 
+  /**
+   * Add result extension to statement
+   * @param {string} key key of the result extension
+   * @param {*} value value of the result extension
+   * @returns {this} Returns the current instance for chaining
+   */
+  
   withResultExtension(key, value) {
     this.statement.addResultExtension(key, value);
     return this;
   }
 
-  withResultExtensions(ext = {}) {
-    this.statement.setExtensions(ext);
+  /**
+     * Set result extensions as Object key/values list of the statement
+     * @param {Object} extensions extensions list
+     */
+  withResultExtensions(extensions = {}) {
+    this.statement.addResultExtensions(extensions);
     return this;
   }
 
   /**
    * let me run any function on the statement
    * fn can either mutate `stmt` in‐place, or return a brand new statement
+   * Applies a function to the statement
+   * @param {(statement: Statement) => Statement} fn - Function to apply to statement
+   * @returns {this} Returns the current instance for chaining
    */
   apply(fn) {
     const result = fn(this.statement);
     // if your fn returns a new statement, pick that up, otherwise
     // assume it has mutated in place
-    if (result !== undefined && typeof result == Statement) {
+    if (result instanceof Statement) {
       this.statement = result;
     }
     return this;
   }
 
   //— make this builder awaitable (thenable) ————————————————————————
+  /**
+   * 
+   * @param {*} onFulfilled
+   * @param {*} onRejected 
+   * @returns {Promise<void>}
+   */
   then(onFulfilled, onRejected) {
     return this._promise.then(onFulfilled, onRejected)
   }
 
+  /**
+   * 
+   * @param {*} onRejected 
+   * @returns {Promise<void>}
+   */
   catch(onRejected) {
     return this._promise.catch(onRejected)
   }
 
+  /**
+   * 
+   * @param {*} onFinally 
+   * @returns {Promise<void>}
+   */
   finally(onFinally) {
     return this._promise.finally(onFinally)
   }
 }
 
+/**
+ * XAPI Tracker Asset Class
+ * Handles xAPI tracking with batch processing, retry logic, and backup capabilities
+ */
 class xAPITrackerAsset {
-    //XAPI PARAMETERS
-    xapi;
-    endpoint;
-    auth_token;
-    online;
-    //STATEMENTS PARAMETERS
-    statementsToSend;
-    sendingInProgress;
-    offset;
-    //BACKUP PARAMETERS
-    backup;
-    backup_endpoint;
-    backup_type;
-    backupRequestParameters;
-    //ACTOR PARAMETERS
-    actor;
-    actor_homePage;
-    actor_name;
-    context;
-    //DEFAULT_URI PARAMETERS
-    default_uri;
-    //DEBUG PARAMETERS
-    debug;
-    //BATCH AND RETRY PARAMETERS
-    batchlength;
-    batchtimeout;
-    retryDelay;
-    maxRetryDelay;
-    timer;
+    // XAPI PARAMETERS
 
+    /**
+     * XAPI Tracker instance
+     * @type {XAPI|null}
+     */
+    xapi = null;
+
+    /**
+     * Primary xAPI endpoint URL
+     * @type {string}
+     */
+    endpoint;
+
+    /**
+     * Authentication token for xAPI requests
+     * @type {string|null}
+     */
+    auth_token = null;
+
+    /**
+     * Current online status
+     * @type {boolean}
+     */
+    online = false;
+
+    // STATEMENTS PARAMETERS
+
+    /**
+     * Queue of statements to be sent
+     * @type {Array<Statement>}
+     */
+    statementsToSend = [];
+
+    /**
+     * Flag indicating if sending is currently in progress
+     * @type {boolean}
+     */
+    sendingInProgress = false;
+
+    /**
+     * Current offset in the statements queue
+     * @type {number}
+     */
+    offset = 0;
+
+    // BACKUP PARAMETERS
+
+    /**
+     * Whether backup is enabled
+     * @type {boolean}
+     */
+    backup = false;
+
+    /**
+     * Backup endpoint URL
+     * @type {string|null}
+     */
+    backup_endpoint = null;
+
+    /**
+     * Backup type (XAPI or CSV)
+     * @type {string|null}
+     */
+    backup_type = null;
+
+    /**
+     * Additional parameters for backup requests
+     * @type {Object|null}
+     */
+    backupRequestParameters = null;
+
+    // ACTOR PARAMETERS
+
+    /**
+     * Actor statement object
+     * @type {ActorStatement}
+     */
+    actor;
+
+    /**
+     * Actor's homepage URL
+     * @type {string}
+     */
+    actor_homePage;
+
+    /**
+     * Actor's name
+     * @type {string}
+     */
+    actor_name;
+
+    /**
+     * Context statement object
+     * @type {ContextStatement}
+     */
+    context;
+
+    // DEFAULT_URI PARAMETERS
+
+    /**
+     * Default URI for statements
+     * @type {string}
+     */
+    default_uri;
+
+    // DEBUG PARAMETERS
+
+    /**
+     * Debug mode flag
+     * @type {boolean}
+     */
+    debug;
+
+    // BATCH AND RETRY PARAMETERS
+
+    /**
+     * Number of statements to send in each batch
+     * @type {number}
+     */
+    batchlength;
+
+    /**
+     * Timeout between batch sends in milliseconds
+     * @type {number}
+     */
+    batchtimeout;
+
+    /**
+     * Current retry delay in milliseconds
+     * @type {number|null}
+     */
+    retryDelay = null;
+
+    /**
+     * Maximum retry delay in milliseconds
+     * @type {number}
+     */
+    maxRetryDelay;
+
+    /**
+     * Timer reference for batch processing
+     * @type {NodeJS.Timeout|null}
+     */
+    timer = null;
+
+    /**
+     * Creates an instance of xAPITrackerAsset
+     *
+     * @param {string} endpoint - Primary xAPI endpoint URL
+     * @param {string} backup_endpoint - Backup endpoint URL
+     * @param {string} backup_type - Type of backup (XAPI or CSV)
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {string} auth_token - Authentication token
+     * @param {string} default_uri - Default URI for statements
+     * @param {boolean} debug - Debug mode flag
+     * @param {number|string} batchLength - Number of statements per batch
+     * @param {number|string} batchTimeout - Timeout between batches
+     * @param {number|string} maxRetryDelay - Maximum retry delay
+     */
     constructor(endpoint, backup_endpoint, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug, batchLength, batchTimeout, maxRetryDelay) {
-        this.default_uri=default_uri;
-        this.debug=debug;
-        this.online=false;
+        this.default_uri = default_uri;
+        this.debug = debug;
+        this.online = false;
         this.endpoint = endpoint;
+
         if(backup_endpoint) {
             this.backup = true;
             if(backup_type == null) {
-                backup_type="CSV";
+                backup_type = "CSV";
             }
             this.backup_type = backup_type;
             this.backup_endpoint = backup_endpoint;
         }
-        this.batchlength = parseInt(batchLength) || 100; // Default batch length (100 statements)
-        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec"); // Default timeout in milliseconds (30 seconds)
-        this.offset = 0; // Tracks the starting index of the next batch
 
-        this.retryDelay = null;
-        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min"); // Maximum retry delay (120 seconds)
-        this.statementsToSend=[];
+        this.batchlength = typeof batchLength === 'string' ? parseInt(batchLength) : batchLength || 100;
+        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
+        this.offset = 0;
+        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
+        this.statementsToSend = [];
         this.timer = null;
-        this.xapi=null;
         this.auth_token = auth_token;
         this.actor_homePage = actor_homePage;
         this.actor_name = actor_name;
-        this.actor=new ActorStatement(this.actor_name, this.actor_homePage);
+        this.actor = new ActorStatement(this.actor_name, this.actor_homePage);
         this.context = new ContextStatement();
         this.updateAuth();
     }
 
+    /**
+     * Logs out the current session by clearing the authentication token
+     */
     logout() {
         this.auth_token = null;
         this.onOffline();
     }
 
-    // Event handler: When the client goes offline
+    /**
+     * Event handler called when the client goes offline
+     */
     onOffline() {
         this.online = false;
         if (this.debug) console.warn("XAPI Tracker for Serious Games went offline");
     }
 
-    // Event handler: When the client comes online
+    /**
+     * Event handler called when the client comes online
+     * @returns {Promise<void>}
+     */
     async onOnline() {
         this.online = true;
         if (this.debug) console.info("XAPI Tracker for Serious Games back Online");
     }
 
+    /**
+     * Updates the authentication configuration
+     */
     updateAuth() {
         if(this.auth_token != null) {
             this.xapi = new XAPI({
@@ -1114,98 +1357,107 @@ class xAPITrackerAsset {
         }
     }
 
+    /**
+     * Sends a batch of statements to the xAPI endpoint
+     * @returns {Promise<void>}
+     */
     async sendBatch() {
-        if (!this.online) return; // Skip if offline
-        if (this.offset >= this.statementsToSend.length) return; // No statements to send
-        
+        if (!this.online) return;
+        if (this.offset >= this.statementsToSend.length) return;
+
         const end = Math.min(this.offset + this.batchlength, this.statementsToSend.length);
         const batch = this.statementsToSend.slice(this.offset, end);
         const statements = batch.map(statement => statement.toXAPI());
 
         try {
             if(!this.sendingInProgress) {
-                this.sendingInProgress=true;
-                const result = await this.xapi.sendStatements({statements: statements });
-                this.sendingInProgress=false;
+                this.sendingInProgress = true;
+                const result = await this.xapi.sendStatements({statements: statements});
+                this.sendingInProgress = false;
                 if (this.debug) {
                     console.debug("Batch sent successfully:", result);
                 }
-                // Move the offset forward
                 this.offset += batch.length;
-                // Reset retry delay on success
                 this.retryDelay = null;
             }
         } catch (error) {
             console.error("Error sending batch:", error.response);
             const status = error.response.status;
             const errorMessage = error.response.data.message || error.message;
+
             switch (status) {
                 case 401: // Unauthorized
-                    console.error(`Unauthorized: ${errorMessage}`);
-                    this.onOffline();
-                    await this.refreshAuth();
-                    this.sendingInProgress=false;
-                    // Attempt to send queued statements
-                    await this.sendBatch();
-                    break;
                 case 403: // Forbidden
-                    console.error(`Forbidden: ${errorMessage}`);
+                    console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
                     this.onOffline();
                     await this.refreshAuth();
-                    this.sendingInProgress=false;
-                    // Attempt to send queued statements
+                    this.sendingInProgress = false;
                     await this.sendBatch();
                     break;
                 default:
                     console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
-                    this.sendingInProgress=false;
+                    this.sendingInProgress = false;
                     this.onOffline();
                     break;
             }
 
             if(this.retryDelay == null) {
-                this.retryDelay=this.batchtimeout;
+                this.retryDelay = this.batchtimeout;
             }
-            // Retry logic: Increase delay and retry sending
-            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay); // Exponential backoff with a cap
-            this.timer=null; // Reset timer
+            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay);
+            this.timer = null;
         }
 
-        // Continue sending if more items are in the queue
         if (this.offset < this.statementsToSend.length) {
-            this.startTimer(); // Start a new timer to process the next batch
+            this.startTimer();
         }
     }
 
+    /**
+     * Refreshes the authentication token
+     * @returns {Promise<void>}
+     */
     async refreshAuth() {
-        // Now that we have the token, update the authorization in the super class
         this.updateAuth();
     }
 
+    /**
+     * Starts the timer for batch processing
+     */
     startTimer() {
-        if (this.timer) return; // Timer already running
-        let timeout=this.batchtimeout;
-        if(this.retryDelay) {
-            timeout=this.retryDelay;
-        }
+        if (this.timer) return;
+        let timeout = this.retryDelay ? this.retryDelay : this.batchtimeout;
+
         this.timer = setTimeout(async () => {
             await this.sendBatch();
-            this.timer = null; // Reset timer
+            this.timer = null;
             if (this.offset < this.statementsToSend.length) {
-                this.startTimer(); // Restart timer if more statements are queued
+                this.startTimer();
             }
         }, timeout);
     }
 
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
     Trace(verbId, objectType, objectId) {
-        var statement=new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
+        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
         return new StatementBuilder(this, statement);
     }
 
+    /**
+     * Sends statements to the backup endpoint
+     * @returns {Promise<void>}
+     */
     async sendBackup() {
         if (this.online && this.backup_endpoint && this.backup_endpoint.trim()) {
             let contentType;
             let statements;
+
             switch (this.backup_type) {
                 case 'XAPI':
                     statements = this.statementsToSend.map(statement => JSON.stringify(statement.toXAPI()));
@@ -1215,16 +1467,16 @@ class xAPITrackerAsset {
                     statements = this.statementsToSend.map(statement => statement.toCSV());
                     contentType = 'text/csv';
                     break;
-                default: 
+                default:
                     return;
             }
-            const body =  {
+
+            const body = {
                 tofile: true,
                 result: statements.join('\n'),
                 contentType: contentType
             };
 
-            // Initialize request object
             const myRequest = {
                 url: this.backup_endpoint,
                 method: 'POST',
@@ -1235,21 +1487,17 @@ class xAPITrackerAsset {
                 data: JSON.stringify(body, null, 2)
             };
 
-            // Add custom parameters from config file
             if (this.backupRequestParameters) {
-                // Content type
                 if (this.backupRequestParameters.content_type) {
                     myRequest.headers['Content-Type'] = this.backupRequestParameters.content_type;
                 }
 
-                // Request headers
                 if (this.backupRequestParameters.headers && typeof this.backupRequestParameters.headers === 'object') {
                     Object.entries(this.backupRequestParameters.headers).forEach(([key, value]) => {
                         myRequest.headers[key] = value;
                     });
                 }
 
-                // Request query parameters
                 if (this.backupRequestParameters.query_parameters && typeof this.backupRequestParameters.query_parameters === 'object') {
                     const queryParams = new URLSearchParams(this.backupRequestParameters.query_parameters).toString();
                     myRequest.url += `?${queryParams}`;
@@ -1257,7 +1505,6 @@ class xAPITrackerAsset {
             }
 
             try {
-                // Perform the HTTP request
                 const response = await axios(myRequest);
                 console.log(response);
             } catch (error) {
@@ -1267,14 +1514,9 @@ class xAPITrackerAsset {
 
                     switch (status) {
                         case 401: // Unauthorized
-                            this.onOffline();
-                            console.error(`Unauthorized: ${errorMessage}`);
-                            await this.refreshAuth();
-                            await this.sendBackup();
-                            break;
                         case 403: // Forbidden
                             this.onOffline();
-                            console.error(`Forbidden: ${errorMessage}`);
+                            console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
                             await this.refreshAuth();
                             await this.sendBackup();
                             break;
@@ -1288,29 +1530,69 @@ class xAPITrackerAsset {
             }
         }
     }
-    
+
+    /**
+     * Adds a statement to the queue and starts processing if needed
+     * @param {Statement} statement - The statement to enqueue
+     * @returns {Promise<void>}
+     */
     async enqueue(statement) {
-        if(this.debug !== null && this.debug) {
+        if(this.debug) {
             console.debug(statement.toXAPI());
             console.debug(statement.toCSV());
         }
-        
-        // Add statement to queue
+
         this.statementsToSend.push(statement);
 
-        // Start sending immediately if online and batch size is reached
         if (this.online && this.statementsToSend.length >= this.offset + this.batchlength) {
             await this.sendBatch();
         }
 
-        // Start the timer for timeout-based sending
         this.startTimer();
+    }
+
+    /**
+     * Flushes the statement queue
+     * @param {Object} [opts] - Options object
+     * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
+     * @returns {Promise<void>} Promise that resolves when flushing is complete
+     */
+    async flush({withBackup = false} = {}) {
+        if(withBackup) {
+            await Promise.all([
+                this.sendBatch(),
+                this.sendBackup()
+            ]);
+        } else {
+            await this.sendBatch();
+        }
     }
 }
 
+/**
+ * A specialized tracker asset that implements OAuth1 authentication.
+ * Extends the base xAPITrackerAsset with basic authentication capabilities.
+ */
 class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
+    /**
+     * Creates an instance of xAPITrackerAssetOAuth1.
+     *
+     * @param {string} endpoint - Primary API endpoint
+     * @param {string} backupEndpoint - Backup API endpoint
+     * @param {string} backupType - Type of backup endpoint
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {string} username - Username for authentication
+     * @param {string} password - Password for authentication
+     * @param {string} defaultUri - Default URI for requests
+     * @param {boolean} debug - Debug mode flag
+     * @param {number} batchLength - Batch length for requests
+     * @param {number} batchTimeout - Batch timeout in milliseconds
+     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     */
     constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, username, password, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
         super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, XAPI.toBasicAuth(username, password), defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
+
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
                 this.logout();
@@ -1318,37 +1600,153 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         });
     }
 
+    /**
+     * Refreshes the authentication token.
+     * Delegates to the parent class implementation.
+     *
+     * @returns {Promise<void>} A promise that resolves when the refresh is complete
+     */
     async refreshAuth() {
         super.refreshAuth();
     }
 
+    /**
+     * Logs out the current session.
+     * Delegates to the parent class implementation.
+     */
     logout() {
         super.logout();
     }
 }
 
+/**
+ * A class that implements OAuth 2.0 protocol for authentication and token management.
+ * Supports various grant types including password and refresh_token flows.
+ */
 class OAuth2Protocol {
+  /**
+   * Error message template for missing required fields.
+   * @type {string}
+   */
+  fieldMissingMessage;
+
+  /**
+   * Error message template for unsupported grant types.
+   * @type {string}
+   */
+  unsupportedGrantTypeMessage;
+
+  /**
+   * Error message template for unsupported PKCE methods.
+   * @type {string}
+   */
+  unsupportedCodeChallengeMethodMessage;
+
+  /**
+   * The authorization endpoint URL.
+   * @type {string|null}
+   */
+  authEndpoint = null;
+
+  /**
+   * The token endpoint URL.
+   * @type {string|null}
+   */
+  tokenEndpoint = null;
+
+  /**
+   * The OAuth2 grant type being used.
+   * @type {string|null}
+   */
+  grantType = null;
+
+  /**
+   * The username for authentication.
+   * @type {string|null}
+   */
+  username = null;
+
+  /**
+   * The password for authentication.
+   * @type {string|null}
+   */
+  password = null;
+
+  /**
+   * The client identifier.
+   * @type {string|null}
+   */
+  clientId = null;
+
+  /**
+   * The requested scope of access.
+   * @type {string|null}
+   */
+  scope = null;
+
+  /**
+   * The state parameter for CSRF protection.
+   * @type {string|null}
+   */
+  state = null;
+
+  /**
+   * The login hint for authentication.
+   * @type {string|null}
+   */
+  login_hint = null;
+
+  /**
+   * The PKCE code challenge method.
+   * @type {string|null}
+   */
+  codeChallengeMethod = null;
+
+  /**
+   * The current authentication token.
+   * @type {Object|null}
+   */
+  token = null;
+
+  /**
+   * Flag indicating if a token refresh is currently in progress.
+   * @type {boolean}
+   */
+  tokenRefreshInProgress = false;
+
+  /**
+   * Callback function for token updates.
+   * @type {Function|null}
+   */
+  onAuthorizationInfoUpdate = null;
+
+  /**
+   * Creates an instance of OAuth2Protocol.
+   * Initializes error messages and default property values.
+   */
   constructor() {
     this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
     this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
     this.unsupportedCodeChallengeMethodMessage = 'Code challenge (PKCE) method "{0}" not supported. Please use "S256" method or disable it.';
-
-    this.authEndpoint = null;
-    this.tokenEndpoint = null;
-    this.grantType = null;
-    this.username = null;
-    this.password = null;
-    this.clientId = null;
-    this.scope = null;
-    this.state = null;
-    this.login_hint=null;
-    this.codeChallengeMethod = null;
-    this.token = null;
-    this.tokenRefreshInProgress=false;
-
-    this.onAuthorizationInfoUpdate = null;
   }
 
+  /**
+   * Initializes the OAuth2 protocol with the provided configuration.
+   *
+   * @param {Object} config - Configuration object containing OAuth2 parameters
+   * @param {string} config.token_endpoint - The token endpoint URL
+   * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+   * @param {string} config.client_id - The client ID
+   * @param {string} [config.scope] - Optional scope
+   * @param {string} [config.state] - Optional state
+   * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+   * @param {string} [config.username] - Username for password grant type
+   * @param {string} [config.password] - Password for password grant type
+   * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+   * @param {string} [config.login_hint] - Login hint for password grant type
+   * @returns {Promise<void>}
+   * @throws {Error} If required configuration values are missing or grant type is unsupported
+   */
   async init(config) {
     console.log("[OAuth2] Starting");
     this.tokenEndpoint = this.getRequiredValue(config, 'token_endpoint');
@@ -1381,9 +1779,9 @@ class OAuth2Protocol {
           this.clientId,
           this.username,
           this.password,
+          this.login_hint,
           this.scope,
           this.state,
-          this.login_hint
         );
         break;
       default:
@@ -1395,6 +1793,14 @@ class OAuth2Protocol {
     }
   }
 
+  /**
+   * Retrieves a required value from the configuration object.
+   *
+   * @param {Object} config - The configuration object
+   * @param {string} key - The key of the required value
+   * @returns {*} The value associated with the key
+   * @throws {Error} If the required value is missing
+   */
   getRequiredValue(config, key) {
     if (!config[key]) {
       throw new Error(this.fieldMissingMessage.replace('{0}', key));
@@ -1402,21 +1808,43 @@ class OAuth2Protocol {
     return config[key];
   }
 
-  async doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, scope, state, login_hint) {
+  /**
+   * Performs the Resource Owner Password Credentials flow.
+   *
+   * @param {string} tokenUrl - The token endpoint URL
+   * @param {string} clientId - The client ID
+   * @param {string} username - The username
+   * @param {string} password - The password
+   * @param {string} [scope] - Optional scope
+   * @param {string} [state] - Optional state
+   * @param {string} login_hint - The login hint
+   * @returns {Promise<Object>} The token response
+   */
+  async doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
     const form = {
       username,
       password,
       login_hint
     };
     if(scope) {
-      form.scope=scope;
+      form.scope = scope;
     }
     if(state) {
-      form.state=state;
+      form.state = state;
     }
     return await this.doTokenRequest(tokenUrl, clientId, "password", form);
   }
 
+  /**
+   * Makes a token request to the OAuth2 token endpoint.
+   *
+   * @param {string} tokenUrl - The token endpoint URL
+   * @param {string} clientId - The client ID
+   * @param {string} grantType - The grant type
+   * @param {Object} otherParams - Additional parameters to include in the request
+   * @returns {Promise<Object>} The token response
+   * @throws {Error} If the token request fails
+   */
   async doTokenRequest(tokenUrl, clientId, grantType, otherParams) {
     const form = {
       grant_type: grantType,
@@ -1441,19 +1869,32 @@ class OAuth2Protocol {
     }
   }
 
+  /**
+   * Performs a refresh token request.
+   *
+   * @param {string} tokenUrl - The token endpoint URL
+   * @param {string} clientId - The client ID
+   * @param {string} refreshToken - The refresh token
+   * @returns {Promise<Object>} The new token response
+   */
   async doRefreshToken(tokenUrl, clientId, refreshToken) {
     return await this.doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
   }
 
+  /**
+   * Refreshes the current access token using the refresh token.
+   *
+   * @returns {Promise<string>} The new access token
+   */
   async refreshToken() {
     if(this.tokenRefreshInProgress == false) {
       try {
-        this.tokenRefreshInProgress=true;
+        this.tokenRefreshInProgress = true;
         this.token = await this.doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
-        this.tokenRefreshInProgress=false;
+        this.tokenRefreshInProgress = false;
         return this.token.access_token;
       } catch(error) {
-        this.tokenRefreshInProgress=false;
+        this.tokenRefreshInProgress = false;
         console.error(error);
       }
     } else {
@@ -1463,6 +1904,11 @@ class OAuth2Protocol {
     }
   }
 
+  /**
+   * Checks if the current token has expired.
+   *
+   * @returns {boolean} True if the token has expired, false otherwise
+   */
   hasTokenExpired() {
     let expiredTime = new Date(this.token.requestTime.getTime() + this.token.expires_in*1000);
     let now = new Date();
@@ -1473,6 +1919,13 @@ class OAuth2Protocol {
     }
   }
 
+  /**
+   * Updates the request with the current authorization token.
+   * Refreshes the token if it has expired.
+   *
+   * @param {Object} request - The request object to update
+   * @returns {Promise<void>}
+   */
   async updateParamsForAuth(request) {
     if (this.hasTokenExpired()) {
       this.token = await this.doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
@@ -1487,6 +1940,11 @@ class OAuth2Protocol {
     };
   }
 
+  /**
+   * Registers a callback function to be called when authorization information is updated.
+   *
+   * @param {Function} callback - The callback function to register
+   */
   registerAuthInfoUpdate(callback) {
     if (callback) {
       this.onAuthorizationInfoUpdate = callback;
@@ -1496,6 +1954,12 @@ class OAuth2Protocol {
     }
   }
 
+  /**
+   * Logs out the current session by invalidating the refresh token.
+   *
+   * @returns {Promise<void>}
+   * @throws {Error} If the logout request fails
+   */
   async logout() {
     const form = {
       grant_type: "refresh_token",
@@ -1522,17 +1986,48 @@ class OAuth2Protocol {
   }
 }
 
+/**
+ * A specialized tracker asset that implements OAuth2 authentication.
+ * Extends the base xAPITrackerAsset with OAuth2 capabilities.
+ */
 class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+    /**
+     * Configuration object for OAuth2 authentication
+     * @type {Object}
+     */
     oauth2Config;
-    oauth2;
+
+    /**
+     * Instance of OAuth2Protocol handling authentication
+     * @type {OAuth2Protocol|null}
+     */
+    oauth2 = null;
+
+    /**
+     * Creates an instance of xAPITrackerAssetOAuth2.
+     *
+     * @param {string} endpoint - Primary API endpoint
+     * @param {string} backupEndpoint - Backup API endpoint
+     * @param {string} backupType - Type of backup endpoint
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {Object} config - OAuth2 configuration
+     * @param {string} defaultUri - Default URI for requests
+     * @param {boolean} debug - Debug mode flag
+     * @param {number} batchLength - Batch length for requests
+     * @param {number} batchTimeout - Batch timeout in milliseconds
+     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     */
     constructor(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, config, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay) {
         // Call the parent constructor without the token (since we don't have it yet)
         super(endpoint, backupEndpoint, backupType, actor_homePage, actor_name, null, defaultUri, debug, batchLength, batchTimeout, maxRetryDelay);
 
-        this.oauth2Config=config;
-        this.oauth2=null;
+        this.oauth2Config = config;
+        this.oauth2 = null;
+
         // Fetch token after object construction
         this.initAuth();
+
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
                 this.logout();
@@ -1540,6 +2035,11 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         });
     }
 
+    /**
+     * Retrieves an OAuth2 access token.
+     *
+     * @returns {Promise<string|null>} The access token or null if failed
+     */
     async getToken() {
         try {
             this.oauth2 = new OAuth2Protocol();
@@ -1551,6 +2051,11 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         }
     }
 
+    /**
+     * Initializes authentication by obtaining and setting the OAuth2 token.
+     *
+     * @returns {Promise<void>}
+     */
     async initAuth() {
         const oAuth2Token = await this.getToken();
         if(oAuth2Token !== null) {
@@ -1561,6 +2066,11 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         }
     }
 
+    /**
+     * Refreshes the OAuth2 authentication token.
+     *
+     * @returns {Promise<void>}
+     */
     async refreshAuth() {
         const oAuth2Token = await this.oauth2.refreshToken();
         if(oAuth2Token) {
@@ -1571,42 +2081,83 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         }
     }
 
-    // Assuming this method updates the auth in the super class
+    /**
+     * Updates the authentication in the parent class.
+     */
     updateAuth() {
         // Update the authorization or reinitialize xAPITrackerAsset with the token
         super.updateAuth();
     }
 
-    // Assuming this method updates the auth in the super class
+    /**
+     * Logs out the current session by invalidating the token.
+     *
+     * @returns {Promise<void>}
+     */
     async logout() {
         await this.oauth2.logout();
         // logout
         super.logout();
     }
-
 }
 
+/**
+ * Accessible Tracker
+ */
 class AccessibleTracker {
-    constructor(tracker) {
+    /**
+     * Constructor of accessible tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the accessible object
+     * @param {number} type the type of the accessible object
+     */
+    constructor(tracker, id, type=4) {
+        this.accessibleId=id;
+        this.type=type;
         this.tracker = tracker;
     }
-    
+    /**
+     * the id of the accessible object
+     * @type {string}
+     */
+    accessibleId;
+    /**
+     * the type of the accessible object
+     * @type {number}
+     */
+    type;
+    /**
+     * the tracker of the accessible object
+     * @type {xAPITrackerAsset}
+     */
     tracker;
+    /**
+     * the list of types possible for the accessible object
+     * @type {Array}
+     */
     AccessibleType = ['screen', 'area', 'zone', 'cutscene', 'accessible']
 
-    Accessed(accessibleId, type) {
-        if (typeof type === 'undefined') {type = 4;}
-
-        return this.tracker.Trace('accessed',this.AccessibleType[type],accessibleId);
+    /**
+     * Send Accessed statement
+     * @returns {StatementBuilder}
+     */
+    Accessed() {
+        return this.tracker.Trace('accessed',this.AccessibleType[this.type],this.accessibleId);
     }
 
-    Skipped(accessibleId, type) {
-        if (typeof type === 'undefined') {type = 4;}
-
-        return this.tracker.Trace('skipped',this.AccessibleType[type],accessibleId);
+    /**
+     * Send Skipped statement
+     * @returns {StatementBuilder}
+     */
+    Skipped() {
+        return this.tracker.Trace('skipped',this.AccessibleType[this.type],this.accessibleId);
     }
 }
 
+/**
+ * the list of types possible for the accessible object
+ * @type {object}
+ */
 const ACCESSIBLETYPE = Object.freeze({
     SCREEN: 0,
     AREA: 1,
@@ -1615,40 +2166,87 @@ const ACCESSIBLETYPE = Object.freeze({
     ACCESSIBLE: 4
 });
 
+/**
+ * Completable Tracker
+ */
 class CompletableTracker {
-    constructor(tracker) {
+    /**
+     * Constructor of completable tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the completable object
+     * @param {number} type the type of the completable object
+     */
+    constructor(tracker, id, type=8) {
+        this.completableId=id;
+        this.type=type;
         this.tracker = tracker;
     }
-    
+
+    /**
+     * the id of the completable object
+     * @type {string}
+     */
+    completableId;
+
+    /**
+     * the type of the completable object
+     * @type {number}
+     */
+    type;
+
+    /**
+     * the tracker of the completable object
+     * @type {xAPITrackerAsset}
+     */
     tracker;
+
+    /**
+     * the list of types possible for the completable object
+     * @type {Array}
+     */
     CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
-    Initialized(completableId, type) {
-        if (typeof type === 'undefined') {type = 8;}
-
-        return this.tracker.Trace('initialized',this.CompletableType[type],completableId);
+    /**
+     * Send Initialized statement
+     * @returns {StatementBuilder}
+     */
+    Initialized() {
+        return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
     }
 
-    Progressed(completableId, type, progress) {
-        if (typeof type === 'undefined') {type = 8;}
-
-        return this.tracker.Trace('progressed',this.CompletableType[type],completableId)
+    /**
+     * Send Progressed statement
+     * @param {number} progress the progress of the completable object
+     * @returns {StatementBuilder}
+     */
+    Progressed(progress) {
+        return this.tracker.Trace('progressed',this.CompletableType[this.type],this.completableId)
             .withProgress(progress);
     }
 
-    Completed(completableId, type, success, completion, score) {
-        if (typeof type === 'undefined') {type = 8;}
+    /**
+     * Send Completed statement
+     * @param {boolean} success the success status of the completable object
+     * @param {boolean} completion the completion status of the completable object
+     * @param {number} score the score of the completable object
+     * @returns {StatementBuilder}
+     */
+    Completed(success, completion, score) {
         if (typeof success === 'undefined') {success = true;}
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.tracker.Trace('completed',this.CompletableType[type],completableId)
+        return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore(score);
+            .withScore({raw:score});
     }
 }
 
+/**
+ * the list of types possible for the completable object
+ * @type {object}
+ */
 const COMPLETABLETYPE = Object.freeze({
     GAME: 0,
     SESSION: 1,
@@ -1661,30 +2259,67 @@ const COMPLETABLETYPE = Object.freeze({
     COMPLETABLE: 8
 });
 
+/**
+ * Accessible Tracker
+ */
 class AlternativeTracker {
-    constructor(tracker) {
+    /**
+     * Constructor of accessible tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the accessible object
+     * @param {number} type the type of the accessible object
+     */
+    constructor(tracker, id, type=5) {
+        this.alternativeId=id;
+        this.type=type;
         this.tracker = tracker;
     }
-    
+    /**
+     * the id of the alternative object
+     * @type {string}
+     */
+    alternativeId;
+    /**
+     * the type of the alternative object
+     * @type {number}
+     */
+    type;
+    /**
+     * the tracker of the alternative object
+     * @type {xAPITrackerAsset}
+     */
     tracker;
+    /**
+     * the list of types possible for the alternative object
+     * @type {Array}
+     */
+    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative'];
 
-    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative']
-
-    Selected(alternativeId, optionId, type) {
-        if (typeof type === 'undefined') {type = 5;}
-        
-        return this.tracker.Trace('selected',this.AlternativeType[type],alternativeId)
+    /**
+     * Send selected statement
+     * @param {string} optionId the optionId of the selected statement
+     * @returns {StatementBuilder}
+     */
+    Selected(optionId) {        
+        return this.tracker.Trace('selected',this.AlternativeType[this.type],this.alternativeId)
             .withResponse(optionId);
     }
 
-    Unlocked(alternativeId, optionId, type) {
-        if (typeof type === 'undefined') {type = 5;}
-        
-        return this.tracker.Trace('unlocked',this.AlternativeType[type],alternativeId)
+    /**
+     * Send unlocked statement
+     * @param {string} optionId the optionId of the Unlocked statement
+     * @returns {StatementBuilder}
+     */
+    Unlocked(optionId) {
+        return this.tracker.Trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
                 .withResponse(optionId);
     }
 }
 
+/**
+ * the list of types possible for the alternative object
+ * @type {object}
+ */
 const ALTERNATIVETYPE = Object.freeze({
     QUESTION: 0,
     MENU: 1,
@@ -1694,28 +2329,63 @@ const ALTERNATIVETYPE = Object.freeze({
     ALTERNATIVE: 5
 });
 
+/**
+ * Game Object Tracker
+ */
 class GameObjectTracker {
-    constructor(tracker) {
+    /**
+     * Constructor of Game Object tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the Game Object object
+     * @param {number} type the type of the Game Object object
+     */
+    constructor(tracker,id, type=3) {
+        this.gameobjectId=id;
+        this.type=type;
         this.tracker = tracker;
     }
-    
+    /**
+     * the id of the Game Object object
+     * @type {string}
+     */
+    gameobjectId;
+    /**
+     * the type of the Game Object object
+     * @type {number}
+     */
+    type;
+    /**
+     * the tracker of the Game Object object
+     * @type {xAPITrackerAsset}
+     */
     tracker;
-
+    /**
+     * the list of types possible for the Game Object object
+     * @type {Array}
+     */
     GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
-    Interacted(gameobjectId, type) {
-        if (typeof type === 'undefined') {type = 3;}
-
-        return this.tracker.Trace('interacted',this.GameObjectType[type],gameobjectId);
+    /**
+     * Send Interacted statement
+     * @returns {StatementBuilder}
+     */
+    Interacted() {
+        return this.tracker.Trace('interacted',this.GameObjectType[this.type],this.gameobjectId);
     }
-
-    Used(gameobjectId, type) {
-        if (typeof type === 'undefined') {type = 3;}
-
-        return this.tracker.Trace('used',this.GameObjectType[type],gameobjectId);
+    
+    /**
+     * Send Used statement
+     * @returns {StatementBuilder}
+     */
+    Used() {
+        return this.tracker.Trace('used',this.GameObjectType[this.type],this.gameobjectId);
     }
 }
 
+/**
+ * the list of types possible for the gameobject object
+ * @type {object}
+ */
 const GAMEOBJECTTYPE = Object.freeze({
     ENEMY: 0,
     NPC: 1,
@@ -1723,63 +2393,137 @@ const GAMEOBJECTTYPE = Object.freeze({
     GAMEOBJECT: 3,
 });
 
+/**
+ * Scorm Tracker
+ */
 class ScormTracker {
-    constructor(tracker) {
+    /**
+     * Constructor of Scorm tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the Scorm object
+     * @param {number} type the type of the Scorm object
+     */
+    constructor(tracker, id, type=0) {
+        this.scormId=id;
+        this.type=type;
         this.tracker = tracker;
     }
-    
+    /**
+     * the id of the Scorm object
+     * @type {string}
+     */
+    accessibleId;
+    /**
+     * the type of the Scorm object
+     * @type {number}
+     */
+    type;
+    /**
+     * the tracker of the Scorm object
+     * @type {xAPITrackerAsset}
+     */
     tracker;
+    /**
+     * the list of types possible for the Scorm object
+     * @type {Array}
+     */
     ScormType = ['SCO', 'course', 'module', 'assessment', 'interaction', 'objective', 'attempt'];
 
-    Initialized(scoId) {
-        return this.tracker.Trace('initialized', 'SCO', scoId);
+    /**
+     * Send Initialized statement
+     * @returns {StatementBuilder}
+     */
+    Initialized() {
+        if(this.type != 0) {
+            throw new Error("You cannot initialize an object for a type different that SCO.");
+        }
+        return this.tracker.Trace('initialized', this.ScormType[this.type], this.scormId);
     }
 
-    Suspended(scoId) {
-        return this.tracker.Trace('suspended', 'SCO', scoId);
+    /**
+     * Send Suspended statement
+     * @returns {StatementBuilder}
+     */
+    Suspended() {
+        if(this.type != 0) {
+            throw new Error("You cannot suspend an object for a type different that SCO.");
+        }
+        return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId);
     }
 
-    Resumed(scoId) {
-        return this.tracker.Trace('resumed', 'SCO', scoId);
+    /**
+     * Send Resumed statement
+     * @returns {StatementBuilder}
+     */
+    Resumed() {
+        if(this.type != 0) {
+            throw new Error("You cannot resume an object for a type different that SCO.");
+        }
+        return this.tracker.Trace('resumed', this.ScormType[this.type], this.scormId);
     }
 
-    Terminated(scoId) {
-        return this.tracker.Trace('terminated', 'SCO', scoId);
+    /**
+     * Send Terminated statement
+     * @returns {StatementBuilder}
+     */
+    Terminated() {
+        if(this.type != 0) {
+            throw new Error("You cannot terminate an object for a type different that SCO.");
+        }
+        return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId);
     }
 
-    Passed(activityId, type) {
-        if (typeof type === 'undefined') {type = 0;}
-
-        return this.tracker.Trace('passed',this.ScormType[type],activityId);
+    /**
+     * Send Passed statement
+     * @returns {StatementBuilder}
+     */
+    Passed() {
+        return this.tracker.Trace('passed',this.ScormType[this.type], this.scormId);
     }
 
-    Failed(activityId, type) {
-        if (typeof type === 'undefined') {type = 0;}
-
-        return this.tracker.Trace('failed',this.ScormType[type],activityId);
+    /**
+     * Send Failed statement
+     * @returns {StatementBuilder}
+     */
+    Failed() {
+        return this.tracker.Trace('failed',this.ScormType[this.type], this.scormId);
     }
 
-    Scored(activityId, type, score) {
-        if (typeof type === 'undefined') {type = 0;}
+    /**
+     * Send Scored statement
+     * @param {number} score the score of the Scorm object
+     * @returns {StatementBuilder}
+     */
+    Scored(score) {
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.tracker.Trace('scored',this.ScormType[type],activityId)
-            .withScore(score);
+        return this.tracker.Trace('scored',this.ScormType[this.type], this.scormId)
+            .withScore({raw:score});
     }
 
-    Completed(activityId, type, success, completion, score) {
-        if (typeof type === 'undefined') {type = 0;}
+    /**
+     * Send Completed statement
+     * @param {boolean} success the success status of the Scorm object
+     * @param {boolean} completion the completion status of the Scorm object
+     * @param {number} score the score of the Scorm object
+     * @returns {StatementBuilder}
+     */
+    Completed(success, completion, score) {
         if (typeof success === 'undefined') {success = true;}
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.tracker.Trace('completed',this.ScormType[type],activityId)
+        return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore(score);
+            .withScore({raw:score});
     }
 }
 
+/**
+ * the list of types possible for the scorm object
+ * @type {object}
+ */
 const SCORMTYPE = Object.freeze({
     SCO: 0,
     COURSE: 1,
@@ -1790,102 +2534,135 @@ const SCORMTYPE = Object.freeze({
     ATTEMPT: 6
 });
 
+/**
+ * Main JavaScript Tracker class for xAPI tracking functionality
+ */
 class JSTracker {
-    static ACCESSIBLETYPE=ACCESSIBLETYPE;
-    static COMPLETABLETYPE=COMPLETABLETYPE;
-    static ALTERNATIVETYPE=ALTERNATIVETYPE;
-    static GAMEOBJECTTYPE=GAMEOBJECTTYPE;
-    static SCORMTYPE=SCORMTYPE;
-
+    /**
+     * The underlying tracker instance
+     * @type {xAPITrackerAsset|xAPITrackerAssetOAuth1|xAPITrackerAssetOAuth2}
+     */
     tracker;
-    accessibleTracker;
-    completableTracker;
-    alternativeTracker;
-    gameObjectTracker;
-    scormTracker;
 
-    constructor(result_uri=null, backup_uri=null, backup_type=null, actor_homepage=null, actor_username=null, auth_token=null,  default_uri=null, debug=null) {
-        this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug);
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
+    /**
+     * Creates a new JSTracker instance
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
+     * @param {string} [config.backup_uri] - Backup endpoint URI
+     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
+     * @param {string} [config.actor_homepage] - Actor's homepage URL
+     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.auth_token] - Authentication token
+     * @param {string} [config.default_uri] - Default URI for statements
+     * @param {boolean} [config.debug] - Debug mode flag
+     */
+    constructor({
+        result_uri = null,
+        backup_uri = null,
+        backup_type = null,
+        actor_homepage = null,
+        actor_username = null,
+        auth_token = null,
+        default_uri = null,
+        debug = null
+    } = {}) {
+        this.tracker = new xAPITrackerAsset(
+            result_uri,
+            backup_uri,
+            backup_type,
+            actor_homepage,
+            actor_username,
+            auth_token,
+            default_uri,
+            debug
+        );
     }
 
-    async sendBatch() {
-        await this.tracker.sendBatch();
+    /**
+     * Flushes the statement queue
+     * @param {Object} [opts] - Flush options
+     * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
+     * @returns {Promise<void>} Promise that resolves when flushing is complete
+     */
+    flush({ withBackup = false } = {}) {
+        return this.tracker.flush({ withBackup: withBackup });
     }
 
-    async sendBackup() {
-        await this.tracker.sendBackup();
-    }
-
-    generateXAPITrackerFromURLParams(default_uri) {
+    /**
+     * Generates an xAPI tracker instance from URL parameters
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.default_uri] - Default URI for statements
+     */
+    generateXAPITrackerFromURLParams({ default_uri = null } = {}) {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        var result_uri,backup_uri, backup_type, actor_username, actor_homepage, debug, batchLength, batchTimeout, maxRetryDelay;
-        var username, password, auth_token;
-        if(urlParams.size > 0) {
-            //RESULT URI
+        let result_uri, backup_uri, backup_type, actor_username, actor_homepage, debug;
+        let username, password, auth_token;
+        let batchLength, batchTimeout, maxRetryDelay;
+
+        if (urlParams.size > 0) {
+            // RESULT URI
             result_uri = urlParams.get('result_uri');
 
-            //BACKUP URI
-            backup_uri=urlParams.get('backup_uri');
-            backup_type=urlParams.get('backup_type');
-        
-            //ACTOR DATA
+            // BACKUP URI
+            backup_uri = urlParams.get('backup_uri');
+            backup_type = urlParams.get('backup_type');
+
+            // ACTOR DATA
             actor_homepage = urlParams.get('actor_homepage');
             actor_username = urlParams.get('actor_user');
-            
-            //SSO OAUTH 2.0 DATA
+
+            // SSO OAUTH 2.0 DATA
             const sso_token_endpoint = urlParams.get('sso_token_endpoint');
-            if(sso_token_endpoint) {
-                xAPIConfig.token_endpoint=sso_token_endpoint;
+            if (sso_token_endpoint) {
+                xAPIConfig.token_endpoint = sso_token_endpoint;
             }
             const sso_client_id = urlParams.get('sso_client_id');
-            if(sso_client_id) {
-                xAPIConfig.client_id=sso_client_id;
+            if (sso_client_id) {
+                xAPIConfig.client_id = sso_client_id;
             }
             const sso_login_hint = urlParams.get('sso_login_hint');
-            if(sso_login_hint) {
-                xAPIConfig.login_hint=sso_login_hint;
+            if (sso_login_hint) {
+                xAPIConfig.login_hint = sso_login_hint;
             }
             const sso_grant_type = urlParams.get('sso_grant_type');
-            if(sso_grant_type) {
-                xAPIConfig.grant_type=sso_grant_type;
+            if (sso_grant_type) {
+                xAPIConfig.grant_type = sso_grant_type;
             }
             const sso_scope = urlParams.get('sso_scope');
-            if(sso_scope) {
-                xAPIConfig.scope=sso_scope;
+            if (sso_scope) {
+                xAPIConfig.scope = sso_scope;
             }
             const sso_username = urlParams.get('sso_username');
-            if(sso_username) {
-                xAPIConfig.username=sso_username;
+            if (sso_username) {
+                xAPIConfig.username = sso_username;
             }
             const sso_password = urlParams.get('sso_password');
-            if(sso_password) {
-                xAPIConfig.password=sso_password;
+            if (sso_password) {
+                xAPIConfig.password = sso_password;
             } else {
-                if(sso_username) {
-                    xAPIConfig.password=sso_username;
+                if (sso_username) {
+                    xAPIConfig.password = sso_username;
                 }
             }
 
-            // OAUTH 1.0 DATA 
+            // OAUTH 1.0 DATA
             username = urlParams.get('username');
             password = urlParams.get('password');
-            // OAUTH 0 : VIA AUTHTOKEN DIRECTLY NOT RECOMENDED
+
+            // OAUTH 0: VIA AUTHTOKEN DIRECTLY (not recommended)
             auth_token = urlParams.get('auth_token');
-            // DEBUG 
-            debug=urlParams.get('debug');
+
+            // DEBUG
+            debug = urlParams.get('debug');
+
             // BATCH
-            batchLength=urlParams.get('batch_length');
-            batchTimeout=urlParams.get('batch_timeout');
-            maxRetryDelay=urlParams.get('max_retry_delay');
-            if(debug !== null && debug == "true") {
+            batchLength = urlParams.get('batch_length');
+            batchTimeout = urlParams.get('batch_timeout');
+            maxRetryDelay = urlParams.get('max_retry_delay');
+
+            if (debug !== null && debug === "true") {
                 debug = Boolean(debug);
-                console.debug(result_uri);
                 console.debug(result_uri);
                 console.debug(backup_type);
                 console.debug(actor_username);
@@ -1897,26 +2674,224 @@ class JSTracker {
             }
         } else {
             result_uri = null;
-            result_uri = null;
-            backup_type="XAPI";
-            actor_homepage= null;
-            actor_username= null;
+            backup_type = "XAPI";
+            actor_homepage = null;
+            actor_username = null;
             debug = false;
         }
 
-        if(xAPIConfig.token_endpoint) {
-            this.tracker=new xAPITrackerAssetOAuth2(result_uri, backup_uri, backup_type, actor_homepage, actor_username, xAPIConfig,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
-        } else if(username && password) {
-            this.tracker=new xAPITrackerAssetOAuth1(result_uri, backup_uri, backup_type, actor_homepage, actor_username, username, password, default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
+        if (xAPIConfig.token_endpoint) {
+            this.tracker = new xAPITrackerAssetOAuth2(
+                result_uri,
+                backup_uri,
+                backup_type,
+                actor_homepage,
+                actor_username,
+                xAPIConfig,
+                default_uri,
+                debug,
+                batchLength,
+                batchTimeout,
+                maxRetryDelay
+            );
+        } else if (username && password) {
+            this.tracker = new xAPITrackerAssetOAuth1(
+                result_uri,
+                backup_uri,
+                backup_type,
+                actor_homepage,
+                actor_username,
+                username,
+                password,
+                default_uri,
+                debug,
+                batchLength,
+                batchTimeout,
+                maxRetryDelay
+            );
         } else {
-            this.tracker=new xAPITrackerAsset(result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token,  default_uri, debug, batchLength, batchTimeout, maxRetryDelay);
+            this.tracker = new xAPITrackerAsset(
+                result_uri,
+                backup_uri,
+                backup_type,
+                actor_homepage,
+                actor_username,
+                auth_token,
+                default_uri,
+                debug,
+                batchLength,
+                batchTimeout,
+                maxRetryDelay
+            );
         }
-        this.accessibleTracker=new AccessibleTracker(this.tracker);
-        this.completableTracker=new CompletableTracker(this.tracker);
-        this.alternativeTracker=new AlternativeTracker(this.tracker);
-        this.gameObjectTracker=new GameObjectTracker(this.tracker);
-        this.scormTracker=new ScormTracker(this.tracker);
     }
 }
 
-module.exports = JSTracker;
+/**
+ * SCORM-specific tracker extending JSTracker
+ */
+class JSScormTracker extends JSTracker {
+    /**
+     * SCORM type constants
+     * @type {Object}
+     */
+    SCORMTYPE = SCORMTYPE;
+    
+    /**
+     * Creates a new SCORM tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - SCORM type
+     * @returns {ScormTracker} New SCORM tracker instance
+     */
+    scorm(id, type) {
+        return new ScormTracker(this.tracker, id, type);
+    }
+}
+
+/**
+ * Serious Game Tracker extending JSTracker with game-specific functionality
+ */
+class SeriousGameTracker extends JSTracker {
+    /**
+     * Accessible type constants
+     * @type {Object}
+     */
+    ACCESSIBLETYPE = ACCESSIBLETYPE;
+
+    /**
+     * Completable type constants
+     * @type {Object}
+     */
+    COMPLETABLETYPE = COMPLETABLETYPE;
+
+    /**
+     * Alternative type constants
+     * @type {Object}
+     */
+    ALTERNATIVETYPE = ALTERNATIVETYPE;
+
+    /**
+     * Game object type constants
+     * @type {Object}
+     */
+    GAMEOBJECTTYPE = GAMEOBJECTTYPE;
+
+    /**
+     * SCORM tracker instance
+     * @type {ScormTracker}
+     */
+    scormTracker;
+
+    /**
+     * Creates a new SeriousGameTracker instance
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
+     * @param {string} [config.backup_uri] - Backup endpoint URI
+     * @param {string} [config.activityId] - Activity ID
+     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
+     * @param {string} [config.actor_homepage] - Actor's homepage URL
+     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.auth_token] - Authentication token
+     * @param {string} [config.default_uri] - Default URI for statements
+     * @param {boolean} [config.debug] - Debug mode flag
+     */
+    constructor({
+        result_uri = null,
+        backup_uri = null,
+        activityId = null,
+        backup_type = null,
+        actor_homepage = null,
+        actor_username = null,
+        auth_token = null,
+        default_uri = null,
+        debug = null
+    } = {}) {
+        super({
+            result_uri: result_uri,
+            backup_uri: backup_uri,
+            backup_type: backup_type,
+            actor_homepage: actor_homepage,
+            actor_username: actor_username,
+            auth_token: auth_token,
+            default_uri: default_uri,
+            debug: debug
+        });
+        this.scormTracker = new ScormTracker(this.tracker, activityId, SCORMTYPE.SCO);
+    }
+
+    /**
+     * Marks the game as started
+     * @returns {StatementBuilder} Promise that resolves when the start is recorded
+     */
+    start() {
+        return this.scormTracker.Initialized();
+    }
+
+    /**
+     * Marks the game as paused
+     * @returns {StatementBuilder} Promise that resolves when the pause is recorded
+     */
+    pause() {
+        return this.scormTracker.Suspended();
+    }
+
+    /**
+     * Marks the game as resumed
+     * @returns {StatementBuilder} Promise that resolves when the resume is recorded
+     */
+    resumed() {
+        return this.scormTracker.Resumed();
+    }
+
+    /**
+     * Marks the game as finished
+     * @returns {StatementBuilder} Promise that resolves when the finish is recorded
+     */
+    finish() {
+        return this.scormTracker.Terminated();
+    }
+
+    /**
+     * Creates an accessible tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Accessible type
+     * @returns {AccessibleTracker} New AccessibleTracker instance
+     */
+    accesible(id, type) {
+        return new AccessibleTracker(this.tracker, id, type);
+    }
+
+    /**
+     * Creates a game object tracker instance
+     * @param {string} id - Game object ID
+     * @param {number} type - Game object type
+     * @returns {GameObjectTracker} New GameObjectTracker instance
+     */
+    gameObject(id, type) {
+        return new GameObjectTracker(this.tracker, id, type);
+    }
+
+    /**
+     * Creates a completable tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Completable type
+     * @returns {CompletableTracker} New CompletableTracker instance
+     */
+    completable(id, type) {
+        return new CompletableTracker(this.tracker, id, type);
+    }
+
+    /**
+     * Creates an alternative tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Alternative type
+     * @returns {AlternativeTracker} New AlternativeTracker instance
+     */
+    alternative(id, type) {
+        return new AlternativeTracker(this.tracker, id, type);
+    }
+}
+
+exports.JSScormTracker = JSScormTracker;
+exports.JSTracker = JSTracker;
+exports.SeriousGameTracker = SeriousGameTracker;

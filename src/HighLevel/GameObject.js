@@ -11,8 +11,7 @@ export class GameObjectTracker {
      * @param {string} id the id of the Game Object object
      * @param {number} type the type of the Game Object object
      */
-    constructor(tracker,id, type) {
-        if (typeof type === 'undefined') {type = 3;}
+    constructor(tracker,id, type=3) {
         this.gameobjectId=id;
         this.type=type;
         this.tracker = tracker;

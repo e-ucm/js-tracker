@@ -1,250 +1,821 @@
+/**
+ * SCORM-specific tracker extending JSTracker
+ */
+export class JSScormTracker extends JSTracker {
+    /**
+     * SCORM type constants
+     * @type {Object}
+     */
+    SCORMTYPE: any;
+    /**
+     * Creates a new SCORM tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - SCORM type
+     * @returns {ScormTracker} New SCORM tracker instance
+     */
+    scorm(id: string, type: number): ScormTracker;
+}
+/**
+ * Main JavaScript Tracker class for xAPI tracking functionality
+ */
 export class JSTracker {
-    static ACCESSIBLETYPE: Readonly<{
-        SCREEN: 0;
-        AREA: 1;
-        ZONE: 2;
-        CUTSCENE: 3;
-        ACCESSIBLE: 4;
-    }>;
-    static COMPLETABLETYPE: Readonly<{
-        GAME: 0;
-        SESSION: 1;
-        LEVEL: 2;
-        QUEST: 3;
-        STAGE: 4;
-        COMBAT: 5;
-        STORYNODE: 6;
-        RACE: 7;
-        COMPLETABLE: 8;
-    }>;
-    static ALTERNATIVETYPE: Readonly<{
-        QUESTION: 0;
-        MENU: 1;
-        DIALOG: 2;
-        PATH: 3;
-        ARENA: 4;
-        ALTERNATIVE: 5;
-    }>;
-    static GAMEOBJECTTYPE: Readonly<{
-        ENEMY: 0;
-        NPC: 1;
-        ITEM: 2;
-        GAMEOBJECT: 3;
-    }>;
-    static SCORMTYPE: Readonly<{
-        SCO: 0;
-        COURSE: 1;
-        MODULE: 2;
-        ASSESSMENT: 3;
-        INTERACTION: 4;
-        OBJECTIVE: 5;
-        ATTEMPT: 6;
-    }>;
-    constructor(result_uri?: any, backup_uri?: any, backup_type?: any, actor_homepage?: any, actor_username?: any, auth_token?: any, default_uri?: any, debug?: any);
-    tracker: xAPITrackerAsset;
-    accessibleTracker: AccessibleTracker;
-    completableTracker: CompletableTracker;
-    alternativeTracker: AlternativeTracker;
-    gameObjectTracker: GameObjectTracker;
+    /**
+     * Creates a new JSTracker instance
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
+     * @param {string} [config.backup_uri] - Backup endpoint URI
+     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
+     * @param {string} [config.actor_homepage] - Actor's homepage URL
+     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.auth_token] - Authentication token
+     * @param {string} [config.default_uri] - Default URI for statements
+     * @param {boolean} [config.debug] - Debug mode flag
+     */
+    constructor({ result_uri, backup_uri, backup_type, actor_homepage, actor_username, auth_token, default_uri, debug }?: {
+        result_uri?: string;
+        backup_uri?: string;
+        backup_type?: string;
+        actor_homepage?: string;
+        actor_username?: string;
+        auth_token?: string;
+        default_uri?: string;
+        debug?: boolean;
+    });
+    /**
+     * The underlying tracker instance
+     * @type {xAPITrackerAsset|xAPITrackerAssetOAuth1|xAPITrackerAssetOAuth2}
+     */
+    tracker: xAPITrackerAsset | xAPITrackerAssetOAuth1 | xAPITrackerAssetOAuth2;
+    /**
+     * Flushes the statement queue
+     * @param {Object} [opts] - Flush options
+     * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
+     * @returns {Promise<void>} Promise that resolves when flushing is complete
+     */
+    flush({ withBackup }?: {
+        withBackup?: boolean;
+    }): Promise<void>;
+    /**
+     * Generates an xAPI tracker instance from URL parameters
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.default_uri] - Default URI for statements
+     */
+    generateXAPITrackerFromURLParams({ default_uri }?: {
+        default_uri?: string;
+    }): void;
+}
+/**
+ * Serious Game Tracker extending JSTracker with game-specific functionality
+ */
+export class SeriousGameTracker extends JSTracker {
+    /**
+     * Creates a new SeriousGameTracker instance
+     * @param {Object} [config] - Configuration options
+     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
+     * @param {string} [config.backup_uri] - Backup endpoint URI
+     * @param {string} [config.activityId] - Activity ID
+     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
+     * @param {string} [config.actor_homepage] - Actor's homepage URL
+     * @param {string} [config.actor_username] - Actor's username
+     * @param {string} [config.auth_token] - Authentication token
+     * @param {string} [config.default_uri] - Default URI for statements
+     * @param {boolean} [config.debug] - Debug mode flag
+     */
+    constructor({ result_uri, backup_uri, activityId, backup_type, actor_homepage, actor_username, auth_token, default_uri, debug }?: {
+        result_uri?: string;
+        backup_uri?: string;
+        activityId?: string;
+        backup_type?: string;
+        actor_homepage?: string;
+        actor_username?: string;
+        auth_token?: string;
+        default_uri?: string;
+        debug?: boolean;
+    });
+    /**
+     * Accessible type constants
+     * @type {Object}
+     */
+    ACCESSIBLETYPE: any;
+    /**
+     * Completable type constants
+     * @type {Object}
+     */
+    COMPLETABLETYPE: any;
+    /**
+     * Alternative type constants
+     * @type {Object}
+     */
+    ALTERNATIVETYPE: any;
+    /**
+     * Game object type constants
+     * @type {Object}
+     */
+    GAMEOBJECTTYPE: any;
+    /**
+     * SCORM tracker instance
+     * @type {ScormTracker}
+     */
     scormTracker: ScormTracker;
-    sendBatch(): Promise<void>;
-    sendBackup(): Promise<void>;
-    generateXAPITrackerFromURLParams(default_uri: any): void;
+    /**
+     * Marks the game as started
+     * @returns {StatementBuilder} Promise that resolves when the start is recorded
+     */
+    start(): StatementBuilder;
+    /**
+     * Marks the game as paused
+     * @returns {StatementBuilder} Promise that resolves when the pause is recorded
+     */
+    pause(): StatementBuilder;
+    /**
+     * Marks the game as resumed
+     * @returns {StatementBuilder} Promise that resolves when the resume is recorded
+     */
+    resumed(): StatementBuilder;
+    /**
+     * Marks the game as finished
+     * @returns {StatementBuilder} Promise that resolves when the finish is recorded
+     */
+    finish(): StatementBuilder;
+    /**
+     * Creates an accessible tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Accessible type
+     * @returns {AccessibleTracker} New AccessibleTracker instance
+     */
+    accesible(id: string, type: number): AccessibleTracker;
+    /**
+     * Creates a game object tracker instance
+     * @param {string} id - Game object ID
+     * @param {number} type - Game object type
+     * @returns {GameObjectTracker} New GameObjectTracker instance
+     */
+    gameObject(id: string, type: number): GameObjectTracker;
+    /**
+     * Creates a completable tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Completable type
+     * @returns {CompletableTracker} New CompletableTracker instance
+     */
+    completable(id: string, type: number): CompletableTracker;
+    /**
+     * Creates an alternative tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Alternative type
+     * @returns {AlternativeTracker} New AlternativeTracker instance
+     */
+    alternative(id: string, type: number): AlternativeTracker;
 }
-declare class xAPITrackerAsset {
-    constructor(endpoint: any, backup_endpoint: any, backup_type: any, actor_homePage: any, actor_name: any, auth_token: any, default_uri: any, debug: any, batchLength: any, batchTimeout: any, maxRetryDelay: any);
-    xapi: any;
-    endpoint: any;
-    auth_token: any;
-    online: boolean;
-    statementsToSend: any[];
-    sendingInProgress: any;
-    offset: number;
-    backup: boolean;
-    backup_endpoint: any;
-    backup_type: any;
-    backupRequestParameters: any;
-    actor: ActorStatement;
-    actor_homePage: any;
-    actor_name: any;
-    context: ContextStatement;
-    default_uri: any;
-    debug: any;
-    batchlength: number;
-    batchtimeout: any;
-    retryDelay: any;
-    maxRetryDelay: any;
-    timer: any;
-    logout(): void;
-    onOffline(): void;
-    onOnline(): Promise<void>;
-    updateAuth(): void;
-    sendBatch(): Promise<void>;
-    refreshAuth(): Promise<void>;
-    startTimer(): void;
-    Trace(verbId: any, objectType: any, objectId: any): StatementBuilder;
-    sendBackup(): Promise<void>;
-    enqueue(statement: any): Promise<void>;
-}
-declare class AccessibleTracker {
-    constructor(tracker: any);
-    tracker: any;
-    AccessibleType: string[];
-    Accessed(accessibleId: any, type: any): any;
-    Skipped(accessibleId: any, type: any): any;
-}
-declare class CompletableTracker {
-    constructor(tracker: any);
-    tracker: any;
-    CompletableType: string[];
-    Initialized(completableId: any, type: any): any;
-    Progressed(completableId: any, type: any, progress: any): any;
-    Completed(completableId: any, type: any, success: any, completion: any, score: any): any;
-}
-declare class AlternativeTracker {
-    constructor(tracker: any);
-    tracker: any;
-    AlternativeType: string[];
-    Selected(alternativeId: any, optionId: any, type: any): any;
-    Unlocked(alternativeId: any, optionId: any, type: any): any;
-}
-declare class GameObjectTracker {
-    constructor(tracker: any);
-    tracker: any;
-    GameObjectType: string[];
-    Interacted(gameobjectId: any, type: any): any;
-    Used(gameobjectId: any, type: any): any;
-}
+/**
+ * Scorm Tracker
+ */
 declare class ScormTracker {
-    constructor(tracker: any);
-    tracker: any;
-    ScormType: string[];
-    Initialized(scoId: any): any;
-    Suspended(scoId: any): any;
-    Resumed(scoId: any): any;
-    Terminated(scoId: any): any;
-    Passed(activityId: any, type: any): any;
-    Failed(activityId: any, type: any): any;
-    Scored(activityId: any, type: any, score: any): any;
-    Completed(activityId: any, type: any, success: any, completion: any, score: any): any;
+    /**
+     * Constructor of Scorm tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the Scorm object
+     * @param {number} type the type of the Scorm object
+     */
+    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    scormId: string;
+    /**
+     * the type of the Scorm object
+     * @type {number}
+     */
+    type: number;
+    /**
+     * the tracker of the Scorm object
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
+    /**
+     * the id of the Scorm object
+     * @type {string}
+     */
+    accessibleId: string;
+    /**
+     * the list of types possible for the Scorm object
+     * @type {Array}
+     */
+    ScormType: any[];
+    /**
+     * Send Initialized statement
+     * @returns {StatementBuilder}
+     */
+    Initialized(): StatementBuilder;
+    /**
+     * Send Suspended statement
+     * @returns {StatementBuilder}
+     */
+    Suspended(): StatementBuilder;
+    /**
+     * Send Resumed statement
+     * @returns {StatementBuilder}
+     */
+    Resumed(): StatementBuilder;
+    /**
+     * Send Terminated statement
+     * @returns {StatementBuilder}
+     */
+    Terminated(): StatementBuilder;
+    /**
+     * Send Passed statement
+     * @returns {StatementBuilder}
+     */
+    Passed(): StatementBuilder;
+    /**
+     * Send Failed statement
+     * @returns {StatementBuilder}
+     */
+    Failed(): StatementBuilder;
+    /**
+     * Send Scored statement
+     * @param {number} score the score of the Scorm object
+     * @returns {StatementBuilder}
+     */
+    Scored(score: number): StatementBuilder;
+    /**
+     * Send Completed statement
+     * @param {boolean} success the success status of the Scorm object
+     * @param {boolean} completion the completion status of the Scorm object
+     * @param {number} score the score of the Scorm object
+     * @returns {StatementBuilder}
+     */
+    Completed(success: boolean, completion: boolean, score: number): StatementBuilder;
 }
 /**
- * Actor Class of a Statement
+ * XAPI Tracker Asset Class
+ * Handles xAPI tracking with batch processing, retry logic, and backup capabilities
  */
-declare class ActorStatement {
+declare class xAPITrackerAsset {
     /**
-     * Actor constructor
-     * @param {string} accountName account name
-     * @param {string} homepage account homepage
+     * Creates an instance of xAPITrackerAsset
+     *
+     * @param {string} endpoint - Primary xAPI endpoint URL
+     * @param {string} backup_endpoint - Backup endpoint URL
+     * @param {string} backup_type - Type of backup (XAPI or CSV)
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {string} auth_token - Authentication token
+     * @param {string} default_uri - Default URI for statements
+     * @param {boolean} debug - Debug mode flag
+     * @param {number|string} batchLength - Number of statements per batch
+     * @param {number|string} batchTimeout - Timeout between batches
+     * @param {number|string} maxRetryDelay - Maximum retry delay
      */
-    constructor(accountName: string, homepage: string);
+    constructor(endpoint: string, backup_endpoint: string, backup_type: string, actor_homePage: string, actor_name: string, auth_token: string, default_uri: string, debug: boolean, batchLength: number | string, batchTimeout: number | string, maxRetryDelay: number | string);
     /**
-     * Account name
+     * XAPI Tracker instance
+     * @type {XAPI|null}
+     */
+    xapi: XAPI | null;
+    /**
+     * Primary xAPI endpoint URL
      * @type {string}
      */
-    accountName: string;
+    endpoint: string;
     /**
-     * Account homePage
+     * Authentication token for xAPI requests
+     * @type {string|null}
+     */
+    auth_token: string | null;
+    /**
+     * Current online status
+     * @type {boolean}
+     */
+    online: boolean;
+    /**
+     * Queue of statements to be sent
+     * @type {Array<Statement>}
+     */
+    statementsToSend: Array<Statement>;
+    /**
+     * Flag indicating if sending is currently in progress
+     * @type {boolean}
+     */
+    sendingInProgress: boolean;
+    /**
+     * Current offset in the statements queue
+     * @type {number}
+     */
+    offset: number;
+    /**
+     * Whether backup is enabled
+     * @type {boolean}
+     */
+    backup: boolean;
+    /**
+     * Backup endpoint URL
+     * @type {string|null}
+     */
+    backup_endpoint: string | null;
+    /**
+     * Backup type (XAPI or CSV)
+     * @type {string|null}
+     */
+    backup_type: string | null;
+    /**
+     * Additional parameters for backup requests
+     * @type {Object|null}
+     */
+    backupRequestParameters: any | null;
+    /**
+     * Actor statement object
+     * @type {ActorStatement}
+     */
+    actor: ActorStatement;
+    /**
+     * Actor's homepage URL
      * @type {string}
      */
-    homepage: string;
+    actor_homePage: string;
     /**
-     * convert to XAPI
-     *
-     * @returns Object
+     * Actor's name
+     * @type {string}
      */
-    toXAPI(): {
-        account: {
-            name: string;
-            homePage: string;
-        };
-    };
+    actor_name: string;
     /**
-     * convert to CSV
-     *
-     * @returns String
+     * Context statement object
+     * @type {ContextStatement}
      */
-    toCSV(): string;
+    context: ContextStatement;
+    /**
+     * Default URI for statements
+     * @type {string}
+     */
+    default_uri: string;
+    /**
+     * Debug mode flag
+     * @type {boolean}
+     */
+    debug: boolean;
+    /**
+     * Number of statements to send in each batch
+     * @type {number}
+     */
+    batchlength: number;
+    /**
+     * Timeout between batch sends in milliseconds
+     * @type {number}
+     */
+    batchtimeout: number;
+    /**
+     * Current retry delay in milliseconds
+     * @type {number|null}
+     */
+    retryDelay: number | null;
+    /**
+     * Maximum retry delay in milliseconds
+     * @type {number}
+     */
+    maxRetryDelay: number;
+    /**
+     * Timer reference for batch processing
+     * @type {NodeJS.Timeout|null}
+     */
+    timer: NodeJS.Timeout | null;
+    /**
+     * Logs out the current session by clearing the authentication token
+     */
+    logout(): void;
+    /**
+     * Event handler called when the client goes offline
+     */
+    onOffline(): void;
+    /**
+     * Event handler called when the client comes online
+     * @returns {Promise<void>}
+     */
+    onOnline(): Promise<void>;
+    /**
+     * Updates the authentication configuration
+     */
+    updateAuth(): void;
+    /**
+     * Sends a batch of statements to the xAPI endpoint
+     * @returns {Promise<void>}
+     */
+    sendBatch(): Promise<void>;
+    /**
+     * Refreshes the authentication token
+     * @returns {Promise<void>}
+     */
+    refreshAuth(): Promise<void>;
+    /**
+     * Starts the timer for batch processing
+     */
+    startTimer(): void;
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    Trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
+    /**
+     * Sends statements to the backup endpoint
+     * @returns {Promise<void>}
+     */
+    sendBackup(): Promise<void>;
+    /**
+     * Adds a statement to the queue and starts processing if needed
+     * @param {Statement} statement - The statement to enqueue
+     * @returns {Promise<void>}
+     */
+    enqueue(statement: Statement): Promise<void>;
+    /**
+     * Flushes the statement queue
+     * @param {Object} [opts] - Options object
+     * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
+     * @returns {Promise<void>} Promise that resolves when flushing is complete
+     */
+    flush({ withBackup }?: {
+        withBackup?: boolean;
+    }): Promise<void>;
 }
 /**
- * The Context Class of a Statement
+ * A specialized tracker asset that implements OAuth1 authentication.
+ * Extends the base xAPITrackerAsset with basic authentication capabilities.
  */
-declare class ContextStatement {
+declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     /**
-     * Constructor of the ContextStatement class
+     * Creates an instance of xAPITrackerAssetOAuth1.
      *
-     * @param {*} categoryId category Id of context
-     * @param {*} registrationId registration id of context
+     * @param {string} endpoint - Primary API endpoint
+     * @param {string} backupEndpoint - Backup API endpoint
+     * @param {string} backupType - Type of backup endpoint
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {string} username - Username for authentication
+     * @param {string} password - Password for authentication
+     * @param {string} defaultUri - Default URI for requests
+     * @param {boolean} debug - Debug mode flag
+     * @param {number} batchLength - Batch length for requests
+     * @param {number} batchTimeout - Batch timeout in milliseconds
+     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
      */
-    constructor(categoryId?: any, registrationId?: any);
-    /**
-     * Registration Id of the Context
-     *
-     * @type {string}
-     */
-    registration: string;
-    categoryId: any;
-    category: any;
-    /**
-     * The category IDs list
-     */
-    categoryIDs: {
-        seriousgame: string;
-        scorm: string;
-    };
-    /**
-     * convert to XAPI
-     *
-     * @returns Object
-     */
-    toXAPI(): {
-        registration: string;
-        contextActivities: {
-            category: {
-                id: any;
-                definition: {
-                    type: string;
-                };
-            }[];
-        };
-    };
-    /**
-     * convert to CSV
-     *
-     * @returns String
-     */
-    toCSV(): string;
+    constructor(endpoint: string, backupEndpoint: string, backupType: string, actor_homePage: string, actor_name: string, username: string, password: string, defaultUri: string, debug: boolean, batchLength: number, batchTimeout: number, maxRetryDelay: number);
 }
+/**
+ * A specialized tracker asset that implements OAuth2 authentication.
+ * Extends the base xAPITrackerAsset with OAuth2 capabilities.
+ */
+declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+    /**
+     * Creates an instance of xAPITrackerAssetOAuth2.
+     *
+     * @param {string} endpoint - Primary API endpoint
+     * @param {string} backupEndpoint - Backup API endpoint
+     * @param {string} backupType - Type of backup endpoint
+     * @param {string} actor_homePage - Home page URL of the actor
+     * @param {string} actor_name - Name of the actor
+     * @param {Object} config - OAuth2 configuration
+     * @param {string} defaultUri - Default URI for requests
+     * @param {boolean} debug - Debug mode flag
+     * @param {number} batchLength - Batch length for requests
+     * @param {number} batchTimeout - Batch timeout in milliseconds
+     * @param {number} maxRetryDelay - Maximum retry delay in milliseconds
+     */
+    constructor(endpoint: string, backupEndpoint: string, backupType: string, actor_homePage: string, actor_name: string, config: any, defaultUri: string, debug: boolean, batchLength: number, batchTimeout: number, maxRetryDelay: number);
+    /**
+     * Configuration object for OAuth2 authentication
+     * @type {Object}
+     */
+    oauth2Config: any;
+    /**
+     * Instance of OAuth2Protocol handling authentication
+     * @type {OAuth2Protocol|null}
+     */
+    oauth2: OAuth2Protocol | null;
+    /**
+     * Retrieves an OAuth2 access token.
+     *
+     * @returns {Promise<string|null>} The access token or null if failed
+     */
+    getToken(): Promise<string | null>;
+    /**
+     * Initializes authentication by obtaining and setting the OAuth2 token.
+     *
+     * @returns {Promise<void>}
+     */
+    initAuth(): Promise<void>;
+    /**
+     * Logs out the current session by invalidating the token.
+     *
+     * @returns {Promise<void>}
+     */
+    logout(): Promise<void>;
+}
+/**
+ * Statement Builder Class
+ */
 declare class StatementBuilder {
     /**
      * @param  {xAPITrackerAsset} xapiClient  any client that has a `.sendStatement(statement)` → Promise
      * @param  {Statement} initial     a partial Statement (actor, verb, object…)
      */
     constructor(xapiClient: xAPITrackerAsset, initial: Statement);
+    /**
+     * XAPI Client
+     * @type {xAPITrackerAsset}
+     */
     client: xAPITrackerAsset;
+    /**
+     * Statement
+     * @type {Statement}
+     */
     statement: Statement;
+    /**
+     * Promise
+     * @type {Promise<void>}
+     */
     _promise: Promise<void>;
-    withSuccess(success: any): this;
-    withScore(raw?: any, min?: any, max?: any, scaled?: any): this;
-    withScoreRaw(raw: any): this;
-    withScoreMin(min: any): this;
-    withScoreMax(max: any): this;
-    withScoreScaled(scaled: any): this;
-    withCompletion(value: any): this;
-    withDuration(diffInSeconds: any): this;
-    withResponse(value: any): this;
-    withProgress(value: any): this;
-    withResultExtension(key: any, value: any): this;
-    withResultExtensions(ext?: {}): this;
+    /**
+     * Set success to statemement
+     * @param {boolean} success
+     * @returns {this} Returns the current instance for chaining
+     */
+    withSuccess(success: boolean): this;
+    /**
+     * Sets score-related properties
+     * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
+     * @returns {this} Returns the current instance for chaining
+     */
+    withScore(score: Partial<{
+        raw: number;
+        min: number;
+        max: number;
+        scaled: number;
+    }>): this;
+    /**
+     * Set raw score to statemement
+     * @param {number} raw the raw score value
+     * @returns {this} Returns the current instance for chaining
+     */
+    withScoreRaw(raw: number): this;
+    /**
+     * Set min score to statemement
+     * @param {number} min the min score value
+     * @returns {this} Returns the current instance for chaining
+     */
+    withScoreMin(min: number): this;
+    /**
+     * Set max score to statemement
+     * @param {number} max the max score value
+     * @returns {this} Returns the current instance for chaining
+     */
+    withScoreMax(max: number): this;
+    /**
+     * Set scaled score to statemement
+     * @param {number} scaled the scaled score value
+     * @returns {this} Returns the current instance for chaining
+     */
+    withScoreScaled(scaled: number): this;
+    /**
+     * Set completion status to statement
+     * @param {boolean} value completion status of statement
+     * @returns {this} Returns the current instance for chaining
+     */
+    withCompletion(value: boolean): this;
+    /**
+     * Set duration to statement
+     * @param {number} diffInSeconds duration in sec of statement
+     * @returns {this} Returns the current instance for chaining
+     */
+    withDuration(diffInSeconds: number): this;
+    /**
+     * Set response to statement
+     * @param {string} value response of statement
+     * @returns {this} Returns the current instance for chaining
+     */
+    withResponse(value: string): this;
+    /**
+     * Set progress to statement
+     * @param {number} value progress of statement
+     * @returns {this} Returns the current instance for chaining
+     */
+    withProgress(value: number): this;
+    /**
+     * Add result extension to statement
+     * @param {string} key key of the result extension
+     * @param {*} value value of the result extension
+     * @returns {this} Returns the current instance for chaining
+     */
+    withResultExtension(key: string, value: any): this;
+    /**
+       * Set result extensions as Object key/values list of the statement
+       * @param {Object} extensions extensions list
+       */
+    withResultExtensions(extensions?: any): this;
     /**
      * let me run any function on the statement
      * fn can either mutate `stmt` in‐place, or return a brand new statement
+     * Applies a function to the statement
+     * @param {(statement: Statement) => Statement} fn - Function to apply to statement
+     * @returns {this} Returns the current instance for chaining
      */
-    apply(fn: any): this;
+    apply(fn: (statement: Statement) => Statement): this;
+    /**
+     *
+     * @param {*} onFulfilled
+     * @param {*} onRejected
+     * @returns {Promise<void>}
+     */
     then(onFulfilled: any, onRejected: any): Promise<void>;
+    /**
+     *
+     * @param {*} onRejected
+     * @returns {Promise<void>}
+     */
     catch(onRejected: any): Promise<void>;
+    /**
+     *
+     * @param {*} onFinally
+     * @returns {Promise<void>}
+     */
     finally(onFinally: any): Promise<void>;
 }
+/**
+ * Accessible Tracker
+ */
+declare class AccessibleTracker {
+    /**
+     * Constructor of accessible tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the accessible object
+     * @param {number} type the type of the accessible object
+     */
+    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    /**
+     * the id of the accessible object
+     * @type {string}
+     */
+    accessibleId: string;
+    /**
+     * the type of the accessible object
+     * @type {number}
+     */
+    type: number;
+    /**
+     * the tracker of the accessible object
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
+    /**
+     * the list of types possible for the accessible object
+     * @type {Array}
+     */
+    AccessibleType: any[];
+    /**
+     * Send Accessed statement
+     * @returns {StatementBuilder}
+     */
+    Accessed(): StatementBuilder;
+    /**
+     * Send Skipped statement
+     * @returns {StatementBuilder}
+     */
+    Skipped(): StatementBuilder;
+}
+/**
+ * Game Object Tracker
+ */
+declare class GameObjectTracker {
+    /**
+     * Constructor of Game Object tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the Game Object object
+     * @param {number} type the type of the Game Object object
+     */
+    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    /**
+     * the id of the Game Object object
+     * @type {string}
+     */
+    gameobjectId: string;
+    /**
+     * the type of the Game Object object
+     * @type {number}
+     */
+    type: number;
+    /**
+     * the tracker of the Game Object object
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
+    /**
+     * the list of types possible for the Game Object object
+     * @type {Array}
+     */
+    GameObjectType: any[];
+    /**
+     * Send Interacted statement
+     * @returns {StatementBuilder}
+     */
+    Interacted(): StatementBuilder;
+    /**
+     * Send Used statement
+     * @returns {StatementBuilder}
+     */
+    Used(): StatementBuilder;
+}
+/**
+ * Completable Tracker
+ */
+declare class CompletableTracker {
+    /**
+     * Constructor of completable tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the completable object
+     * @param {number} type the type of the completable object
+     */
+    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    /**
+     * the id of the completable object
+     * @type {string}
+     */
+    completableId: string;
+    /**
+     * the type of the completable object
+     * @type {number}
+     */
+    type: number;
+    /**
+     * the tracker of the completable object
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
+    /**
+     * the list of types possible for the completable object
+     * @type {Array}
+     */
+    CompletableType: any[];
+    /**
+     * Send Initialized statement
+     * @returns {StatementBuilder}
+     */
+    Initialized(): StatementBuilder;
+    /**
+     * Send Progressed statement
+     * @param {number} progress the progress of the completable object
+     * @returns {StatementBuilder}
+     */
+    Progressed(progress: number): StatementBuilder;
+    /**
+     * Send Completed statement
+     * @param {boolean} success the success status of the completable object
+     * @param {boolean} completion the completion status of the completable object
+     * @param {number} score the score of the completable object
+     * @returns {StatementBuilder}
+     */
+    Completed(success: boolean, completion: boolean, score: number): StatementBuilder;
+}
+/**
+ * Accessible Tracker
+ */
+declare class AlternativeTracker {
+    /**
+     * Constructor of accessible tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the accessible object
+     * @param {number} type the type of the accessible object
+     */
+    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    /**
+     * the id of the alternative object
+     * @type {string}
+     */
+    alternativeId: string;
+    /**
+     * the type of the alternative object
+     * @type {number}
+     */
+    type: number;
+    /**
+     * the tracker of the alternative object
+     * @type {xAPITrackerAsset}
+     */
+    tracker: xAPITrackerAsset;
+    /**
+     * the list of types possible for the alternative object
+     * @type {Array}
+     */
+    AlternativeType: any[];
+    /**
+     * Send selected statement
+     * @param {string} optionId the optionId of the selected statement
+     * @returns {StatementBuilder}
+     */
+    Selected(optionId: string): StatementBuilder;
+    /**
+     * Send unlocked statement
+     * @param {string} optionId the optionId of the Unlocked statement
+     * @returns {StatementBuilder}
+     */
+    Unlocked(optionId: string): StatementBuilder;
+}
+import XAPI from '@xapi/xapi';
 /**
 * Statement class
 */
@@ -252,13 +823,13 @@ declare class Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {number} verbId verb id of the statement
-     * @param {number} objectId object id of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
      * @param {string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
      */
-    constructor(actor: ActorStatement, verbId: number, objectId: number, objectType: string, context: ContextStatement, defaultURI: string);
+    constructor(actor: ActorStatement, verbId: string, objectId: string, objectType: string, context: ContextStatement, defaultURI: string);
     /**
      * Id of the statement
      * @type {string}
@@ -308,13 +879,13 @@ declare class Statement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id: string): string;
     /**
      * Check if the string is an URI
      * @param {string} id
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id: string): boolean;
     /**
@@ -357,9 +928,9 @@ declare class Statement {
     setSuccess(value: boolean): void;
     /**
      * Set duration of the statement
-     * @param {number} value the duration in second
+     * @param {number} diffInSeconds the duration in second
      */
-    setDuration(diffInSeconds: any): void;
+    setDuration(diffInSeconds: number): void;
     /**
      * Set response of the statement
      * @param {string} value the response
@@ -367,9 +938,9 @@ declare class Statement {
     setResponse(value: string): void;
     /**
      * Set progress status of the statement
-     * @param {boolean} value the progress status
+     * @param {number} value the progress status
      */
-    setProgress(value: boolean): void;
+    setProgress(value: number): void;
     /**
      * Set result extension for key of the statement
      * @param {string} key the key of the extension
@@ -379,9 +950,9 @@ declare class Statement {
     /**
      * Set result extension for key of the statement
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
-    addResultExtension(key: string, value: string): void;
+    addResultExtension(key: string, value: any): void;
     /**
      * Set result extension as Object key/values of the statement
      * @param {Object} extensions extensions list
@@ -389,62 +960,277 @@ declare class Statement {
     addResultExtensions(extensions: any): void;
     /**
      * Convert to xAPI format
-     * @returns Object
+     * @returns {Object}
      */
-    toXAPI(): {
-        id: string;
-        actor: {
-            account: {
-                name: string;
-                homePage: string;
-            };
-        };
-        verb: {
-            id: string;
-            display: {
-                en: string;
-            };
-        };
-        object: {
-            id: string;
-            definition: {
-                name: {
-                    "en-US": string;
-                };
-                description: {
-                    "en-US": string;
-                };
-                type: any;
-            };
-        };
-        timestamp: string;
-        context: {
-            registration: string;
-            contextActivities: {
-                category: {
-                    id: any;
-                    definition: {
-                        type: string;
-                    };
-                }[];
-            };
-        };
-        version: string;
-        result: {
-            success: boolean;
-            completion: boolean;
-            response: string;
-            score: any;
-            duration: string;
-            extensions: any;
-        };
-    };
+    toXAPI(): any;
     /**
      * Convert to CSV format
      *
-     * @returns string
+     * @returns {String}
      */
     toCSV(): string;
+}
+/**
+ * Actor Class of a Statement
+ */
+declare class ActorStatement {
+    /**
+     * Actor constructor
+     * @param {string} accountName account name
+     * @param {string} homepage account homepage
+     */
+    constructor(accountName: string, homepage: string);
+    /**
+     * Account name
+     * @type {string}
+     */
+    accountName: string;
+    /**
+     * Account homePage
+     * @type {string}
+     */
+    homepage: string;
+    /**
+     * convert to XAPI
+     *
+     * @returns {Object}
+     */
+    toXAPI(): any;
+    /**
+     * convert to CSV
+     *
+     * @returns {String}
+     */
+    toCSV(): string;
+}
+/**
+ * The Context Class of a Statement
+ */
+declare class ContextStatement {
+    /**
+     * Constructor of the ContextStatement class
+     *
+     * @param {*} categoryId category Id of context
+     * @param {*} registrationId registration id of context
+     */
+    constructor(categoryId?: any, registrationId?: any);
+    /**
+     * Registration Id of the Context
+     *
+     * @type {string}
+     */
+    registration: string;
+    categoryId: any;
+    category: any;
+    /**
+     * The category IDs list
+     */
+    categoryIDs: {
+        seriousgame: string;
+        scorm: string;
+    };
+    /**
+     * convert to XAPI
+     *
+     * @returns {Object}
+     */
+    toXAPI(): any;
+    /**
+     * convert to CSV
+     *
+     * @returns {String}
+     */
+    toCSV(): string;
+}
+/**
+ * A class that implements OAuth 2.0 protocol for authentication and token management.
+ * Supports various grant types including password and refresh_token flows.
+ */
+declare class OAuth2Protocol {
+    /**
+     * Error message template for missing required fields.
+     * @type {string}
+     */
+    fieldMissingMessage: string;
+    /**
+     * Error message template for unsupported grant types.
+     * @type {string}
+     */
+    unsupportedGrantTypeMessage: string;
+    /**
+     * Error message template for unsupported PKCE methods.
+     * @type {string}
+     */
+    unsupportedCodeChallengeMethodMessage: string;
+    /**
+     * The authorization endpoint URL.
+     * @type {string|null}
+     */
+    authEndpoint: string | null;
+    /**
+     * The token endpoint URL.
+     * @type {string|null}
+     */
+    tokenEndpoint: string | null;
+    /**
+     * The OAuth2 grant type being used.
+     * @type {string|null}
+     */
+    grantType: string | null;
+    /**
+     * The username for authentication.
+     * @type {string|null}
+     */
+    username: string | null;
+    /**
+     * The password for authentication.
+     * @type {string|null}
+     */
+    password: string | null;
+    /**
+     * The client identifier.
+     * @type {string|null}
+     */
+    clientId: string | null;
+    /**
+     * The requested scope of access.
+     * @type {string|null}
+     */
+    scope: string | null;
+    /**
+     * The state parameter for CSRF protection.
+     * @type {string|null}
+     */
+    state: string | null;
+    /**
+     * The login hint for authentication.
+     * @type {string|null}
+     */
+    login_hint: string | null;
+    /**
+     * The PKCE code challenge method.
+     * @type {string|null}
+     */
+    codeChallengeMethod: string | null;
+    /**
+     * The current authentication token.
+     * @type {Object|null}
+     */
+    token: any | null;
+    /**
+     * Flag indicating if a token refresh is currently in progress.
+     * @type {boolean}
+     */
+    tokenRefreshInProgress: boolean;
+    /**
+     * Callback function for token updates.
+     * @type {Function|null}
+     */
+    onAuthorizationInfoUpdate: Function | null;
+    /**
+     * Initializes the OAuth2 protocol with the provided configuration.
+     *
+     * @param {Object} config - Configuration object containing OAuth2 parameters
+     * @param {string} config.token_endpoint - The token endpoint URL
+     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+     * @param {string} config.client_id - The client ID
+     * @param {string} [config.scope] - Optional scope
+     * @param {string} [config.state] - Optional state
+     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+     * @param {string} [config.username] - Username for password grant type
+     * @param {string} [config.password] - Password for password grant type
+     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+     * @param {string} [config.login_hint] - Login hint for password grant type
+     * @returns {Promise<void>}
+     * @throws {Error} If required configuration values are missing or grant type is unsupported
+     */
+    init(config: {
+        token_endpoint: string;
+        grant_type: string;
+        client_id: string;
+        scope?: string;
+        state?: string;
+        code_challenge_method?: string;
+        username?: string;
+        password?: string;
+        refresh_token?: string;
+        login_hint?: string;
+    }): Promise<void>;
+    /**
+     * Retrieves a required value from the configuration object.
+     *
+     * @param {Object} config - The configuration object
+     * @param {string} key - The key of the required value
+     * @returns {*} The value associated with the key
+     * @throws {Error} If the required value is missing
+     */
+    getRequiredValue(config: any, key: string): any;
+    /**
+     * Performs the Resource Owner Password Credentials flow.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} username - The username
+     * @param {string} password - The password
+     * @param {string} [scope] - Optional scope
+     * @param {string} [state] - Optional state
+     * @param {string} login_hint - The login hint
+     * @returns {Promise<Object>} The token response
+     */
+    doResourceOwnedPasswordCredentialsFlow(tokenUrl: string, clientId: string, username: string, password: string, login_hint: string, scope?: string, state?: string): Promise<any>;
+    /**
+     * Makes a token request to the OAuth2 token endpoint.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} grantType - The grant type
+     * @param {Object} otherParams - Additional parameters to include in the request
+     * @returns {Promise<Object>} The token response
+     * @throws {Error} If the token request fails
+     */
+    doTokenRequest(tokenUrl: string, clientId: string, grantType: string, otherParams: any): Promise<any>;
+    /**
+     * Performs a refresh token request.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} refreshToken - The refresh token
+     * @returns {Promise<Object>} The new token response
+     */
+    doRefreshToken(tokenUrl: string, clientId: string, refreshToken: string): Promise<any>;
+    /**
+     * Refreshes the current access token using the refresh token.
+     *
+     * @returns {Promise<string>} The new access token
+     */
+    refreshToken(): Promise<string>;
+    /**
+     * Checks if the current token has expired.
+     *
+     * @returns {boolean} True if the token has expired, false otherwise
+     */
+    hasTokenExpired(): boolean;
+    /**
+     * Updates the request with the current authorization token.
+     * Refreshes the token if it has expired.
+     *
+     * @param {Object} request - The request object to update
+     * @returns {Promise<void>}
+     */
+    updateParamsForAuth(request: any): Promise<void>;
+    /**
+     * Registers a callback function to be called when authorization information is updated.
+     *
+     * @param {Function} callback - The callback function to register
+     */
+    registerAuthInfoUpdate(callback: Function): void;
+    /**
+     * Logs out the current session by invalidating the refresh token.
+     *
+     * @returns {Promise<void>}
+     * @throws {Error} If the logout request fails
+     */
+    logout(): Promise<void>;
 }
 /**
  * The Verb Class  of a Statement
@@ -490,18 +1276,13 @@ declare class VerbStatement {
     /**
      * convert to XAPI
      *
-     * @returns Object
+     * @returns {Object}
      */
-    toXAPI(): {
-        id: string;
-        display: {
-            en: string;
-        };
-    };
+    toXAPI(): any;
     /**
      * convert to CSV
      *
-     * @returns String
+     * @returns {String}
      */
     toCSV(): string;
 }
@@ -589,24 +1370,13 @@ declare class ObjectStatement {
     /**
      * convert to XAPI
      *
-     * @returns Object
+     * @returns {Object}
      */
-    toXAPI(): {
-        id: string;
-        definition: {
-            name: {
-                "en-US": string;
-            };
-            description: {
-                "en-US": string;
-            };
-            type: any;
-        };
-    };
+    toXAPI(): any;
     /**
      * convert to CSV
      *
-     * @returns String
+     * @returns {String}
      */
     toCSV(): string;
 }
@@ -664,7 +1434,7 @@ declare class ResultStatement {
     Extensions: any;
     /**
      * Check if the result is empty or not
-     * @returns boolean
+     * @returns {boolean}
      */
     isEmpty(): boolean;
     /**
@@ -690,20 +1460,20 @@ declare class ResultStatement {
     /**
      * Set result extension for key value
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
-    setExtension(key: string, value: string): void;
+    setExtension(key: string, value: any): void;
     /**
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id: string): string;
     /**
      * Check if the string is an URI
      * @param {string} id
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id: string): boolean;
     /**
@@ -715,20 +1485,13 @@ declare class ResultStatement {
     /**
      * convert to XAPI
      *
-     * @returns Object
+     * @returns {Object}
      */
-    toXAPI(): {
-        success: boolean;
-        completion: boolean;
-        response: string;
-        score: any;
-        duration: string;
-        extensions: any;
-    };
+    toXAPI(): any;
     /**
      * convert to CSV
      *
-     * @returns String
+     * @returns {String}
      */
     toCSV(): string;
 }
