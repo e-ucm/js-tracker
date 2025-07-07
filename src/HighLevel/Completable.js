@@ -105,14 +105,13 @@ export class CompletableTracker {
             }
         }
         let actualDate=new Date();
-        var duration = actualDate.getTime()-this.initializedTime.getTime();
         this.initialized=false;
 
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
-            .withDuration(duration);
+            .withDuration(this.initializedTime, actualDate);
     }
 }
 

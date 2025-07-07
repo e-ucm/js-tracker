@@ -801,13 +801,16 @@ class Statement {
 
     /**
      * Set duration of the statement
-     * @param {number} diffInSeconds the duration in second
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
      */
-    setDuration(diffInSeconds) {
-        const seconds = diffInSeconds % 60;
-        const minutes = Math.floor(diffInSeconds / 60) % 60;
-        const hours = Math.floor(diffInSeconds / 3600) % 24;
-        const days = Math.floor(diffInSeconds / 86400);
+    setDuration(init, end) {
+        const durationInMs = end.getTime()-init.getTime();
+        const durationInSec = durationInMs / 1000;
+        const seconds = durationInSec % 60;
+        const minutes = Math.floor(durationInSec / 60) % 60;
+        const hours = Math.floor(durationInSec / 3600) % 24;
+        const days = Math.floor(durationInSec / 86400);
 
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
@@ -1020,11 +1023,12 @@ class StatementBuilder {
 
   /**
    * Set duration to statement
-   * @param {number} diffInSeconds duration in sec of statement
+   * @param {Date} init init date of statement
+   * @param {Date} end end date of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withDuration(diffInSeconds) {
-    this.statement.setDuration(diffInSeconds);
+  withDuration(init, end) {
+    this.statement.setDuration(init, end);
     return this;
   }
 
@@ -2268,14 +2272,13 @@ class CompletableTracker {
             }
         }
         let actualDate=new Date();
-        var duration = actualDate.getTime()-this.initializedTime.getTime();
         this.initialized=false;
 
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
-            .withDuration(duration);
+            .withDuration(this.initializedTime, actualDate);
     }
 }
 
@@ -2513,13 +2516,12 @@ class ScormTracker {
             }
         }
         let actualDate=new Date();
-        var duration = actualDate.getTime()-this.initializedTime.getTime();
         this.initialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
         return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId)
-                .withDuration(duration);
+                .withDuration(this.initializedTime, actualDate);
     }
 
     /**
@@ -2561,13 +2563,12 @@ class ScormTracker {
             }
         }
         let actualDate=new Date();
-        var duration = actualDate.getTime()-this.initializedTime.getTime();
         this.initialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
         return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId)
-                    .withDuration(duration);
+                    .withDuration(this.initializedTime, actualDate);
     }
 
     /**
@@ -2619,13 +2620,11 @@ class ScormTracker {
             }
         }
         let actualDate=new Date();
-        var duration = actualDate.getTime()-this.initializedTime.getTime();
-
         return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
-            .withDuration(duration/1000);
+            .withDuration(this.initializedTime, actualDate);
     }
 }
 

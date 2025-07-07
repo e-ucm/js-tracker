@@ -175,13 +175,16 @@ export default class Statement {
 
     /**
      * Set duration of the statement
-     * @param {number} diffInSeconds the duration in second
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
      */
-    setDuration(diffInSeconds) {
-        const seconds = diffInSeconds % 60;
-        const minutes = Math.floor(diffInSeconds / 60) % 60;
-        const hours = Math.floor(diffInSeconds / 3600) % 24;
-        const days = Math.floor(diffInSeconds / 86400);
+    setDuration(init, end) {
+        const durationInMs = end.getTime()-init.getTime();
+        const durationInSec = durationInMs / 1000;
+        const seconds = durationInSec % 60;
+        const minutes = Math.floor(durationInSec / 60) % 60;
+        const hours = Math.floor(durationInSec / 3600) % 24;
+        const days = Math.floor(durationInSec / 86400);
 
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;

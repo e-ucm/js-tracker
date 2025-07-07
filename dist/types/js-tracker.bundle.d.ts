@@ -667,10 +667,11 @@ declare class StatementBuilder {
     withCompletion(value: boolean): this;
     /**
      * Set duration to statement
-     * @param {number} diffInSeconds duration in sec of statement
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
      * @returns {this} Returns the current instance for chaining
      */
-    withDuration(diffInSeconds: number): this;
+    withDuration(init: Date, end: Date): this;
     /**
      * Set response to statement
      * @param {string} value response of statement
@@ -1025,9 +1026,10 @@ declare class Statement {
     setSuccess(value: boolean): void;
     /**
      * Set duration of the statement
-     * @param {number} diffInSeconds the duration in second
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
      */
-    setDuration(diffInSeconds: number): void;
+    setDuration(init: Date, end: Date): void;
     /**
      * Set response of the statement
      * @param {string} value the response

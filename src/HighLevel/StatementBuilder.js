@@ -113,11 +113,12 @@ export class StatementBuilder {
 
   /**
    * Set duration to statement
-   * @param {number} diffInSeconds duration in sec of statement
+   * @param {Date} init init date of statement
+   * @param {Date} end end date of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withDuration(diffInSeconds) {
-    this.statement.setDuration(diffInSeconds);
+  withDuration(init, end) {
+    this.statement.setDuration(init, end);
     return this;
   }
 
