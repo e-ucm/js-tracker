@@ -2850,7 +2850,7 @@ class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accesible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         return new AccessibleTracker(this.tracker, id, type);
     }
 

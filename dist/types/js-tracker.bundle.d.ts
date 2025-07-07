@@ -143,7 +143,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accesible(id: string, type?: number): AccessibleTracker;
+    accessible(id: string, type?: number): AccessibleTracker;
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
