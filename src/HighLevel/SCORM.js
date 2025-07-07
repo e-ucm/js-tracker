@@ -40,7 +40,7 @@ export class ScormTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized;
+    initialized=false;
 
     /**
      * Initialized Time
@@ -65,7 +65,7 @@ export class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
@@ -113,7 +113,7 @@ export class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");

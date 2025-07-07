@@ -247,24 +247,24 @@ declare class ScormTracker {
     initializedTime: Date;
     /**
      * Send Initialized statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
-    Initialized(): StatementBuilder | null;
+    Initialized(): StatementBuilder;
     /**
      * Send Suspended statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
-    Suspended(): StatementBuilder | null;
+    Suspended(): StatementBuilder;
     /**
      * Send Resumed statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
-    Resumed(): StatementBuilder | null;
+    Resumed(): StatementBuilder;
     /**
      * Send Terminated statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
-    Terminated(): StatementBuilder | null;
+    Terminated(): StatementBuilder;
     /**
      * Send Passed statement
      * @returns {StatementBuilder}

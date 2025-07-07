@@ -44,7 +44,7 @@ export class CompletableTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized;
+    initialized=false;
 
     /**
      * Initialized Time
@@ -69,7 +69,7 @@ export class CompletableTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
     }

@@ -2207,7 +2207,7 @@ class CompletableTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized;
+    initialized=false;
 
     /**
      * Initialized Time
@@ -2232,7 +2232,7 @@ class CompletableTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
     }
@@ -2466,7 +2466,7 @@ class ScormTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized;
+    initialized=false;
 
     /**
      * Initialized Time
@@ -2476,7 +2476,7 @@ class ScormTracker {
 
     /**
      * Send Initialized statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
     Initialized() {
         var addInitializedTime = true;
@@ -2491,7 +2491,7 @@ class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
@@ -2501,7 +2501,7 @@ class ScormTracker {
 
     /**
      * Send Suspended statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
     Suspended() {
         if(!this.initialized) {
@@ -2524,7 +2524,7 @@ class ScormTracker {
 
     /**
      * Send Resumed statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
     Resumed() {
         var addInitializedTime = true;
@@ -2539,7 +2539,7 @@ class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=false;
+            this.initialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");
@@ -2549,7 +2549,7 @@ class ScormTracker {
 
     /**
      * Send Terminated statement
-     * @returns {StatementBuilder|null}
+     * @returns {StatementBuilder}
      */
     Terminated() {
         if(!this.initialized) {
