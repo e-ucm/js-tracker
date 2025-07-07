@@ -41,10 +41,36 @@ export class CompletableTracker {
     CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
     /**
+     * is initialized
+     * @type {boolean}
+     */
+    initialized;
+
+    /**
+     * Initialized Time
+     * @type {Date}
+     */
+    initializedTime;
+
+
+    /**
      * Send Initialized statement
      * @returns {StatementBuilder}
      */
     Initialized() {
+        var addInitializedTime = true;
+        if(this.initializedTime) {
+            if (this.tracker.debug) {
+                throw new Error("The initialized statement for the specified id has already been sent!");
+            } else {
+                console.warn("The initialized statement for the specified id has already been sent!");
+                addInitializedTime = false;
+            }
+        }
+        if (addInitializedTime) {
+            this.initializedTime = new Date();
+            this.initialized=false;
+        }
         return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
     }
 
@@ -70,10 +96,23 @@ export class CompletableTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
+        if(!this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("You need to send a initialized statement before sending an Completed statement!");
+            } else {
+                console.warn("You need to send a initialized statement before sending an Completed statement!");
+                return;
+            }
+        }
+        let actualDate=new Date();
+        var duration = actualDate.getTime()-this.initializedTime.getTime();
+        this.initialized=false;
+
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore({raw:score});
+            .withScore({raw:score})
+            .withDuration(duration);
     }
 }
 

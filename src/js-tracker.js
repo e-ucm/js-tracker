@@ -210,7 +210,12 @@ export class JSScormTracker extends JSTracker {
      * @type {Object}
      */
     SCORMTYPE = SCORMTYPE;
-    
+
+    /**
+     * list of scorm instances
+     */
+    scormInstances={};
+
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
@@ -218,9 +223,20 @@ export class JSScormTracker extends JSTracker {
      * @returns {ScormTracker} New SCORM tracker instance
      */
     scorm(id, type=SCORMTYPE.SCO) {
-        return new ScormTracker(this.tracker, id, type);
+        var scorm;
+        if(!this.scormInstances[type]) {
+            this.scormInstances[type]={};
+        }
+        if(!this.scormInstances[type][id]) {
+            scorm =new ScormTracker(this.tracker, id, type);;
+            this.scormInstances[type][id]=scorm;
+        } else {
+            scorm=this.scormInstances[type][id];
+        }
+        return 
     }
 }
+
 
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -228,25 +244,21 @@ export class JSScormTracker extends JSTracker {
 export class SeriousGameTracker extends JSTracker {
     /**
      * Accessible type constants
-     * @type {Object}
      */
     ACCESSIBLETYPE = ACCESSIBLETYPE;
 
     /**
      * Completable type constants
-     * @type {Object}
      */
     COMPLETABLETYPE = COMPLETABLETYPE;
 
     /**
      * Alternative type constants
-     * @type {Object}
      */
     ALTERNATIVETYPE = ALTERNATIVETYPE;
 
     /**
      * Game object type constants
-     * @type {Object}
      */
     GAMEOBJECTTYPE = GAMEOBJECTTYPE;
 
@@ -255,6 +267,16 @@ export class SeriousGameTracker extends JSTracker {
      * @type {ScormTracker}
      */
     scormTracker;
+
+    /**
+     * list of instances
+     */
+    instances= {
+        "completable": {},
+        "gameObject": {},
+        "alternative": {},
+        "accessible": {}
+    };
 
     /**
      * Creates a new SeriousGameTracker instance
@@ -332,7 +354,17 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
     accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        return new AccessibleTracker(this.tracker, id, type);
+        var accessible;
+        if(!this.instances["accessible"][type]) {
+            this.instances["accessible"][type]={};
+        }
+        if(!this.instances["accessible"][type][id]) {
+            accessible =new AccessibleTracker(this.tracker, id, type);
+            this.instances["accessible"][type][id]=accessible;
+        } else {
+            accessible=this.instances["accessible"][type][id];
+        }
+        return accessible;
     }
 
     /**
@@ -342,7 +374,17 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
     gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
-        return new GameObjectTracker(this.tracker, id, type);
+        var gameObject;
+        if(!this.instances["gameObject"][type]) {
+            this.instances["gameObject"][type]={};
+        }
+        if(!this.instances["gameObject"][type][id]) {
+            gameObject =new GameObjectTracker(this.tracker, id, type);
+            this.instances["gameObject"][type][id]=gameObject;
+        } else {
+            gameObject=this.instances["gameObject"][type][id];
+        }
+        return gameObject;
     }
 
     /**
@@ -352,7 +394,17 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {CompletableTracker} New CompletableTracker instance
      */
     completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
-        return new CompletableTracker(this.tracker, id, type);
+        var completable;
+        if(!this.instances["completable"][type]) {
+            this.instances["completable"][type]={};
+        }
+        if(!this.instances["completable"][type][id]) {
+            completable =new CompletableTracker(this.tracker, id, type);
+            this.instances["completable"][type][id]=completable;
+        } else {
+            completable=this.instances["completable"][type][id];
+        }
+        return completable;
     }
 
     /**
@@ -362,6 +414,16 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
     alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
-        return new AlternativeTracker(this.tracker, id, type);
+        var alternative;
+        if(!this.instances["alternative"][type]) {
+            this.instances["alternative"][type]={};
+        }
+        if(!this.instances["alternative"][type][id]) {
+            alternative =new AlternativeTracker(this.tracker, id, type);
+            this.instances["alternative"][type][id]=alternative;
+        } else {
+            alternative=this.instances["alternative"][type][id];
+        }
+        return alternative;
     }
 }

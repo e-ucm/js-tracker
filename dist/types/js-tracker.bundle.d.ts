@@ -8,6 +8,10 @@ export class JSScormTracker extends JSTracker {
      */
     SCORMTYPE: any;
     /**
+     * list of scorm instances
+     */
+    scormInstances: {};
+    /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - SCORM type
@@ -94,29 +98,62 @@ export class SeriousGameTracker extends JSTracker {
     });
     /**
      * Accessible type constants
-     * @type {Object}
      */
-    ACCESSIBLETYPE: any;
+    ACCESSIBLETYPE: Readonly<{
+        SCREEN: 0;
+        AREA: 1;
+        ZONE: 2;
+        CUTSCENE: 3;
+        ACCESSIBLE: 4;
+    }>;
     /**
      * Completable type constants
-     * @type {Object}
      */
-    COMPLETABLETYPE: any;
+    COMPLETABLETYPE: Readonly<{
+        GAME: 0;
+        SESSION: 1;
+        LEVEL: 2;
+        QUEST: 3;
+        STAGE: 4;
+        COMBAT: 5;
+        STORYNODE: 6;
+        RACE: 7;
+        COMPLETABLE: 8;
+    }>;
     /**
      * Alternative type constants
-     * @type {Object}
      */
-    ALTERNATIVETYPE: any;
+    ALTERNATIVETYPE: Readonly<{
+        QUESTION: 0;
+        MENU: 1;
+        DIALOG: 2;
+        PATH: 3;
+        ARENA: 4;
+        ALTERNATIVE: 5;
+    }>;
     /**
      * Game object type constants
-     * @type {Object}
      */
-    GAMEOBJECTTYPE: any;
+    GAMEOBJECTTYPE: Readonly<{
+        ENEMY: 0;
+        NPC: 1;
+        ITEM: 2;
+        GAMEOBJECT: 3;
+    }>;
     /**
      * SCORM tracker instance
      * @type {ScormTracker}
      */
     scormTracker: ScormTracker;
+    /**
+     * list of instances
+     */
+    instances: {
+        completable: {};
+        gameObject: {};
+        alternative: {};
+        accessible: {};
+    };
     /**
      * Marks the game as started
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
@@ -199,25 +236,35 @@ declare class ScormTracker {
      */
     ScormType: any[];
     /**
-     * Send Initialized statement
-     * @returns {StatementBuilder}
+     * is initialized
+     * @type {boolean}
      */
-    Initialized(): StatementBuilder;
+    initialized: boolean;
+    /**
+     * Initialized Time
+     * @type {Date}
+     */
+    initializedTime: Date;
+    /**
+     * Send Initialized statement
+     * @returns {StatementBuilder|null}
+     */
+    Initialized(): StatementBuilder | null;
     /**
      * Send Suspended statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
-    Suspended(): StatementBuilder;
+    Suspended(): StatementBuilder | null;
     /**
      * Send Resumed statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
-    Resumed(): StatementBuilder;
+    Resumed(): StatementBuilder | null;
     /**
      * Send Terminated statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
-    Terminated(): StatementBuilder;
+    Terminated(): StatementBuilder | null;
     /**
      * Send Passed statement
      * @returns {StatementBuilder}
@@ -791,6 +838,16 @@ declare class CompletableTracker {
      * @type {Array}
      */
     CompletableType: any[];
+    /**
+     * is initialized
+     * @type {boolean}
+     */
+    initialized: boolean;
+    /**
+     * Initialized Time
+     * @type {Date}
+     */
+    initializedTime: Date;
     /**
      * Send Initialized statement
      * @returns {StatementBuilder}

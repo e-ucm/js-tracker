@@ -2204,10 +2204,36 @@ class CompletableTracker {
     CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
     /**
+     * is initialized
+     * @type {boolean}
+     */
+    initialized;
+
+    /**
+     * Initialized Time
+     * @type {Date}
+     */
+    initializedTime;
+
+
+    /**
      * Send Initialized statement
      * @returns {StatementBuilder}
      */
     Initialized() {
+        var addInitializedTime = true;
+        if(this.initializedTime) {
+            if (this.tracker.debug) {
+                throw new Error("The initialized statement for the specified id has already been sent!");
+            } else {
+                console.warn("The initialized statement for the specified id has already been sent!");
+                addInitializedTime = false;
+            }
+        }
+        if (addInitializedTime) {
+            this.initializedTime = new Date();
+            this.initialized=false;
+        }
         return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
     }
 
@@ -2233,10 +2259,23 @@ class CompletableTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
+        if(!this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("You need to send a initialized statement before sending an Completed statement!");
+            } else {
+                console.warn("You need to send a initialized statement before sending an Completed statement!");
+                return;
+            }
+        }
+        let actualDate=new Date();
+        var duration = actualDate.getTime()-this.initializedTime.getTime();
+        this.initialized=false;
+
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore({raw:score});
+            .withScore({raw:score})
+            .withDuration(duration);
     }
 }
 
@@ -2424,10 +2463,36 @@ class ScormTracker {
     ScormType = ['SCO', 'course', 'module', 'assessment', 'interaction', 'objective', 'attempt'];
 
     /**
+     * is initialized
+     * @type {boolean}
+     */
+    initialized;
+
+    /**
+     * Initialized Time
+     * @type {Date}
+     */
+    initializedTime;
+
+    /**
      * Send Initialized statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
     Initialized() {
+        var addInitializedTime = true;
+        if(this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("The initialized statement for the specified id has already been sent!");
+            } else {
+                console.warn("The initialized statement for the specified id has already been sent!");
+                addInitializedTime = false;
+                return;
+            }
+        }
+        if (addInitializedTime) {
+            this.initializedTime = new Date();
+            this.initialized=false;
+        }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
@@ -2436,20 +2501,46 @@ class ScormTracker {
 
     /**
      * Send Suspended statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
     Suspended() {
+        if(!this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("You need to send a initialized statement before sending an suspended statement!");
+            } else {
+                console.warn("You need to send a initialized statement before sending an suspended statement!");
+                return;
+            }
+        }
+        let actualDate=new Date();
+        var duration = actualDate.getTime()-this.initializedTime.getTime();
+        this.initialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
-        return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId);
+        return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId)
+                .withDuration(duration);
     }
 
     /**
      * Send Resumed statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
     Resumed() {
+        var addInitializedTime = true;
+        if(this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("The Resumed statement for the specified id has already been sent!");
+            } else {
+                console.warn("The Resumed statement for the specified id has already been sent!");
+                addInitializedTime = false;
+                return;
+            }
+        }
+        if (addInitializedTime) {
+            this.initializedTime = new Date();
+            this.initialized=false;
+        }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
@@ -2458,13 +2549,25 @@ class ScormTracker {
 
     /**
      * Send Terminated statement
-     * @returns {StatementBuilder}
+     * @returns {StatementBuilder|null}
      */
     Terminated() {
+        if(!this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("You need to send a initialized statement before sending an Terminated statement!");
+            } else {
+                console.warn("You need to send a initialized statement before sending an Terminated statement!");
+                return;
+            }
+        }
+        let actualDate=new Date();
+        var duration = actualDate.getTime()-this.initializedTime.getTime();
+        this.initialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
-        return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId);
+        return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId)
+                    .withDuration(duration);
     }
 
     /**
@@ -2507,10 +2610,22 @@ class ScormTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
+        if(!this.initialized) {
+            if (this.tracker.debug) {
+                throw new Error("You need to send a initialized statement before sending an suspended statement!");
+            } else {
+                console.warn("You need to send a initialized statement before sending an suspended statement!");
+                return;
+            }
+        }
+        let actualDate=new Date();
+        var duration = actualDate.getTime()-this.initializedTime.getTime();
+
         return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
             .withSuccess(success)
             .withCompletion(completion)
-            .withScore({raw:score});
+            .withScore({raw:score})
+            .withDuration(duration/1000);
     }
 }
 
@@ -2729,7 +2844,12 @@ class JSScormTracker extends JSTracker {
      * @type {Object}
      */
     SCORMTYPE = SCORMTYPE;
-    
+
+    /**
+     * list of scorm instances
+     */
+    scormInstances={};
+
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
@@ -2737,9 +2857,19 @@ class JSScormTracker extends JSTracker {
      * @returns {ScormTracker} New SCORM tracker instance
      */
     scorm(id, type=SCORMTYPE.SCO) {
-        return new ScormTracker(this.tracker, id, type);
+        var scorm;
+        if(!this.scormInstances[type]) {
+            this.scormInstances[type]={};
+        }
+        if(!this.scormInstances[type][id]) {
+            scorm =new ScormTracker(this.tracker, id, type);            this.scormInstances[type][id]=scorm;
+        } else {
+            scorm=this.scormInstances[type][id];
+        }
+        return 
     }
 }
+
 
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -2747,25 +2877,21 @@ class JSScormTracker extends JSTracker {
 class SeriousGameTracker extends JSTracker {
     /**
      * Accessible type constants
-     * @type {Object}
      */
     ACCESSIBLETYPE = ACCESSIBLETYPE;
 
     /**
      * Completable type constants
-     * @type {Object}
      */
     COMPLETABLETYPE = COMPLETABLETYPE;
 
     /**
      * Alternative type constants
-     * @type {Object}
      */
     ALTERNATIVETYPE = ALTERNATIVETYPE;
 
     /**
      * Game object type constants
-     * @type {Object}
      */
     GAMEOBJECTTYPE = GAMEOBJECTTYPE;
 
@@ -2774,6 +2900,16 @@ class SeriousGameTracker extends JSTracker {
      * @type {ScormTracker}
      */
     scormTracker;
+
+    /**
+     * list of instances
+     */
+    instances= {
+        "completable": {},
+        "gameObject": {},
+        "alternative": {},
+        "accessible": {}
+    };
 
     /**
      * Creates a new SeriousGameTracker instance
@@ -2851,7 +2987,17 @@ class SeriousGameTracker extends JSTracker {
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
     accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        return new AccessibleTracker(this.tracker, id, type);
+        var accessible;
+        if(!this.instances["accessible"][type]) {
+            this.instances["accessible"][type]={};
+        }
+        if(!this.instances["accessible"][type][id]) {
+            accessible =new AccessibleTracker(this.tracker, id, type);
+            this.instances["accessible"][type][id]=accessible;
+        } else {
+            accessible=this.instances["accessible"][type][id];
+        }
+        return accessible;
     }
 
     /**
@@ -2861,7 +3007,17 @@ class SeriousGameTracker extends JSTracker {
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
     gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
-        return new GameObjectTracker(this.tracker, id, type);
+        var gameObject;
+        if(!this.instances["gameObject"][type]) {
+            this.instances["gameObject"][type]={};
+        }
+        if(!this.instances["gameObject"][type][id]) {
+            gameObject =new GameObjectTracker(this.tracker, id, type);
+            this.instances["gameObject"][type][id]=gameObject;
+        } else {
+            gameObject=this.instances["gameObject"][type][id];
+        }
+        return gameObject;
     }
 
     /**
@@ -2871,7 +3027,17 @@ class SeriousGameTracker extends JSTracker {
      * @returns {CompletableTracker} New CompletableTracker instance
      */
     completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
-        return new CompletableTracker(this.tracker, id, type);
+        var completable;
+        if(!this.instances["completable"][type]) {
+            this.instances["completable"][type]={};
+        }
+        if(!this.instances["completable"][type][id]) {
+            completable =new CompletableTracker(this.tracker, id, type);
+            this.instances["completable"][type][id]=completable;
+        } else {
+            completable=this.instances["completable"][type][id];
+        }
+        return completable;
     }
 
     /**
@@ -2881,7 +3047,17 @@ class SeriousGameTracker extends JSTracker {
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
     alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
-        return new AlternativeTracker(this.tracker, id, type);
+        var alternative;
+        if(!this.instances["alternative"][type]) {
+            this.instances["alternative"][type]={};
+        }
+        if(!this.instances["alternative"][type][id]) {
+            alternative =new AlternativeTracker(this.tracker, id, type);
+            this.instances["alternative"][type][id]=alternative;
+        } else {
+            alternative=this.instances["alternative"][type][id];
+        }
+        return alternative;
     }
 }
 
