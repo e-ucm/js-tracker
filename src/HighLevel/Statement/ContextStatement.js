@@ -36,7 +36,7 @@ export default class ContextStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         return {
@@ -55,7 +55,7 @@ export default class ContextStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;

@@ -63,7 +63,7 @@ export default class ResultStatement {
 
     /**
      * Check if the result is empty or not
-     * @returns boolean
+     * @returns {boolean}
      */
     isEmpty() {
         return (this.Score == null) && (this.Duration == null) && (this.Success == null) && (this.Completion == null) && (this.Response == null) && (Object.keys(this.Extensions).length == 0);
@@ -100,7 +100,7 @@ export default class ResultStatement {
     /**
      * Set result extension for key value
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
     setExtension(key, value) {
         switch (key.toLowerCase()) {
@@ -117,7 +117,7 @@ export default class ResultStatement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -130,7 +130,7 @@ export default class ResultStatement {
     /**
      * Check if the string is an URI
      * @param {string} id 
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
@@ -154,7 +154,7 @@ export default class ResultStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var ret = {};
@@ -203,7 +203,7 @@ export default class ResultStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
@@ -267,7 +267,7 @@ export default class ResultStatement {
 /**
  * Get the size of the object
  * @param {Object} obj the object to get the size
- * @returns number
+ * @returns {number}
  */
 var obsize = function(obj) {
     var size = 0, key;
@@ -282,7 +282,7 @@ var obsize = function(obj) {
 /**
  * Check if is map
  * @param {Object} obj the object to check
- * @returns boolean
+ * @returns {boolean}
  */
 var ismap = function(obj) {
     for (var key in obj) {
@@ -296,7 +296,7 @@ var ismap = function(obj) {
 /**
  * Check if exist
  * @param {Object} value the object to check
- * @returns boolean
+ * @returns {boolean}
  */
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);

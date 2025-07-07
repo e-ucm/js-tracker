@@ -80,7 +80,7 @@ export default class Statement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -93,7 +93,7 @@ export default class Statement {
     /**
      * Check if the string is an URI
      * @param {string} id 
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
@@ -198,7 +198,7 @@ export default class Statement {
 
     /**
      * Set progress status of the statement
-     * @param {boolean} value the progress status
+     * @param {number} value the progress status
      */
     setProgress(value) {
         this.addResultExtension('progress', value);
@@ -216,7 +216,7 @@ export default class Statement {
     /**
      * Set result extension for key of the statement
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
     addResultExtension(key,value) {
         this.result.setExtension(key, value);
@@ -232,7 +232,7 @@ export default class Statement {
 
     /**
      * Convert to xAPI format
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var xapiTrace={};
@@ -266,7 +266,7 @@ export default class Statement {
     /**
      * Convert to CSV format
      * 
-     * @returns string
+     * @returns {String}
      */
     toCSV() {
         var csv=[];
