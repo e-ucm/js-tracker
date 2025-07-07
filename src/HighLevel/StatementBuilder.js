@@ -22,10 +22,10 @@ export class StatementBuilder {
     statement;
 
     /**
-     * Promise
+     * Promise of Statement sent
      * @type {Promise<void>}
      */
-    _promise;
+    _sendPromise;
 
   /**
    * @param  {xAPITrackerAsset} xapiClient  any client that has a `.sendStatement(statement)` → Promise
@@ -34,9 +34,7 @@ export class StatementBuilder {
   constructor(xapiClient, initial) {
     this.client    = xapiClient;
     this.statement = initial;
-    this._promise = Promise
-      .resolve()
-      .then(() => this.client.enqueue(this.statement));
+    this._sendPromise = null;
   }
 
   // RESULT
@@ -179,33 +177,47 @@ export class StatementBuilder {
     }
     return this;
   }
-
-  //— make this builder awaitable (thenable) ————————————————————————
+  
   /**
-   * 
-   * @param {*} onFulfilled
-   * @param {*} onRejected 
-   * @returns {Promise<void>}
+   * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
+   *
+   * @returns {Promise<void>} The promise sent
+   */
+  Send() {
+    if (!this._sendPromise) {
+      this._sendPromise = this.client.enqueue(this.statement);
+    }
+    return this._sendPromise;
+  }
+
+  /**
+   * Makes this builder awaitable (thenable).
+   *
+   * @param {(value: void) =>void | PromiseLike<void>} onFulfilled - Called when the promise is resolved
+   * @param {(reason:any)=>void | PromiseLike<void>} onRejected - Called when the promise is rejected
+   * @returns {Promise<void>} The resulting promise
    */
   then(onFulfilled, onRejected) {
-    return this._promise.then(onFulfilled, onRejected)
+    return this.Send().then(onFulfilled, onRejected);
   }
 
   /**
-   * 
-   * @param {*} onRejected 
-   * @returns {Promise<void>}
+   * Catches any errors that occur during the processing of a statement.
+   *
+   * @param {(reason:any)=>void | PromiseLike<void>} onRejected - Called when an error occurs
+   * @returns {Promise<void>} The resulting promise
    */
   catch(onRejected) {
-    return this._promise.catch(onRejected)
+    return this.Send().catch(onRejected);
   }
 
   /**
-   * 
-   * @param {*} onFinally 
-   * @returns {Promise<void>}
+   * Runs code regardless of whether a statement is processed successfully or not.
+   *
+   * @param {() => void} onFinally - Called after the promise has been resolved or rejected
+   * @returns {Promise<void>} The resulting promise
    */
   finally(onFinally) {
-    return this._promise.finally(onFinally)
+    return this.Send().finally(onFinally);
   }
 }
