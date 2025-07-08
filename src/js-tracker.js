@@ -7,6 +7,7 @@ import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js'
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE } from './HighLevel/SCORM.js';
 import { StatementBuilder } from './HighLevel/StatementBuilder.js';
+import ms from "ms";
 
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
@@ -119,8 +120,8 @@ export class JSTracker {
 
             // BATCH
             batchLength = parseInt(urlParams.get('batch_length'));
-            batchTimeout = parseInt(urlParams.get('batch_timeout'));
-            maxRetryDelay = parseInt(urlParams.get('max_retry_delay'));
+            batchTimeout = ms(urlParams.get('batch_timeout'));
+            maxRetryDelay = ms(urlParams.get('max_retry_delay'));
 
             if (strDebug !== null && strDebug === "true") {
                 debug = Boolean(strDebug);
