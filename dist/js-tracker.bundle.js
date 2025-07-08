@@ -1495,7 +1495,12 @@ class xAPITrackerAsset {
  * Extends the base xAPITrackerAsset with basic authentication capabilities.
  */
 class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
-    oauth1settings={
+     /**
+     * @typedef {Object} oauth1Settings
+     * @property {string} username
+     * @property {string} password
+     */
+    oauth1Settings={
         username:"",
         password:""
     };
@@ -1504,8 +1509,8 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
      */
     constructor() {
         super();
-        this.oauth1settings.username="";
-        this.oauth1settings.password="";
+        this.oauth1Settings.username="";
+        this.oauth1Settings.password="";
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
                 this.logout();
@@ -1514,7 +1519,7 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     }
 
     async login() {
-        this.auth_token=XAPI.toBasicAuth(this.oauth1settings.username, this.oauth1settings.password);
+        this.auth_token=XAPI.toBasicAuth(this.oauth1Settings.username, this.oauth1Settings.password);
         super.login();
     }
 
@@ -1909,32 +1914,33 @@ class OAuth2Protocol {
  * Extends the base xAPITrackerAsset with OAuth2 capabilities.
  */
 class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+
     /**
-     * Configuration object for OAuth2 authentication
-     * @param {Object} config - Configuration object containing OAuth2 parameters
-     * @param {string} config.token_endpoint - The token endpoint URL
-     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-     * @param {string} config.client_id - The client ID
-     * @param {string} [config.scope] - Optional scope
-     * @param {string} [config.state] - Optional state
-     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-     * @param {string} [config.username] - Username for password grant type
-     * @param {string} [config.password] - Password for password grant type
-     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
-     * @param {string} [config.login_hint] - Login hint for password grant type
+     * @typedef {Object} OAuth2Settings
+     * @property {string} token_endpoint
+     * @property {string} grant_type
+     * @property {string} client_id
+     * @property {string} scope
+     * @property {string} [state]
+     * @property {string} [code_challenge_method]
+     * @property {string} username
+     * @property {string} password
+     * @property {string} [refreshToken]
+     * @property {string} login_hint
      */
-    oauth2Settings={
-        token_endpoint:"",
-        grant_type:"",
-        client_id:"",
-        scope:"",
-        state:"",
-        code_challenge_method:"",
-        username:"",
-        password:"",
-        refreshToken:"",
-        login_hint:""
+    oauth2Settings = {
+        token_endpoint:        "https://…/token",
+        client_id:             "my_client_id",
+        grant_type:            "password",
+        scope:                 "openid profile",
+        state:                 "",
+        code_challenge_method: "",
+        refreshToken:          "",
+        username:              "alice@example.com",
+        password:              "supersecret",
+        login_hint:            "alice@example.com"
     };
+
 
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -2695,12 +2701,32 @@ class JSTracker {
         }
 
         if (xAPIConfig.token_endpoint) {
+            /**
+             * @type {xAPITrackerAssetOAuth2}
+             */
             this.tracker = new xAPITrackerAssetOAuth2();
-            this.oauth2Settings = xAPIConfig;
+            if (this.tracker && 'oauth2Settings' in this.tracker) {
+                this.tracker.oauth2Settings.client_id = xAPIConfig.client_id;
+                this.tracker.oauth2Settings.grant_type = xAPIConfig.grant_type;
+                this.tracker.oauth2Settings.login_hint = xAPIConfig.login_hint;
+                this.tracker.oauth2Settings.username = xAPIConfig.username;
+                this.tracker.oauth2Settings.password = xAPIConfig.password;
+                this.tracker.oauth2Settings.scope = xAPIConfig.scope;
+                this.tracker.oauth2Settings.token_endpoint = xAPIConfig.token_endpoint;
+            } else {
+                throw new Error("tracker isn't OAuth2");
+            }
         } else if (username && password) {
+            /**
+             * @type {xAPITrackerAssetOAuth1}
+             */
             this.tracker = new xAPITrackerAssetOAuth1();
-            this.settings.username = username;
-            this.settings.password = password;
+            if (this.tracker && 'oauth1Settings' in this.tracker) {
+                this.tracker.oauth1Settings.username = username;
+                this.tracker.oauth1Settings.password = password;
+            } else {
+                throw new Error("tracker isn't OAuth1");
+            }
         } else {
             this.tracker = new xAPITrackerAsset();
         }
@@ -2736,6 +2762,15 @@ class JSScormTracker extends JSTracker {
      */
     constructor() {
         super();
+    }
+
+    login() {
+        super.login();
+    }
+
+    logout() {
+        super.logout();
+        this.scormInstances={};
     }
 
     /**
@@ -2809,11 +2844,11 @@ class SeriousGameTracker extends JSTracker {
 
     login() {
         this.scormTracker = new ScormTracker(this.tracker, this.settings.activityId, SCORMTYPE.SCO);
-        this.tracker.login();
+        super.login();
     }
 
     logout() {
-        this.tracker.logout();
+        super.logout();
         this.scormTracker=null;
         this.instances={
             "completable": {},

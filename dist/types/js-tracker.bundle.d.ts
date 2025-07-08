@@ -46,15 +46,6 @@ export class JSTracker {
      * Generates an xAPI tracker instance from URL parameters
      */
     generateXAPITrackerFromURLParams(): void;
-    oauth2Settings: {
-        token_endpoint: string;
-        client_id: string;
-        login_hint: string;
-        grant_type: string;
-        scope: string;
-        username: string;
-        password: string;
-    };
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -260,29 +251,28 @@ declare class ScormTracker {
  */
 declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     /**
-     * Configuration object for OAuth2 authentication
-     * @param {Object} config - Configuration object containing OAuth2 parameters
-     * @param {string} config.token_endpoint - The token endpoint URL
-     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-     * @param {string} config.client_id - The client ID
-     * @param {string} [config.scope] - Optional scope
-     * @param {string} [config.state] - Optional state
-     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-     * @param {string} [config.username] - Username for password grant type
-     * @param {string} [config.password] - Password for password grant type
-     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
-     * @param {string} [config.login_hint] - Login hint for password grant type
+     * @typedef {Object} OAuth2Settings
+     * @property {string} token_endpoint
+     * @property {string} grant_type
+     * @property {string} client_id
+     * @property {string} scope
+     * @property {string} [state]
+     * @property {string} [code_challenge_method]
+     * @property {string} username
+     * @property {string} password
+     * @property {string} [refreshToken]
+     * @property {string} login_hint
      */
     oauth2Settings: {
         token_endpoint: string;
-        grant_type: string;
         client_id: string;
+        grant_type: string;
         scope: string;
         state: string;
         code_challenge_method: string;
+        refreshToken: string;
         username: string;
         password: string;
-        refreshToken: string;
         login_hint: string;
     };
     /**
@@ -315,7 +305,12 @@ declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
  * Extends the base xAPITrackerAsset with basic authentication capabilities.
  */
 declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
-    oauth1settings: {
+    /**
+    * @typedef {Object} oauth1Settings
+    * @property {string} username
+    * @property {string} password
+    */
+    oauth1Settings: {
         username: string;
         password: string;
     };

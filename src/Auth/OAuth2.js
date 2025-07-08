@@ -6,32 +6,33 @@ import OAuth2Protocol from "./OAuth2Protocol.js";
  * Extends the base xAPITrackerAsset with OAuth2 capabilities.
  */
 export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+
     /**
-     * Configuration object for OAuth2 authentication
-     * @param {Object} config - Configuration object containing OAuth2 parameters
-     * @param {string} config.token_endpoint - The token endpoint URL
-     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-     * @param {string} config.client_id - The client ID
-     * @param {string} [config.scope] - Optional scope
-     * @param {string} [config.state] - Optional state
-     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-     * @param {string} [config.username] - Username for password grant type
-     * @param {string} [config.password] - Password for password grant type
-     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
-     * @param {string} [config.login_hint] - Login hint for password grant type
+     * @typedef {Object} OAuth2Settings
+     * @property {string} token_endpoint
+     * @property {string} grant_type
+     * @property {string} client_id
+     * @property {string} scope
+     * @property {string} [state]
+     * @property {string} [code_challenge_method]
+     * @property {string} username
+     * @property {string} password
+     * @property {string} [refreshToken]
+     * @property {string} login_hint
      */
-    oauth2Settings={
-        token_endpoint:"",
-        grant_type:"",
-        client_id:"",
-        scope:"",
-        state:"",
-        code_challenge_method:"",
-        username:"",
-        password:"",
-        refreshToken:"",
-        login_hint:""
+    oauth2Settings = {
+        token_endpoint:        "https://…/token",
+        client_id:             "my_client_id",
+        grant_type:            "password",
+        scope:                 "openid profile",
+        state:                 "",
+        code_challenge_method: "",
+        refreshToken:          "",
+        username:              "alice@example.com",
+        password:              "supersecret",
+        login_hint:            "alice@example.com"
     };
+
 
     /**
      * Instance of OAuth2Protocol handling authentication

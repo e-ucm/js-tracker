@@ -142,12 +142,32 @@ export class JSTracker {
         }
 
         if (xAPIConfig.token_endpoint) {
+            /**
+             * @type {xAPITrackerAssetOAuth2}
+             */
             this.tracker = new xAPITrackerAssetOAuth2();
-            this.oauth2Settings = xAPIConfig;
+            if (this.tracker && 'oauth2Settings' in this.tracker) {
+                this.tracker.oauth2Settings.client_id = xAPIConfig.client_id;
+                this.tracker.oauth2Settings.grant_type = xAPIConfig.grant_type;
+                this.tracker.oauth2Settings.login_hint = xAPIConfig.login_hint;
+                this.tracker.oauth2Settings.username = xAPIConfig.username;
+                this.tracker.oauth2Settings.password = xAPIConfig.password;
+                this.tracker.oauth2Settings.scope = xAPIConfig.scope;
+                this.tracker.oauth2Settings.token_endpoint = xAPIConfig.token_endpoint;
+            } else {
+                throw new Error("tracker isn't OAuth2");
+            }
         } else if (username && password) {
+            /**
+             * @type {xAPITrackerAssetOAuth1}
+             */
             this.tracker = new xAPITrackerAssetOAuth1();
-            this.settings.username = username;
-            this.settings.password = password;
+            if (this.tracker && 'oauth1Settings' in this.tracker) {
+                this.tracker.oauth1Settings.username = username;
+                this.tracker.oauth1Settings.password = password;
+            } else {
+                throw new Error("tracker isn't OAuth1");
+            }
         } else {
             this.tracker = new xAPITrackerAsset();
         }
@@ -183,6 +203,15 @@ export class JSScormTracker extends JSTracker {
      */
     constructor() {
         super();
+    }
+
+    login() {
+        super.login();
+    }
+
+    logout() {
+        super.logout();
+        this.scormInstances={};
     }
 
     /**
@@ -257,11 +286,11 @@ export class SeriousGameTracker extends JSTracker {
 
     login() {
         this.scormTracker = new ScormTracker(this.tracker, this.settings.activityId, SCORMTYPE.SCO);
-        this.tracker.login();
+        super.login();
     }
 
     logout() {
-        this.tracker.logout();
+        super.logout();
         this.scormTracker=null;
         this.instances={
             "completable": {},

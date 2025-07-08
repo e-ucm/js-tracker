@@ -6,7 +6,12 @@ import XAPI from "@xapi/xapi";
  * Extends the base xAPITrackerAsset with basic authentication capabilities.
  */
 export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
-    oauth1settings={
+     /**
+     * @typedef {Object} oauth1Settings
+     * @property {string} username
+     * @property {string} password
+     */
+    oauth1Settings={
         username:"",
         password:""
     };
@@ -15,8 +20,8 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
      */
     constructor() {
         super();
-        this.oauth1settings.username="";
-        this.oauth1settings.password="";
+        this.oauth1Settings.username="";
+        this.oauth1Settings.password="";
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
                 this.logout();
@@ -25,7 +30,7 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
     }
 
     async login() {
-        this.auth_token=XAPI.toBasicAuth(this.oauth1settings.username, this.oauth1settings.password);
+        this.auth_token=XAPI.toBasicAuth(this.oauth1Settings.username, this.oauth1Settings.password);
         super.login();
     }
 
