@@ -55,7 +55,7 @@ export class ScormTracker {
     Initialized() {
         var addInitializedTime = true;
         if(this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
                 console.warn("The initialized statement for the specified id has already been sent!");
@@ -79,7 +79,7 @@ export class ScormTracker {
      */
     Suspended() {
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an suspended statement!");
@@ -102,7 +102,7 @@ export class ScormTracker {
     Resumed() {
         var addInitializedTime = true;
         if(this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The Resumed statement for the specified id has already been sent!");
             } else {
                 console.warn("The Resumed statement for the specified id has already been sent!");
@@ -126,7 +126,7 @@ export class ScormTracker {
      */
     Terminated() {
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Terminated statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an Terminated statement!");
@@ -183,7 +183,7 @@ export class ScormTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an suspended statement!");

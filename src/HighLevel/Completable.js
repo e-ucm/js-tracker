@@ -60,7 +60,7 @@ export class CompletableTracker {
     Initialized() {
         var addInitializedTime = true;
         if(this.initializedTime) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
                 console.warn("The initialized statement for the specified id has already been sent!");
@@ -97,7 +97,7 @@ export class CompletableTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Completed statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an Completed statement!");

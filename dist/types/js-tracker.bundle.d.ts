@@ -24,32 +24,15 @@ export class JSScormTracker extends JSTracker {
  */
 export class JSTracker {
     /**
-     * Creates a new JSTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
-     */
-    constructor({ result_uri, backup_uri, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug }?: {
-        result_uri?: string;
-        backup_uri?: string;
-        backup_type?: string;
-        actor_homePage?: string;
-        actor_name?: string;
-        auth_token?: string;
-        default_uri?: string;
-        debug?: boolean;
-    });
-    /**
      * The underlying tracker instance
-     * @type {xAPITrackerAsset|xAPITrackerAssetOAuth1|xAPITrackerAssetOAuth2}
+     * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
      */
-    tracker: xAPITrackerAsset | xAPITrackerAssetOAuth1 | xAPITrackerAssetOAuth2;
+    tracker: xAPITrackerAssetOAuth2 | xAPITrackerAssetOAuth1 | xAPITrackerAsset;
+    settings: {
+        generateSettingsFromURLParams: boolean;
+    };
+    login(): void;
+    logout(): void;
     /**
      * Flushes the statement queue
      * @param {Object} [opts] - Flush options
@@ -61,41 +44,22 @@ export class JSTracker {
     }): Promise<void>;
     /**
      * Generates an xAPI tracker instance from URL parameters
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.default_uri] - Default URI for statements
      */
-    generateXAPITrackerFromURLParams({ default_uri }?: {
-        default_uri?: string;
-    }): void;
+    generateXAPITrackerFromURLParams(): void;
+    oauth2Settings: {
+        token_endpoint: string;
+        client_id: string;
+        login_hint: string;
+        grant_type: string;
+        scope: string;
+        username: string;
+        password: string;
+    };
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
  */
 export class SeriousGameTracker extends JSTracker {
-    /**
-     * Creates a new SeriousGameTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.activityId] - Activity ID
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
-     */
-    constructor({ result_uri, backup_uri, activityId, backup_type, actor_homePage, actor_name, auth_token, default_uri, debug }?: {
-        result_uri?: string;
-        backup_uri?: string;
-        activityId?: string;
-        backup_type?: string;
-        actor_homePage?: string;
-        actor_name?: string;
-        auth_token?: string;
-        default_uri?: string;
-        debug?: boolean;
-    });
     /**
      * Accessible type constants
      */
@@ -291,49 +255,99 @@ declare class ScormTracker {
     Completed(success: boolean, completion: boolean, score: number): StatementBuilder;
 }
 /**
+ * A specialized tracker asset that implements OAuth2 authentication.
+ * Extends the base xAPITrackerAsset with OAuth2 capabilities.
+ */
+declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
+    /**
+     * Configuration object for OAuth2 authentication
+     * @param {Object} config - Configuration object containing OAuth2 parameters
+     * @param {string} config.token_endpoint - The token endpoint URL
+     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+     * @param {string} config.client_id - The client ID
+     * @param {string} [config.scope] - Optional scope
+     * @param {string} [config.state] - Optional state
+     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+     * @param {string} [config.username] - Username for password grant type
+     * @param {string} [config.password] - Password for password grant type
+     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+     * @param {string} [config.login_hint] - Login hint for password grant type
+     */
+    oauth2Settings: {
+        token_endpoint: string;
+        grant_type: string;
+        client_id: string;
+        scope: string;
+        state: string;
+        code_challenge_method: string;
+        username: string;
+        password: string;
+        refreshToken: string;
+        login_hint: string;
+    };
+    /**
+     * Instance of OAuth2Protocol handling authentication
+     * @type {OAuth2Protocol|null}
+     */
+    oauth2: OAuth2Protocol | null;
+    login(): Promise<void>;
+    /**
+     * Retrieves an OAuth2 access token.
+     *
+     * @returns {Promise<string|null>} The access token or null if failed
+     */
+    getToken(): Promise<string | null>;
+    /**
+     * Initializes authentication by obtaining and setting the OAuth2 token.
+     *
+     * @returns {Promise<void>}
+     */
+    initAuth(): Promise<void>;
+    /**
+     * Logs out the current session by invalidating the token.
+     *
+     * @returns {Promise<void>}
+     */
+    logout(): Promise<void>;
+}
+/**
+ * A specialized tracker asset that implements OAuth1 authentication.
+ * Extends the base xAPITrackerAsset with basic authentication capabilities.
+ */
+declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
+    oauth1settings: {
+        username: string;
+        password: string;
+    };
+    login(): Promise<void>;
+}
+/**
  * XAPI Tracker Asset Class
  * Handles xAPI tracking with batch processing, retry logic, and backup capabilities
  */
 declare class xAPITrackerAsset {
-    /**
-     * Creates an instance of xAPITrackerAsset
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {string} opts.default_uri - Default URI for statements (required)
-     *
-     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
-     * @param {string} [opts.auth_token=null] - Authentication token (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
-     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
-     */
-    constructor({ endpoint, actor_homePage, actor_name, default_uri, backup_endpoint, backup_type, auth_token, debug, batchLength, batchTimeout, maxRetryDelay }: {
-        endpoint: string;
-        actor_homePage: string;
-        actor_name: string;
-        default_uri: string;
-        backup_endpoint?: string;
-        backup_type?: string;
-        auth_token?: string;
-        debug?: boolean;
-        batchLength?: number;
-        batchTimeout?: number;
-        maxRetryDelay?: number;
-    });
     /**
      * XAPI Tracker instance
      * @type {XAPI|null}
      */
     xapi: XAPI | null;
     /**
-     * Primary xAPI endpoint URL
-     * @type {string}
+     * Settings of XAPI Tracker Asset
      */
-    endpoint: string;
+    settings: {
+        batch_mode: boolean;
+        batch_endpoint: any;
+        batch_length: number;
+        batch_timeout: any;
+        actor_homePage: any;
+        actor_name: any;
+        backup_mode: boolean;
+        backup_endpoint: any;
+        backup_type: string;
+        default_uri: any;
+        max_retry_delay: any;
+        debug: boolean;
+    };
     /**
      * Authentication token for xAPI requests
      * @type {string|null}
@@ -360,21 +374,6 @@ declare class xAPITrackerAsset {
      */
     offset: number;
     /**
-     * Whether backup is enabled
-     * @type {boolean}
-     */
-    backup: boolean;
-    /**
-     * Backup endpoint URL
-     * @type {string|null}
-     */
-    backup_endpoint: string | null;
-    /**
-     * Backup type (XAPI or CSV)
-     * @type {string|null}
-     */
-    backup_type: string | null;
-    /**
      * Additional parameters for backup requests
      * @type {Object|null}
      */
@@ -385,50 +384,15 @@ declare class xAPITrackerAsset {
      */
     actor: ActorStatement;
     /**
-     * Actor's homepage URL
-     * @type {string}
-     */
-    actor_homePage: string;
-    /**
-     * Actor's name
-     * @type {string}
-     */
-    actor_name: string;
-    /**
      * Context statement object
      * @type {ContextStatement}
      */
     context: ContextStatement;
     /**
-     * Default URI for statements
-     * @type {string}
-     */
-    default_uri: string;
-    /**
-     * Debug mode flag
-     * @type {boolean}
-     */
-    debug: boolean;
-    /**
-     * Number of statements to send in each batch
-     * @type {number}
-     */
-    batchlength: number;
-    /**
-     * Timeout between batch sends in milliseconds
-     * @type {number}
-     */
-    batchtimeout: number;
-    /**
      * Current retry delay in milliseconds
      * @type {number|null}
      */
     retryDelay: number | null;
-    /**
-     * Maximum retry delay in milliseconds
-     * @type {number}
-     */
-    maxRetryDelay: number;
     /**
      * Timer reference for batch processing
      * @type {NodeJS.Timeout|null}
@@ -450,7 +414,7 @@ declare class xAPITrackerAsset {
     /**
      * Updates the authentication configuration
      */
-    updateAuth(): void;
+    login(): void;
     /**
      * Sends a batch of statements to the xAPI endpoint
      * @returns {Promise<void>}
@@ -493,106 +457,6 @@ declare class xAPITrackerAsset {
     flush({ withBackup }?: {
         withBackup?: boolean;
     }): Promise<void>;
-}
-/**
- * A specialized tracker asset that implements OAuth1 authentication.
- * Extends the base xAPITrackerAsset with basic authentication capabilities.
- */
-declare class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
-    /**
-     * Creates an instance of xAPITrackerAssetOAuth1.
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary API endpoint (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {string} opts.username - Username for authentication (required)
-     * @param {string} opts.password - Password for authentication (required)
-     * @param {string} opts.default_uri - Default URI for requests (required)
-     *
-     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
-     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
-     */
-    constructor({ endpoint, actor_homePage, actor_name, default_uri, username, password, backup_endpoint, backup_type, debug, batchLength, batchTimeout, maxRetryDelay }: {
-        endpoint: string;
-        actor_homePage: string;
-        actor_name: string;
-        username: string;
-        password: string;
-        default_uri: string;
-        backup_endpoint?: string;
-        backup_type?: string;
-        debug?: boolean;
-        batchLength?: number;
-        batchTimeout?: number;
-        maxRetryDelay?: number;
-    });
-}
-/**
- * A specialized tracker asset that implements OAuth2 authentication.
- * Extends the base xAPITrackerAsset with OAuth2 capabilities.
- */
-declare class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
-    /**
-     * Creates an instance of xAPITrackerAssetOAuth2.
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary API endpoint (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {Object} opts.config - OAuth2 configuration (required)
-     * @param {string} opts.default_uri - Default URI for requests (required)
-     *
-     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
-     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
-     */
-    constructor({ endpoint, actor_homePage, actor_name, config, default_uri, backup_endpoint, backup_type, debug, batchLength, batchTimeout, maxRetryDelay }: {
-        endpoint: string;
-        actor_homePage: string;
-        actor_name: string;
-        config: any;
-        default_uri: string;
-        backup_endpoint?: string;
-        backup_type?: string;
-        debug?: boolean;
-        batchLength?: number;
-        batchTimeout?: number;
-        maxRetryDelay?: number;
-    });
-    /**
-     * Configuration object for OAuth2 authentication
-     * @type {Object}
-     */
-    oauth2Config: any;
-    /**
-     * Instance of OAuth2Protocol handling authentication
-     * @type {OAuth2Protocol|null}
-     */
-    oauth2: OAuth2Protocol | null;
-    /**
-     * Retrieves an OAuth2 access token.
-     *
-     * @returns {Promise<string|null>} The access token or null if failed
-     */
-    getToken(): Promise<string | null>;
-    /**
-     * Initializes authentication by obtaining and setting the OAuth2 token.
-     *
-     * @returns {Promise<void>}
-     */
-    initAuth(): Promise<void>;
-    /**
-     * Logs out the current session by invalidating the token.
-     *
-     * @returns {Promise<void>}
-     */
-    logout(): Promise<void>;
 }
 /**
  * Statement Builder Class
@@ -913,6 +777,196 @@ declare class AlternativeTracker {
      */
     Unlocked(optionId: string): StatementBuilder;
 }
+/**
+ * A class that implements OAuth 2.0 protocol for authentication and token management.
+ * Supports various grant types including password and refresh_token flows.
+ */
+declare class OAuth2Protocol {
+    /**
+     * Error message template for missing required fields.
+     * @type {string}
+     */
+    fieldMissingMessage: string;
+    /**
+     * Error message template for unsupported grant types.
+     * @type {string}
+     */
+    unsupportedGrantTypeMessage: string;
+    /**
+     * Error message template for unsupported PKCE methods.
+     * @type {string}
+     */
+    unsupportedCodeChallengeMethodMessage: string;
+    /**
+     * The authorization endpoint URL.
+     * @type {string|null}
+     */
+    authEndpoint: string | null;
+    /**
+     * The token endpoint URL.
+     * @type {string|null}
+     */
+    tokenEndpoint: string | null;
+    /**
+     * The OAuth2 grant type being used.
+     * @type {string|null}
+     */
+    grantType: string | null;
+    /**
+     * The username for authentication.
+     * @type {string|null}
+     */
+    username: string | null;
+    /**
+     * The password for authentication.
+     * @type {string|null}
+     */
+    password: string | null;
+    /**
+     * The client identifier.
+     * @type {string|null}
+     */
+    clientId: string | null;
+    /**
+     * The requested scope of access.
+     * @type {string|null}
+     */
+    scope: string | null;
+    /**
+     * The state parameter for CSRF protection.
+     * @type {string|null}
+     */
+    state: string | null;
+    /**
+     * The login hint for authentication.
+     * @type {string|null}
+     */
+    login_hint: string | null;
+    /**
+     * The PKCE code challenge method.
+     * @type {string|null}
+     */
+    codeChallengeMethod: string | null;
+    /**
+     * The current authentication token.
+     * @type {Object|null}
+     */
+    token: any | null;
+    /**
+     * Flag indicating if a token refresh is currently in progress.
+     * @type {boolean}
+     */
+    tokenRefreshInProgress: boolean;
+    /**
+     * Callback function for token updates.
+     * @type {Function|null}
+     */
+    onAuthorizationInfoUpdate: Function | null;
+    /**
+     * Initializes the OAuth2 protocol with the provided configuration.
+     *
+     * @param {Object} config - Configuration object containing OAuth2 parameters
+     * @param {string} config.token_endpoint - The token endpoint URL
+     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+     * @param {string} config.client_id - The client ID
+     * @param {string} [config.scope] - Optional scope
+     * @param {string} [config.state] - Optional state
+     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+     * @param {string} [config.username] - Username for password grant type
+     * @param {string} [config.password] - Password for password grant type
+     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+     * @param {string} [config.login_hint] - Login hint for password grant type
+     * @returns {Promise<void>}
+     * @throws {Error} If required configuration values are missing or grant type is unsupported
+     */
+    init(config: {
+        token_endpoint: string;
+        grant_type: string;
+        client_id: string;
+        scope?: string;
+        state?: string;
+        code_challenge_method?: string;
+        username?: string;
+        password?: string;
+        refresh_token?: string;
+        login_hint?: string;
+    }): Promise<void>;
+    /**
+     * Retrieves a required value from the configuration object.
+     *
+     * @param {Object} config - The configuration object
+     * @param {string} key - The key of the required value
+     * @returns {*} The value associated with the key
+     * @throws {Error} If the required value is missing
+     */
+    getRequiredValue(config: any, key: string): any;
+    /**
+     * Performs the Resource Owner Password Credentials flow.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} username - The username
+     * @param {string} password - The password
+     * @param {string} [scope] - Optional scope
+     * @param {string} [state] - Optional state
+     * @param {string} login_hint - The login hint
+     * @returns {Promise<Object>} The token response
+     */
+    doResourceOwnedPasswordCredentialsFlow(tokenUrl: string, clientId: string, username: string, password: string, login_hint: string, scope?: string, state?: string): Promise<any>;
+    /**
+     * Makes a token request to the OAuth2 token endpoint.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} grantType - The grant type
+     * @param {Object} otherParams - Additional parameters to include in the request
+     * @returns {Promise<Object>} The token response
+     * @throws {Error} If the token request fails
+     */
+    doTokenRequest(tokenUrl: string, clientId: string, grantType: string, otherParams: any): Promise<any>;
+    /**
+     * Performs a refresh token request.
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} refreshToken - The refresh token
+     * @returns {Promise<Object>} The new token response
+     */
+    doRefreshToken(tokenUrl: string, clientId: string, refreshToken: string): Promise<any>;
+    /**
+     * Refreshes the current access token using the refresh token.
+     *
+     * @returns {Promise<string>} The new access token
+     */
+    refreshToken(): Promise<string>;
+    /**
+     * Checks if the current token has expired.
+     *
+     * @returns {boolean} True if the token has expired, false otherwise
+     */
+    hasTokenExpired(): boolean;
+    /**
+     * Updates the request with the current authorization token.
+     * Refreshes the token if it has expired.
+     *
+     * @param {Object} request - The request object to update
+     * @returns {Promise<void>}
+     */
+    updateParamsForAuth(request: any): Promise<void>;
+    /**
+     * Registers a callback function to be called when authorization information is updated.
+     *
+     * @param {Function} callback - The callback function to register
+     */
+    registerAuthInfoUpdate(callback: Function): void;
+    /**
+     * Logs out the current session by invalidating the refresh token.
+     *
+     * @returns {Promise<void>}
+     * @throws {Error} If the logout request fails
+     */
+    logout(): Promise<void>;
+}
 import XAPI from '@xapi/xapi';
 /**
 * Statement class
@@ -1140,196 +1194,6 @@ declare class ContextStatement {
      * @returns {String}
      */
     toCSV(): string;
-}
-/**
- * A class that implements OAuth 2.0 protocol for authentication and token management.
- * Supports various grant types including password and refresh_token flows.
- */
-declare class OAuth2Protocol {
-    /**
-     * Error message template for missing required fields.
-     * @type {string}
-     */
-    fieldMissingMessage: string;
-    /**
-     * Error message template for unsupported grant types.
-     * @type {string}
-     */
-    unsupportedGrantTypeMessage: string;
-    /**
-     * Error message template for unsupported PKCE methods.
-     * @type {string}
-     */
-    unsupportedCodeChallengeMethodMessage: string;
-    /**
-     * The authorization endpoint URL.
-     * @type {string|null}
-     */
-    authEndpoint: string | null;
-    /**
-     * The token endpoint URL.
-     * @type {string|null}
-     */
-    tokenEndpoint: string | null;
-    /**
-     * The OAuth2 grant type being used.
-     * @type {string|null}
-     */
-    grantType: string | null;
-    /**
-     * The username for authentication.
-     * @type {string|null}
-     */
-    username: string | null;
-    /**
-     * The password for authentication.
-     * @type {string|null}
-     */
-    password: string | null;
-    /**
-     * The client identifier.
-     * @type {string|null}
-     */
-    clientId: string | null;
-    /**
-     * The requested scope of access.
-     * @type {string|null}
-     */
-    scope: string | null;
-    /**
-     * The state parameter for CSRF protection.
-     * @type {string|null}
-     */
-    state: string | null;
-    /**
-     * The login hint for authentication.
-     * @type {string|null}
-     */
-    login_hint: string | null;
-    /**
-     * The PKCE code challenge method.
-     * @type {string|null}
-     */
-    codeChallengeMethod: string | null;
-    /**
-     * The current authentication token.
-     * @type {Object|null}
-     */
-    token: any | null;
-    /**
-     * Flag indicating if a token refresh is currently in progress.
-     * @type {boolean}
-     */
-    tokenRefreshInProgress: boolean;
-    /**
-     * Callback function for token updates.
-     * @type {Function|null}
-     */
-    onAuthorizationInfoUpdate: Function | null;
-    /**
-     * Initializes the OAuth2 protocol with the provided configuration.
-     *
-     * @param {Object} config - Configuration object containing OAuth2 parameters
-     * @param {string} config.token_endpoint - The token endpoint URL
-     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-     * @param {string} config.client_id - The client ID
-     * @param {string} [config.scope] - Optional scope
-     * @param {string} [config.state] - Optional state
-     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-     * @param {string} [config.username] - Username for password grant type
-     * @param {string} [config.password] - Password for password grant type
-     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
-     * @param {string} [config.login_hint] - Login hint for password grant type
-     * @returns {Promise<void>}
-     * @throws {Error} If required configuration values are missing or grant type is unsupported
-     */
-    init(config: {
-        token_endpoint: string;
-        grant_type: string;
-        client_id: string;
-        scope?: string;
-        state?: string;
-        code_challenge_method?: string;
-        username?: string;
-        password?: string;
-        refresh_token?: string;
-        login_hint?: string;
-    }): Promise<void>;
-    /**
-     * Retrieves a required value from the configuration object.
-     *
-     * @param {Object} config - The configuration object
-     * @param {string} key - The key of the required value
-     * @returns {*} The value associated with the key
-     * @throws {Error} If the required value is missing
-     */
-    getRequiredValue(config: any, key: string): any;
-    /**
-     * Performs the Resource Owner Password Credentials flow.
-     *
-     * @param {string} tokenUrl - The token endpoint URL
-     * @param {string} clientId - The client ID
-     * @param {string} username - The username
-     * @param {string} password - The password
-     * @param {string} [scope] - Optional scope
-     * @param {string} [state] - Optional state
-     * @param {string} login_hint - The login hint
-     * @returns {Promise<Object>} The token response
-     */
-    doResourceOwnedPasswordCredentialsFlow(tokenUrl: string, clientId: string, username: string, password: string, login_hint: string, scope?: string, state?: string): Promise<any>;
-    /**
-     * Makes a token request to the OAuth2 token endpoint.
-     *
-     * @param {string} tokenUrl - The token endpoint URL
-     * @param {string} clientId - The client ID
-     * @param {string} grantType - The grant type
-     * @param {Object} otherParams - Additional parameters to include in the request
-     * @returns {Promise<Object>} The token response
-     * @throws {Error} If the token request fails
-     */
-    doTokenRequest(tokenUrl: string, clientId: string, grantType: string, otherParams: any): Promise<any>;
-    /**
-     * Performs a refresh token request.
-     *
-     * @param {string} tokenUrl - The token endpoint URL
-     * @param {string} clientId - The client ID
-     * @param {string} refreshToken - The refresh token
-     * @returns {Promise<Object>} The new token response
-     */
-    doRefreshToken(tokenUrl: string, clientId: string, refreshToken: string): Promise<any>;
-    /**
-     * Refreshes the current access token using the refresh token.
-     *
-     * @returns {Promise<string>} The new access token
-     */
-    refreshToken(): Promise<string>;
-    /**
-     * Checks if the current token has expired.
-     *
-     * @returns {boolean} True if the token has expired, false otherwise
-     */
-    hasTokenExpired(): boolean;
-    /**
-     * Updates the request with the current authorization token.
-     * Refreshes the token if it has expired.
-     *
-     * @param {Object} request - The request object to update
-     * @returns {Promise<void>}
-     */
-    updateParamsForAuth(request: any): Promise<void>;
-    /**
-     * Registers a callback function to be called when authorization information is updated.
-     *
-     * @param {Function} callback - The callback function to register
-     */
-    registerAuthInfoUpdate(callback: Function): void;
-    /**
-     * Logs out the current session by invalidating the refresh token.
-     *
-     * @returns {Promise<void>}
-     * @throws {Error} If the logout request fails
-     */
-    logout(): Promise<void>;
 }
 /**
  * The Verb Class  of a Statement

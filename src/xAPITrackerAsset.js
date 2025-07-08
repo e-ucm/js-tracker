@@ -17,13 +17,25 @@ export default class xAPITrackerAsset {
      * XAPI Tracker instance
      * @type {XAPI|null}
      */
-    xapi = null;
+    xapi=null;
 
     /**
-     * Primary xAPI endpoint URL
-     * @type {string}
+     * Settings of XAPI Tracker Asset
      */
-    endpoint;
+    settings={
+        batch_mode:true,
+        batch_endpoint:null,
+        batch_length:100,
+        batch_timeout:ms("30sec"),
+        actor_homePage:null,
+        actor_name:null,
+        backup_mode:false,
+        backup_endpoint:null,
+        backup_type:"XAPI",
+        default_uri:null,
+        max_retry_delay:ms("2min"),
+        debug:false
+    };
 
     /**
      * Authentication token for xAPI requests
@@ -58,25 +70,6 @@ export default class xAPITrackerAsset {
     offset = 0;
 
     // BACKUP PARAMETERS
-
-    /**
-     * Whether backup is enabled
-     * @type {boolean}
-     */
-    backup = false;
-
-    /**
-     * Backup endpoint URL
-     * @type {string|null}
-     */
-    backup_endpoint = null;
-
-    /**
-     * Backup type (XAPI or CSV)
-     * @type {string|null}
-     */
-    backup_type = null;
-
     /**
      * Additional parameters for backup requests
      * @type {Object|null}
@@ -84,7 +77,6 @@ export default class xAPITrackerAsset {
     backupRequestParameters = null;
 
     // ACTOR PARAMETERS
-
     /**
      * Actor statement object
      * @type {ActorStatement}
@@ -92,64 +84,17 @@ export default class xAPITrackerAsset {
     actor;
 
     /**
-     * Actor's homepage URL
-     * @type {string}
-     */
-    actor_homePage;
-
-    /**
-     * Actor's name
-     * @type {string}
-     */
-    actor_name;
-
-    /**
      * Context statement object
      * @type {ContextStatement}
      */
     context;
 
-    // DEFAULT_URI PARAMETERS
-
-    /**
-     * Default URI for statements
-     * @type {string}
-     */
-    default_uri;
-
-    // DEBUG PARAMETERS
-
-    /**
-     * Debug mode flag
-     * @type {boolean}
-     */
-    debug;
-
     // BATCH AND RETRY PARAMETERS
-
-    /**
-     * Number of statements to send in each batch
-     * @type {number}
-     */
-    batchlength;
-
-    /**
-     * Timeout between batch sends in milliseconds
-     * @type {number}
-     */
-    batchtimeout;
-
     /**
      * Current retry delay in milliseconds
      * @type {number|null}
      */
-    retryDelay = null;
-
-    /**
-     * Maximum retry delay in milliseconds
-     * @type {number}
-     */
-    maxRetryDelay;
+    retryDelay;
 
     /**
      * Timer reference for batch processing
@@ -159,52 +104,19 @@ export default class xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAsset
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {string} opts.default_uri - Default URI for statements (required)
-     * 
-     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
-     * @param {string} [opts.auth_token=null] - Authentication token (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
-     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
      */
-    constructor({endpoint, actor_homePage, actor_name, default_uri=null, backup_endpoint=null, backup_type="XAPI", auth_token=null, debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
-        this.default_uri = default_uri;
-        this.debug = debug;
-        this.online = false;
-        this.endpoint = endpoint;
-
-        if(backup_endpoint) {
-            this.backup = true;
-            this.backup_type = backup_type;
-            this.backup_endpoint = backup_endpoint;
-        }
-
-        this.batchlength = batchLength || 100;
-        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
-        this.offset = 0;
-        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
-        this.statementsToSend = [];
-        this.timer = null;
-        this.auth_token = auth_token;
-        this.actor_homePage = actor_homePage;
-        this.actor_name = actor_name;
-        this.actor = new ActorStatement(this.actor_name, this.actor_homePage);
-        this.context = new ContextStatement();
-        this.updateAuth();
+    constructor() {
+        this.onOffline();
     }
 
     /**
      * Logs out the current session by clearing the authentication token
      */
     logout() {
-        this.auth_token = null;
-        this.onOffline();
+         if(this.online) {
+            this.auth_token = null;
+            this.onOffline();
+         }
     }
 
     /**
@@ -212,7 +124,12 @@ export default class xAPITrackerAsset {
      */
     onOffline() {
         this.online = false;
-        if (this.debug) console.warn("XAPI Tracker for Serious Games went offline");
+        this.offset = 0;
+        this.statementsToSend = [];
+        this.timer = null;
+        this.actor = null;
+        this.context = null;
+        if (this.settings.debug) console.warn("XAPI Tracker for Serious Games went offline");
     }
 
     /**
@@ -221,25 +138,29 @@ export default class xAPITrackerAsset {
      */
     async onOnline() {
         this.online = true;
-        if (this.debug) console.info("XAPI Tracker for Serious Games back Online");
+        if (this.settings.debug) console.info("XAPI Tracker for Serious Games back Online");
     }
 
     /**
      * Updates the authentication configuration
      */
-    updateAuth() {
-        if(this.auth_token != null) {
-            this.xapi = new XAPI({
-                endpoint: this.endpoint,
-                auth: this.auth_token
-            });
-            if(this.xapi != null) {
-                this.onOnline();
+    login() {
+        if(!this.online) {
+            this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
+            this.context = new ContextStatement();
+            if(this.auth_token != null) {
+                this.xapi = new XAPI({
+                    endpoint: this.settings.batch_endpoint,
+                    auth: this.auth_token
+                });
+                if(this.xapi != null) {
+                    this.onOnline();
+                } else {
+                    this.onOffline();
+                }
             } else {
                 this.onOffline();
             }
-        } else {
-            this.onOffline();
         }
     }
 
@@ -251,7 +172,7 @@ export default class xAPITrackerAsset {
         if (!this.online) return;
         if (this.offset >= this.statementsToSend.length) return;
 
-        const end = Math.min(this.offset + this.batchlength, this.statementsToSend.length);
+        const end = Math.min(this.offset + this.settings.batch_length, this.statementsToSend.length);
         const batch = this.statementsToSend.slice(this.offset, end);
         const statements = batch.map(statement => statement.toXAPI());
 
@@ -260,7 +181,7 @@ export default class xAPITrackerAsset {
                 this.sendingInProgress = true;
                 const result = await this.xapi.sendStatements({statements: statements});
                 this.sendingInProgress = false;
-                if (this.debug) {
+                if (this.settings.debug) {
                     console.debug("Batch sent successfully:", result);
                 }
                 this.offset += batch.length;
@@ -288,9 +209,9 @@ export default class xAPITrackerAsset {
             }
 
             if(this.retryDelay == null) {
-                this.retryDelay = this.batchtimeout;
+                this.retryDelay = this.settings.batch_timeout;
             }
-            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay);
+            this.retryDelay = Math.min(this.retryDelay * 2, this.settings.max_retry_delay);
             this.timer = null;
         }
 
@@ -304,7 +225,7 @@ export default class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async refreshAuth() {
-        this.updateAuth();
+        this.login();
     }
 
     /**
@@ -312,7 +233,7 @@ export default class xAPITrackerAsset {
      */
     startTimer() {
         if (this.timer) return;
-        let timeout = this.retryDelay ? this.retryDelay : this.batchtimeout;
+        let timeout = this.retryDelay ? this.retryDelay : this.settings.batch_timeout;
 
         this.timer = setTimeout(async () => {
             await this.sendBatch();
@@ -331,7 +252,7 @@ export default class xAPITrackerAsset {
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
     Trace(verbId, objectType, objectId) {
-        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
+        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }
 
@@ -340,11 +261,11 @@ export default class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async sendBackup() {
-        if (this.online && this.backup_endpoint && this.backup_endpoint.trim()) {
+        if (this.online && this.settings.backup_endpoint && this.settings.backup_endpoint.trim()) {
             let contentType;
             let statements;
 
-            switch (this.backup_type) {
+            switch (this.settings.backup_type) {
                 case 'XAPI':
                     statements = this.statementsToSend.map(statement => JSON.stringify(statement.toXAPI()));
                     contentType = 'application/json';
@@ -364,7 +285,7 @@ export default class xAPITrackerAsset {
             };
 
             const myRequest = {
-                url: this.backup_endpoint,
+                url: this.settings.backup_endpoint,
                 method: 'POST',
                 headers: {
                     'Authorization': this.auth_token || '',
@@ -423,14 +344,14 @@ export default class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async enqueue(statement) {
-        if(this.debug) {
+        if(this.settings.debug) {
             console.debug(statement.toXAPI());
             console.debug(statement.toCSV());
         }
 
         this.statementsToSend.push(statement);
 
-        if (this.online && this.statementsToSend.length >= this.offset + this.batchlength) {
+        if (this.online && this.statementsToSend.length >= this.offset + this.settings.batch_length) {
             await this.sendBatch();
         }
 

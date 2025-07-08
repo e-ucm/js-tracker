@@ -8,9 +8,30 @@ import OAuth2Protocol from "./OAuth2Protocol.js";
 export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     /**
      * Configuration object for OAuth2 authentication
-     * @type {Object}
+     * @param {Object} config - Configuration object containing OAuth2 parameters
+     * @param {string} config.token_endpoint - The token endpoint URL
+     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+     * @param {string} config.client_id - The client ID
+     * @param {string} [config.scope] - Optional scope
+     * @param {string} [config.state] - Optional state
+     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+     * @param {string} [config.username] - Username for password grant type
+     * @param {string} [config.password] - Password for password grant type
+     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+     * @param {string} [config.login_hint] - Login hint for password grant type
      */
-    oauth2Config;
+    oauth2Settings={
+        token_endpoint:"",
+        grant_type:"",
+        client_id:"",
+        scope:"",
+        state:"",
+        code_challenge_method:"",
+        username:"",
+        password:"",
+        refreshToken:"",
+        login_hint:""
+    };
 
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -20,35 +41,25 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAssetOAuth2.
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary API endpoint (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {Object} opts.config - OAuth2 configuration (required)
-     * @param {string} opts.default_uri - Default URI for requests (required)
-     * 
-     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
-     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
+
      */
-    constructor({endpoint, actor_homePage, actor_name, config,  default_uri, backup_endpoint=null, backup_type='XAPI', debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
-        // Call the parent constructor without the token (since we don't have it yet)
-        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name,default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
-
-        this.oauth2Config = config;
+    constructor() {
+        super();
         this.oauth2 = null;
-
-        // Fetch token after object construction
-        this.initAuth();
-
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', async () => {
             if (this.auth_token) {
-                this.logout();
+                await this.logout();
             }
         });
+    }
+
+    async login() {
+        if(!this.online) {
+            // Fetch token after object construction
+            this.initAuth();
+            // Update the authorization or reinitialize xAPITrackerAsset with the token
+            super.login();
+        }
     }
 
     /**
@@ -59,7 +70,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     async getToken() {
         try {
             this.oauth2 = new OAuth2Protocol();
-            await this.oauth2.init(this.oauth2Config);
+            await this.oauth2.init(this.oauth2Settings);
             return this.oauth2.token.access_token; // Return the access token
         } catch(e) {
             console.error(e);
@@ -78,7 +89,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            this.updateAuth();
+            super.login();
         }
     }
 
@@ -93,16 +104,8 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            this.updateAuth();
+            super.login();
         }
-    }
-
-    /**
-     * Updates the authentication in the parent class.
-     */
-    updateAuth() {
-        // Update the authorization or reinitialize xAPITrackerAsset with the token
-        super.updateAuth();
     }
 
     /**

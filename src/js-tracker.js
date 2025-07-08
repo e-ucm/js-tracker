@@ -14,42 +14,31 @@ import { StatementBuilder } from './HighLevel/StatementBuilder.js';
 export class JSTracker {
     /**
      * The underlying tracker instance
-     * @type {xAPITrackerAsset|xAPITrackerAssetOAuth1|xAPITrackerAssetOAuth2}
+     * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
      */
     tracker;
+    
+    settings;
 
     /**
      * Creates a new JSTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({
-        result_uri = null,
-        backup_uri = null,
-        backup_type = null,
-        actor_homePage = null,
-        actor_name = null,
-        auth_token = null,
-        default_uri = null,
-        debug = null
-    } = {}) {
-        this.tracker = new xAPITrackerAsset({
-            endpoint:result_uri,
-            backup_endpoint:backup_uri,
-            backup_type:backup_type,
-            actor_homePage:actor_homePage,
-            actor_name:actor_name,
-            auth_token:auth_token,
-            default_uri:default_uri,
-            debug:debug
-        });
+    constructor() {
+        this.tracker = new xAPITrackerAsset();
+        this.settings= {
+            generateSettingsFromURLParams:false
+        };
+    }
+
+    login() {
+        if(this.settings.generateSettingsFromURLParams) {
+            this.generateXAPITrackerFromURLParams();
+        }
+        this.tracker.login();
+    }
+
+    logout() {
+        this.tracker.logout();
     }
 
     /**
@@ -64,10 +53,8 @@ export class JSTracker {
 
     /**
      * Generates an xAPI tracker instance from URL parameters
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.default_uri] - Default URI for statements
      */
-    generateXAPITrackerFromURLParams({ default_uri = null } = {}) {
+    generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
         let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
@@ -155,49 +142,24 @@ export class JSTracker {
         }
 
         if (xAPIConfig.token_endpoint) {
-            this.tracker = new xAPITrackerAssetOAuth2({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                config:xAPIConfig,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAssetOAuth2();
+            this.oauth2Settings = xAPIConfig;
         } else if (username && password) {
-            this.tracker = new xAPITrackerAssetOAuth1({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                username:username,
-                password:password,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAssetOAuth1();
+            this.settings.username = username;
+            this.settings.password = password;
         } else {
-            this.tracker = new xAPITrackerAsset({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                auth_token:auth_token,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAsset();
         }
+        this.tracker.settings.batch_endpoint=result_uri;
+        this.tracker.settings.actor_homePage=actor_homePage;
+        this.tracker.settings.actor_name=actor_name;
+        this.tracker.settings.backup_endpoint=backup_uri;
+        this.tracker.settings.backup_type=backup_type;
+        this.tracker.settings.debug=debug;
+        this.tracker.settings.batch_length=batchLength;
+        this.tracker.settings.batch_timeout=batchTimeout;
+        this.tracker.settings.max_retry_delay=maxRetryDelay;
     }
 }
 
@@ -217,6 +179,13 @@ export class JSScormTracker extends JSTracker {
     scormInstances={};
 
     /**
+     * Creates a new JSScormTracker instance
+     */
+    constructor() {
+        super();
+    }
+
+    /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - SCORM type
@@ -233,7 +202,7 @@ export class JSScormTracker extends JSTracker {
         } else {
             scorm=this.scormInstances[type][id];
         }
-        return 
+        return scorm;
     }
 }
 
@@ -280,39 +249,26 @@ export class SeriousGameTracker extends JSTracker {
 
     /**
      * Creates a new SeriousGameTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.activityId] - Activity ID
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({
-        result_uri = null,
-        backup_uri = null,
-        activityId = null,
-        backup_type = null,
-        actor_homePage = null,
-        actor_name = null,
-        auth_token = null,
-        default_uri = null,
-        debug = null
-    } = {}) {
-        super({
-            result_uri: result_uri,
-            backup_uri: backup_uri,
-            backup_type: backup_type,
-            actor_homePage: actor_homePage,
-            actor_name: actor_name,
-            auth_token: auth_token,
-            default_uri: default_uri,
-            debug: debug
-        });
-        this.scormTracker = new ScormTracker(this.tracker, activityId, SCORMTYPE.SCO);
+    constructor() {
+        super();
+        this.settings.activityId="";
+    }
+
+    login() {
+        this.scormTracker = new ScormTracker(this.tracker, this.settings.activityId, SCORMTYPE.SCO);
+        this.tracker.login();
+    }
+
+    logout() {
+        this.tracker.logout();
+        this.scormTracker=null;
+        this.instances={
+            "completable": {},
+            "gameObject": {},
+            "alternative": {},
+            "accessible": {}
+        };
     }
 
     /**

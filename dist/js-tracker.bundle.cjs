@@ -1133,13 +1133,25 @@ class xAPITrackerAsset {
      * XAPI Tracker instance
      * @type {XAPI|null}
      */
-    xapi = null;
+    xapi=null;
 
     /**
-     * Primary xAPI endpoint URL
-     * @type {string}
+     * Settings of XAPI Tracker Asset
      */
-    endpoint;
+    settings={
+        batch_mode:true,
+        batch_endpoint:null,
+        batch_length:100,
+        batch_timeout:ms("30sec"),
+        actor_homePage:null,
+        actor_name:null,
+        backup_mode:false,
+        backup_endpoint:null,
+        backup_type:"XAPI",
+        default_uri:null,
+        max_retry_delay:ms("2min"),
+        debug:false
+    };
 
     /**
      * Authentication token for xAPI requests
@@ -1174,25 +1186,6 @@ class xAPITrackerAsset {
     offset = 0;
 
     // BACKUP PARAMETERS
-
-    /**
-     * Whether backup is enabled
-     * @type {boolean}
-     */
-    backup = false;
-
-    /**
-     * Backup endpoint URL
-     * @type {string|null}
-     */
-    backup_endpoint = null;
-
-    /**
-     * Backup type (XAPI or CSV)
-     * @type {string|null}
-     */
-    backup_type = null;
-
     /**
      * Additional parameters for backup requests
      * @type {Object|null}
@@ -1200,7 +1193,6 @@ class xAPITrackerAsset {
     backupRequestParameters = null;
 
     // ACTOR PARAMETERS
-
     /**
      * Actor statement object
      * @type {ActorStatement}
@@ -1208,64 +1200,17 @@ class xAPITrackerAsset {
     actor;
 
     /**
-     * Actor's homepage URL
-     * @type {string}
-     */
-    actor_homePage;
-
-    /**
-     * Actor's name
-     * @type {string}
-     */
-    actor_name;
-
-    /**
      * Context statement object
      * @type {ContextStatement}
      */
     context;
 
-    // DEFAULT_URI PARAMETERS
-
-    /**
-     * Default URI for statements
-     * @type {string}
-     */
-    default_uri;
-
-    // DEBUG PARAMETERS
-
-    /**
-     * Debug mode flag
-     * @type {boolean}
-     */
-    debug;
-
     // BATCH AND RETRY PARAMETERS
-
-    /**
-     * Number of statements to send in each batch
-     * @type {number}
-     */
-    batchlength;
-
-    /**
-     * Timeout between batch sends in milliseconds
-     * @type {number}
-     */
-    batchtimeout;
-
     /**
      * Current retry delay in milliseconds
      * @type {number|null}
      */
-    retryDelay = null;
-
-    /**
-     * Maximum retry delay in milliseconds
-     * @type {number}
-     */
-    maxRetryDelay;
+    retryDelay;
 
     /**
      * Timer reference for batch processing
@@ -1275,52 +1220,19 @@ class xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAsset
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary xAPI endpoint URL (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {string} opts.default_uri - Default URI for statements (required)
-     * 
-     * @param {string} [opts.backup_endpoint=null] - Backup endpoint URL (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup (XAPI or CSV) (optional)
-     * @param {string} [opts.auth_token=null] - Authentication token (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Number of statements per batch (optional)
-     * @param {number} [opts.batchTimeout=null] - Timeout between batches (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay (optional)
      */
-    constructor({endpoint, actor_homePage, actor_name, default_uri=null, backup_endpoint=null, backup_type="XAPI", auth_token=null, debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
-        this.default_uri = default_uri;
-        this.debug = debug;
-        this.online = false;
-        this.endpoint = endpoint;
-
-        if(backup_endpoint) {
-            this.backup = true;
-            this.backup_type = backup_type;
-            this.backup_endpoint = backup_endpoint;
-        }
-
-        this.batchlength = batchLength || 100;
-        this.batchtimeout = batchTimeout ? ms(batchTimeout) : ms("30sec");
-        this.offset = 0;
-        this.maxRetryDelay = maxRetryDelay ? ms(maxRetryDelay) : ms("2min");
-        this.statementsToSend = [];
-        this.timer = null;
-        this.auth_token = auth_token;
-        this.actor_homePage = actor_homePage;
-        this.actor_name = actor_name;
-        this.actor = new ActorStatement(this.actor_name, this.actor_homePage);
-        this.context = new ContextStatement();
-        this.updateAuth();
+    constructor() {
+        this.onOffline();
     }
 
     /**
      * Logs out the current session by clearing the authentication token
      */
     logout() {
-        this.auth_token = null;
-        this.onOffline();
+         if(this.online) {
+            this.auth_token = null;
+            this.onOffline();
+         }
     }
 
     /**
@@ -1328,7 +1240,12 @@ class xAPITrackerAsset {
      */
     onOffline() {
         this.online = false;
-        if (this.debug) console.warn("XAPI Tracker for Serious Games went offline");
+        this.offset = 0;
+        this.statementsToSend = [];
+        this.timer = null;
+        this.actor = null;
+        this.context = null;
+        if (this.settings.debug) console.warn("XAPI Tracker for Serious Games went offline");
     }
 
     /**
@@ -1337,25 +1254,29 @@ class xAPITrackerAsset {
      */
     async onOnline() {
         this.online = true;
-        if (this.debug) console.info("XAPI Tracker for Serious Games back Online");
+        if (this.settings.debug) console.info("XAPI Tracker for Serious Games back Online");
     }
 
     /**
      * Updates the authentication configuration
      */
-    updateAuth() {
-        if(this.auth_token != null) {
-            this.xapi = new XAPI({
-                endpoint: this.endpoint,
-                auth: this.auth_token
-            });
-            if(this.xapi != null) {
-                this.onOnline();
+    login() {
+        if(!this.online) {
+            this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
+            this.context = new ContextStatement();
+            if(this.auth_token != null) {
+                this.xapi = new XAPI({
+                    endpoint: this.settings.batch_endpoint,
+                    auth: this.auth_token
+                });
+                if(this.xapi != null) {
+                    this.onOnline();
+                } else {
+                    this.onOffline();
+                }
             } else {
                 this.onOffline();
             }
-        } else {
-            this.onOffline();
         }
     }
 
@@ -1367,7 +1288,7 @@ class xAPITrackerAsset {
         if (!this.online) return;
         if (this.offset >= this.statementsToSend.length) return;
 
-        const end = Math.min(this.offset + this.batchlength, this.statementsToSend.length);
+        const end = Math.min(this.offset + this.settings.batch_length, this.statementsToSend.length);
         const batch = this.statementsToSend.slice(this.offset, end);
         const statements = batch.map(statement => statement.toXAPI());
 
@@ -1376,7 +1297,7 @@ class xAPITrackerAsset {
                 this.sendingInProgress = true;
                 const result = await this.xapi.sendStatements({statements: statements});
                 this.sendingInProgress = false;
-                if (this.debug) {
+                if (this.settings.debug) {
                     console.debug("Batch sent successfully:", result);
                 }
                 this.offset += batch.length;
@@ -1404,9 +1325,9 @@ class xAPITrackerAsset {
             }
 
             if(this.retryDelay == null) {
-                this.retryDelay = this.batchtimeout;
+                this.retryDelay = this.settings.batch_timeout;
             }
-            this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay);
+            this.retryDelay = Math.min(this.retryDelay * 2, this.settings.max_retry_delay);
             this.timer = null;
         }
 
@@ -1420,7 +1341,7 @@ class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async refreshAuth() {
-        this.updateAuth();
+        this.login();
     }
 
     /**
@@ -1428,7 +1349,7 @@ class xAPITrackerAsset {
      */
     startTimer() {
         if (this.timer) return;
-        let timeout = this.retryDelay ? this.retryDelay : this.batchtimeout;
+        let timeout = this.retryDelay ? this.retryDelay : this.settings.batch_timeout;
 
         this.timer = setTimeout(async () => {
             await this.sendBatch();
@@ -1447,7 +1368,7 @@ class xAPITrackerAsset {
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
     Trace(verbId, objectType, objectId) {
-        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.default_uri);
+        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }
 
@@ -1456,11 +1377,11 @@ class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async sendBackup() {
-        if (this.online && this.backup_endpoint && this.backup_endpoint.trim()) {
+        if (this.online && this.settings.backup_endpoint && this.settings.backup_endpoint.trim()) {
             let contentType;
             let statements;
 
-            switch (this.backup_type) {
+            switch (this.settings.backup_type) {
                 case 'XAPI':
                     statements = this.statementsToSend.map(statement => JSON.stringify(statement.toXAPI()));
                     contentType = 'application/json';
@@ -1480,7 +1401,7 @@ class xAPITrackerAsset {
             };
 
             const myRequest = {
-                url: this.backup_endpoint,
+                url: this.settings.backup_endpoint,
                 method: 'POST',
                 headers: {
                     'Authorization': this.auth_token || '',
@@ -1539,14 +1460,14 @@ class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async enqueue(statement) {
-        if(this.debug) {
+        if(this.settings.debug) {
             console.debug(statement.toXAPI());
             console.debug(statement.toCSV());
         }
 
         this.statementsToSend.push(statement);
 
-        if (this.online && this.statementsToSend.length >= this.offset + this.batchlength) {
+        if (this.online && this.statementsToSend.length >= this.offset + this.settings.batch_length) {
             await this.sendBatch();
         }
 
@@ -1576,31 +1497,27 @@ class xAPITrackerAsset {
  * Extends the base xAPITrackerAsset with basic authentication capabilities.
  */
 class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
+    oauth1settings={
+        username:"",
+        password:""
+    };
     /**
      * Creates an instance of xAPITrackerAssetOAuth1.
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary API endpoint (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {string} opts.username - Username for authentication (required)
-     * @param {string} opts.password - Password for authentication (required)
-     * @param {string} opts.default_uri - Default URI for requests (required)
-     * 
-     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
-     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
      */
-    constructor({endpoint, actor_homePage, actor_name, default_uri, username, password, backup_endpoint=null, backup_type="XAPI", debug=null, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
-        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name, auth_token:XAPI.toBasicAuth(username, password), default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
-
+    constructor() {
+        super();
+        this.oauth1settings.username="";
+        this.oauth1settings.password="";
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
                 this.logout();
             }
         });
+    }
+
+    async login() {
+        this.auth_token=XAPI.toBasicAuth(this.oauth1settings.username, this.oauth1settings.password);
+        super.login();
     }
 
     /**
@@ -1996,9 +1913,30 @@ class OAuth2Protocol {
 class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     /**
      * Configuration object for OAuth2 authentication
-     * @type {Object}
+     * @param {Object} config - Configuration object containing OAuth2 parameters
+     * @param {string} config.token_endpoint - The token endpoint URL
+     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
+     * @param {string} config.client_id - The client ID
+     * @param {string} [config.scope] - Optional scope
+     * @param {string} [config.state] - Optional state
+     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
+     * @param {string} [config.username] - Username for password grant type
+     * @param {string} [config.password] - Password for password grant type
+     * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
+     * @param {string} [config.login_hint] - Login hint for password grant type
      */
-    oauth2Config;
+    oauth2Settings={
+        token_endpoint:"",
+        grant_type:"",
+        client_id:"",
+        scope:"",
+        state:"",
+        code_challenge_method:"",
+        username:"",
+        password:"",
+        refreshToken:"",
+        login_hint:""
+    };
 
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -2008,35 +1946,25 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 
     /**
      * Creates an instance of xAPITrackerAssetOAuth2.
-     * @param {object} opts options for the xapi Tracker asset
-     * @param {string} opts.endpoint - Primary API endpoint (required)
-     * @param {string} opts.actor_homePage - Home page URL of the actor (required)
-     * @param {string} opts.actor_name - Name of the actor (required)
-     * @param {Object} opts.config - OAuth2 configuration (required)
-     * @param {string} opts.default_uri - Default URI for requests (required)
-     * 
-     * @param {string} [opts.backup_endpoint=null] - Backup API endpoint (optional)
-     * @param {string} [opts.backup_type='XAPI'] - Type of backup endpoint (optional)
-     * @param {boolean} [opts.debug=false] - Debug mode flag (optional)
-     * @param {number} [opts.batchLength=null] - Batch length for requests (optional)
-     * @param {number} [opts.batchTimeout=null] - Batch timeout in milliseconds (optional)
-     * @param {number} [opts.maxRetryDelay=null] - Maximum retry delay in milliseconds (optional)
+
      */
-    constructor({endpoint, actor_homePage, actor_name, config,  default_uri, backup_endpoint=null, backup_type='XAPI', debug=false, batchLength=null, batchTimeout=null, maxRetryDelay=null}) {
-        // Call the parent constructor without the token (since we don't have it yet)
-        super({endpoint:endpoint, backup_endpoint:backup_endpoint, backup_type:backup_type, actor_homePage:actor_homePage, actor_name:actor_name,default_uri:default_uri, debug:debug, batchLength:batchLength, batchTimeout:batchTimeout, maxRetryDelay:maxRetryDelay});
-
-        this.oauth2Config = config;
+    constructor() {
+        super();
         this.oauth2 = null;
-
-        // Fetch token after object construction
-        this.initAuth();
-
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', async () => {
             if (this.auth_token) {
-                this.logout();
+                await this.logout();
             }
         });
+    }
+
+    async login() {
+        if(!this.online) {
+            // Fetch token after object construction
+            this.initAuth();
+            // Update the authorization or reinitialize xAPITrackerAsset with the token
+            super.login();
+        }
     }
 
     /**
@@ -2047,7 +1975,7 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     async getToken() {
         try {
             this.oauth2 = new OAuth2Protocol();
-            await this.oauth2.init(this.oauth2Config);
+            await this.oauth2.init(this.oauth2Settings);
             return this.oauth2.token.access_token; // Return the access token
         } catch(e) {
             console.error(e);
@@ -2066,7 +1994,7 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            this.updateAuth();
+            super.login();
         }
     }
 
@@ -2081,16 +2009,8 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            this.updateAuth();
+            super.login();
         }
-    }
-
-    /**
-     * Updates the authentication in the parent class.
-     */
-    updateAuth() {
-        // Update the authorization or reinitialize xAPITrackerAsset with the token
-        super.updateAuth();
     }
 
     /**
@@ -2229,7 +2149,7 @@ class CompletableTracker {
     Initialized() {
         var addInitializedTime = true;
         if(this.initializedTime) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
                 console.warn("The initialized statement for the specified id has already been sent!");
@@ -2266,7 +2186,7 @@ class CompletableTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Completed statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an Completed statement!");
@@ -2486,7 +2406,7 @@ class ScormTracker {
     Initialized() {
         var addInitializedTime = true;
         if(this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
                 console.warn("The initialized statement for the specified id has already been sent!");
@@ -2510,7 +2430,7 @@ class ScormTracker {
      */
     Suspended() {
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an suspended statement!");
@@ -2533,7 +2453,7 @@ class ScormTracker {
     Resumed() {
         var addInitializedTime = true;
         if(this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("The Resumed statement for the specified id has already been sent!");
             } else {
                 console.warn("The Resumed statement for the specified id has already been sent!");
@@ -2557,7 +2477,7 @@ class ScormTracker {
      */
     Terminated() {
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Terminated statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an Terminated statement!");
@@ -2614,7 +2534,7 @@ class ScormTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         if(!this.initialized) {
-            if (this.tracker.debug) {
+            if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an suspended statement!");
@@ -2649,42 +2569,31 @@ const SCORMTYPE = Object.freeze({
 class JSTracker {
     /**
      * The underlying tracker instance
-     * @type {xAPITrackerAsset|xAPITrackerAssetOAuth1|xAPITrackerAssetOAuth2}
+     * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
      */
     tracker;
+    
+    settings;
 
     /**
      * Creates a new JSTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({
-        result_uri = null,
-        backup_uri = null,
-        backup_type = null,
-        actor_homePage = null,
-        actor_name = null,
-        auth_token = null,
-        default_uri = null,
-        debug = null
-    } = {}) {
-        this.tracker = new xAPITrackerAsset({
-            endpoint:result_uri,
-            backup_endpoint:backup_uri,
-            backup_type:backup_type,
-            actor_homePage:actor_homePage,
-            actor_name:actor_name,
-            auth_token:auth_token,
-            default_uri:default_uri,
-            debug:debug
-        });
+    constructor() {
+        this.tracker = new xAPITrackerAsset();
+        this.settings= {
+            generateSettingsFromURLParams:false
+        };
+    }
+
+    login() {
+        if(this.settings.generateSettingsFromURLParams) {
+            this.generateXAPITrackerFromURLParams();
+        }
+        this.tracker.login();
+    }
+
+    logout() {
+        this.tracker.logout();
     }
 
     /**
@@ -2699,14 +2608,12 @@ class JSTracker {
 
     /**
      * Generates an xAPI tracker instance from URL parameters
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.default_uri] - Default URI for statements
      */
-    generateXAPITrackerFromURLParams({ default_uri = null } = {}) {
+    generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
         let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
-        let username, password, auth_token;
+        let username, password;
         let batchLength, batchTimeout, maxRetryDelay;
 
         if (urlParams.size > 0) {
@@ -2760,7 +2667,7 @@ class JSTracker {
             password = urlParams.get('password');
 
             // OAUTH 0: VIA AUTHTOKEN DIRECTLY (not recommended)
-            auth_token = urlParams.get('auth_token');
+            urlParams.get('auth_token');
 
             // DEBUG
             strDebug = urlParams.get('debug');
@@ -2790,49 +2697,24 @@ class JSTracker {
         }
 
         if (xAPIConfig.token_endpoint) {
-            this.tracker = new xAPITrackerAssetOAuth2({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                config:xAPIConfig,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAssetOAuth2();
+            this.oauth2Settings = xAPIConfig;
         } else if (username && password) {
-            this.tracker = new xAPITrackerAssetOAuth1({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                username:username,
-                password:password,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAssetOAuth1();
+            this.settings.username = username;
+            this.settings.password = password;
         } else {
-            this.tracker = new xAPITrackerAsset({
-                endpoint:result_uri,
-                backup_endpoint:backup_uri,
-                backup_type:backup_type,
-                actor_homePage:actor_homePage,
-                actor_name:actor_name,
-                auth_token:auth_token,
-                default_uri:default_uri,
-                debug:debug,
-                batchLength:batchLength,
-                batchTimeout:batchTimeout,
-                maxRetryDelay:maxRetryDelay
-            });
+            this.tracker = new xAPITrackerAsset();
         }
+        this.tracker.settings.batch_endpoint=result_uri;
+        this.tracker.settings.actor_homePage=actor_homePage;
+        this.tracker.settings.actor_name=actor_name;
+        this.tracker.settings.backup_endpoint=backup_uri;
+        this.tracker.settings.backup_type=backup_type;
+        this.tracker.settings.debug=debug;
+        this.tracker.settings.batch_length=batchLength;
+        this.tracker.settings.batch_timeout=batchTimeout;
+        this.tracker.settings.max_retry_delay=maxRetryDelay;
     }
 }
 
@@ -2852,6 +2734,13 @@ class JSScormTracker extends JSTracker {
     scormInstances={};
 
     /**
+     * Creates a new JSScormTracker instance
+     */
+    constructor() {
+        super();
+    }
+
+    /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - SCORM type
@@ -2867,7 +2756,7 @@ class JSScormTracker extends JSTracker {
         } else {
             scorm=this.scormInstances[type][id];
         }
-        return 
+        return scorm;
     }
 }
 
@@ -2914,39 +2803,26 @@ class SeriousGameTracker extends JSTracker {
 
     /**
      * Creates a new SeriousGameTracker instance
-     * @param {Object} [config] - Configuration options
-     * @param {string} [config.result_uri] - Primary xAPI endpoint URI
-     * @param {string} [config.backup_uri] - Backup endpoint URI
-     * @param {string} [config.activityId] - Activity ID
-     * @param {string} [config.backup_type] - Type of backup (XAPI or CSV)
-     * @param {string} [config.actor_homePage] - Actor's homepage URL
-     * @param {string} [config.actor_name] - Actor's username
-     * @param {string} [config.auth_token] - Authentication token
-     * @param {string} [config.default_uri] - Default URI for statements
-     * @param {boolean} [config.debug] - Debug mode flag
      */
-    constructor({
-        result_uri = null,
-        backup_uri = null,
-        activityId = null,
-        backup_type = null,
-        actor_homePage = null,
-        actor_name = null,
-        auth_token = null,
-        default_uri = null,
-        debug = null
-    } = {}) {
-        super({
-            result_uri: result_uri,
-            backup_uri: backup_uri,
-            backup_type: backup_type,
-            actor_homePage: actor_homePage,
-            actor_name: actor_name,
-            auth_token: auth_token,
-            default_uri: default_uri,
-            debug: debug
-        });
-        this.scormTracker = new ScormTracker(this.tracker, activityId, SCORMTYPE.SCO);
+    constructor() {
+        super();
+        this.settings.activityId="";
+    }
+
+    login() {
+        this.scormTracker = new ScormTracker(this.tracker, this.settings.activityId, SCORMTYPE.SCO);
+        this.tracker.login();
+    }
+
+    logout() {
+        this.tracker.logout();
+        this.scormTracker=null;
+        this.instances={
+            "completable": {},
+            "gameObject": {},
+            "alternative": {},
+            "accessible": {}
+        };
     }
 
     /**

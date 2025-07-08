@@ -15,7 +15,7 @@ After a game is developed, a common need is to know how the players play, what i
     * Download files from Release
     * Clone or download repository and obtain them from /dist/
 1. Copy into your project folder
-1. Include library using, for example, `<script type="text/javascript" src="js-tracker.bundle.js"></script>>`
+1. Include library using, for example, `<script type="text/javascript" src="js-tracker-webpack.bundle.js"></script>>`
 1. Configure the tracker by:
 ```js
 var tracker = new TrackerAsset();
