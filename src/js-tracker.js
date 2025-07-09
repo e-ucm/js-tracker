@@ -19,27 +19,119 @@ export class JSTracker {
      */
     tracker;
     
-    settings;
+    /**
+     * Settings of JSTracker
+     * @typedef {Object} trackerSettings
+     * @property {boolean} generateSettingsFromURLParams
+     * @property {string} oauth_type
+     * @property {boolean} batch_mode
+     * @property {string} batch_endpoint
+     * @property {string} oauth_type
+     * @property {number} batch_length
+     * @property {number} batch_timeout
+     * @property {string} actor_homePage
+     * @property {string} actor_name
+     * @property {boolean} backup_mode
+     * @property {string} backup_endpoint
+     * @property {string} backup_type
+     * @property {string} default_uri
+     * @property {number} max_retry_delay
+     * @property {boolean} debug
+     */
+    trackerSettings={
+        generateSettingsFromURLParams:false,
+        oauth_type:"OAuth0",
+        batch_mode:true,
+        batch_endpoint:"http://myurl.com/endpoint",
+        batch_length:100,
+        batch_timeout:ms("30sec"),
+        actor_homePage:"http://myhomepage.com",
+        actor_name:"my_default_actor",
+        backup_mode:false,
+        backup_endpoint:"http://myurl.com/backup-endpoint",
+        backup_type:"XAPI",
+        default_uri:"mydefaulturi",
+        max_retry_delay:ms("2min"),
+        debug:false
+    };
+    /**
+     * @typedef {Object} oauth1
+     * @property {string} username
+     * @property {string} password
+     */
+    oauth1={
+        username:"superusername",
+        password:"supersecret"
+    };
+
+    /**
+     * @typedef {Object} oauth2
+     * @property {string} token_endpoint
+     * @property {string} grant_type
+     * @property {string} client_id
+     * @property {string} scope
+     * @property {string} [state]
+     * @property {string} [code_challenge_method]
+     * @property {string} username
+     * @property {string} password
+     * @property {string} [refreshToken]
+     * @property {string} login_hint
+     */
+    oauth2 = {
+        token_endpoint:        "https://…/token",
+        client_id:             "my_client_id",
+        grant_type:            "password",
+        scope:                 "openid profile",
+        state:                 "",
+        code_challenge_method: "",
+        refreshToken:          "",
+        username:              "alice@example.com",
+        password:              "supersecret",
+        login_hint:            "alice@example.com"
+    };
 
     /**
      * Creates a new JSTracker instance
      */
     constructor() {
-        this.tracker = new xAPITrackerAsset();
-        this.settings= {
-            generateSettingsFromURLParams:false
-        };
     }
 
-    login() {
-        if(this.settings.generateSettingsFromURLParams) {
+    Login() {
+        if(this.trackerSettings.generateSettingsFromURLParams) {
             this.generateXAPITrackerFromURLParams();
         }
+         if (this.trackerSettings.oauth_type="OAuth2") {
+            /**
+             * @type {xAPITrackerAssetOAuth2}
+             */
+            this.tracker = new xAPITrackerAssetOAuth2();
+            if (this.tracker && 'oauth2Settings' in this.tracker) {
+                this.tracker.oauth2Settings = this.oauth2;
+            } else {
+                throw new Error("tracker isn't OAuth2");
+            }
+        } else if (this.trackerSettings.oauth_type="OAuth1") {
+            /**
+             * @type {xAPITrackerAssetOAuth1}
+             */
+            this.tracker = new xAPITrackerAssetOAuth1();
+            if (this.tracker && 'oauth1Settings' in this.tracker) {
+                this.tracker.oauth1Settings = this.oauth1;
+            } else {
+                throw new Error("tracker isn't OAuth1");
+            }
+        } else {
+            this.tracker = new xAPITrackerAsset();
+        }
+        this.tracker.settings = this.trackerSettings;
         this.tracker.login();
     }
 
-    logout() {
-        this.tracker.logout();
+    Logout() {
+        if(this.tracker) {
+            this.tracker.logout();
+        }
+        this.trackerSettings.oauth_type="OAuth0";
     }
 
     /**
@@ -48,8 +140,10 @@ export class JSTracker {
      * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
      * @returns {Promise<void>} Promise that resolves when flushing is complete
      */
-    flush({ withBackup = false } = {}) {
-        return this.tracker.flush({ withBackup: withBackup });
+    Flush({ withBackup = false } = {}) {
+        if(this.tracker) {
+            return this.tracker.flush({ withBackup: withBackup });
+        }
     }
 
     /**
@@ -71,7 +165,7 @@ export class JSTracker {
             backup_type = urlParams.get('backup_type');
 
             // ACTOR DATA
-            actor_homePage = urlParams.get('actor_homePage');
+            actor_homePage = urlParams.get('actor_homepage');
             actor_name = urlParams.get('actor_user');
 
             // SSO OAUTH 2.0 DATA
@@ -143,44 +237,28 @@ export class JSTracker {
         }
 
         if (xAPIConfig.token_endpoint) {
-            /**
-             * @type {xAPITrackerAssetOAuth2}
-             */
-            this.tracker = new xAPITrackerAssetOAuth2();
-            if (this.tracker && 'oauth2Settings' in this.tracker) {
-                this.tracker.oauth2Settings.client_id = xAPIConfig.client_id;
-                this.tracker.oauth2Settings.grant_type = xAPIConfig.grant_type;
-                this.tracker.oauth2Settings.login_hint = xAPIConfig.login_hint;
-                this.tracker.oauth2Settings.username = xAPIConfig.username;
-                this.tracker.oauth2Settings.password = xAPIConfig.password;
-                this.tracker.oauth2Settings.scope = xAPIConfig.scope;
-                this.tracker.oauth2Settings.token_endpoint = xAPIConfig.token_endpoint;
-            } else {
-                throw new Error("tracker isn't OAuth2");
-            }
+            this.trackerSettings.oauth_type="OAuth2";
+            this.oauth2.client_id = xAPIConfig.client_id;
+            this.oauth2.grant_type = xAPIConfig.grant_type;
+            this.oauth2.login_hint = xAPIConfig.login_hint;
+            this.oauth2.username = xAPIConfig.username;
+            this.oauth2.password = xAPIConfig.password;
+            this.oauth2.scope = xAPIConfig.scope;
+            this.oauth2.token_endpoint = xAPIConfig.token_endpoint;
         } else if (username && password) {
-            /**
-             * @type {xAPITrackerAssetOAuth1}
-             */
-            this.tracker = new xAPITrackerAssetOAuth1();
-            if (this.tracker && 'oauth1Settings' in this.tracker) {
-                this.tracker.oauth1Settings.username = username;
-                this.tracker.oauth1Settings.password = password;
-            } else {
-                throw new Error("tracker isn't OAuth1");
-            }
-        } else {
-            this.tracker = new xAPITrackerAsset();
+            this.trackerSettings.oauth_type="OAuth1";
+            this.oauth1.username = username;
+            this.oauth1.password = password;
         }
-        this.tracker.settings.batch_endpoint=result_uri;
-        this.tracker.settings.actor_homePage=actor_homePage;
-        this.tracker.settings.actor_name=actor_name;
-        this.tracker.settings.backup_endpoint=backup_uri;
-        this.tracker.settings.backup_type=backup_type;
-        this.tracker.settings.debug=debug;
-        this.tracker.settings.batch_length=batchLength;
-        this.tracker.settings.batch_timeout=batchTimeout;
-        this.tracker.settings.max_retry_delay=maxRetryDelay;
+        this.trackerSettings.batch_endpoint=result_uri;
+        this.trackerSettings.actor_homePage=actor_homePage;
+        this.trackerSettings.actor_name=actor_name;
+        this.trackerSettings.backup_endpoint=backup_uri;
+        this.trackerSettings.backup_type=backup_type;
+        this.trackerSettings.debug=debug;
+        this.trackerSettings.batch_length=batchLength;
+        this.trackerSettings.batch_timeout=batchTimeout;
+        this.trackerSettings.max_retry_delay=maxRetryDelay;
     }
 }
 
@@ -206,12 +284,12 @@ export class JSScormTracker extends JSTracker {
         super();
     }
 
-    login() {
-        super.login();
+    Login() {
+        super.Login();
     }
 
-    logout() {
-        super.logout();
+    Logout() {
+        super.Logout();
         this.scormInstances={};
     }
 
@@ -221,7 +299,7 @@ export class JSScormTracker extends JSTracker {
      * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type=SCORMTYPE.SCO) {
+    Scorm(id, type=SCORMTYPE.SCO) {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
@@ -282,16 +360,16 @@ export class SeriousGameTracker extends JSTracker {
      */
     constructor() {
         super();
-        this.settings.activityId="";
+        this.trackerSettings.activityId="";
     }
 
-    login() {
-        this.scormTracker = new ScormTracker(this.tracker, this.settings.activityId, SCORMTYPE.SCO);
-        super.login();
+    Login() {
+        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, SCORMTYPE.SCO);
+        super.Login();
     }
 
-    logout() {
-        super.logout();
+    Logout() {
+        super.Logout();
         this.scormTracker=null;
         this.instances={
             "completable": {},
@@ -305,7 +383,7 @@ export class SeriousGameTracker extends JSTracker {
      * Marks the game as started
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
      */
-    start() {
+    Start() {
         return this.scormTracker.Initialized();
     }
 
@@ -313,7 +391,7 @@ export class SeriousGameTracker extends JSTracker {
      * Marks the game as paused
      * @returns {StatementBuilder} Promise that resolves when the pause is recorded
      */
-    pause() {
+    Pause() {
         return this.scormTracker.Suspended();
     }
 
@@ -321,7 +399,7 @@ export class SeriousGameTracker extends JSTracker {
      * Marks the game as resumed
      * @returns {StatementBuilder} Promise that resolves when the resume is recorded
      */
-    resumed() {
+    Resumed() {
         return this.scormTracker.Resumed();
     }
 
@@ -329,17 +407,29 @@ export class SeriousGameTracker extends JSTracker {
      * Marks the game as finished
      * @returns {StatementBuilder} Promise that resolves when the finish is recorded
      */
-    finish() {
+    Terminated() {
         return this.scormTracker.Terminated();
     }
 
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    Trace(verbId, objectType, objectId) {
+        return this.tracker.Trace(verbId, objectType, objectId);
+    }
+    
+    
     /**
      * Creates an accessible tracker instance
      * @param {string} id - Activity ID
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    Accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         var accessible;
         if(!this.instances["accessible"][type]) {
             this.instances["accessible"][type]={};
@@ -359,7 +449,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    GameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         var gameObject;
         if(!this.instances["gameObject"][type]) {
             this.instances["gameObject"][type]={};
@@ -379,7 +469,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
+    Completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
         var completable;
         if(!this.instances["completable"][type]) {
             this.instances["completable"][type]={};
@@ -399,7 +489,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    Alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         var alternative;
         if(!this.instances["alternative"][type]) {
             this.instances["alternative"][type]={};

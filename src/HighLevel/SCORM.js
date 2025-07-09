@@ -92,7 +92,7 @@ export class ScormTracker {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
         return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId)
-                .withDuration(this.initializedTime, actualDate);
+                .WithDuration(this.initializedTime, actualDate);
     }
 
     /**
@@ -139,7 +139,7 @@ export class ScormTracker {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
         return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId)
-                    .withDuration(this.initializedTime, actualDate);
+                    .WithDuration(this.initializedTime, actualDate);
     }
 
     /**
@@ -167,7 +167,7 @@ export class ScormTracker {
         if (typeof score === 'undefined') {score = 1;}
 
         return this.tracker.Trace('scored',this.ScormType[this.type], this.scormId)
-            .withScore({raw:score});
+            .WithScore({raw:score});
     }
 
     /**
@@ -192,10 +192,10 @@ export class ScormTracker {
         }
         let actualDate=new Date();
         return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
-            .withSuccess(success)
-            .withCompletion(completion)
-            .withScore({raw:score})
-            .withDuration(this.initializedTime, actualDate);
+            .WithSuccess(success)
+            .WithCompletion(completion)
+            .WithScore({raw:score})
+            .WithDuration(this.initializedTime, actualDate);
     }
 }
 

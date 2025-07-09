@@ -81,7 +81,7 @@ export class CompletableTracker {
      */
     Progressed(progress) {
         return this.tracker.Trace('progressed',this.CompletableType[this.type],this.completableId)
-            .withProgress(progress);
+            .WithProgress(progress);
     }
 
     /**
@@ -108,10 +108,10 @@ export class CompletableTracker {
         this.initialized=false;
 
         return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
-            .withSuccess(success)
-            .withCompletion(completion)
-            .withScore({raw:score})
-            .withDuration(this.initializedTime, actualDate);
+            .WithSuccess(success)
+            .WithCompletion(completion)
+            .WithScore({raw:score})
+            .WithDuration(this.initializedTime, actualDate);
     }
 }
 

@@ -43,7 +43,7 @@ export class AlternativeTracker {
      */
     Selected(optionId) {        
         return this.tracker.Trace('selected',this.AlternativeType[this.type],this.alternativeId)
-            .withResponse(optionId);
+            .WithResponse(optionId);
     }
 
     /**
@@ -53,7 +53,7 @@ export class AlternativeTracker {
      */
     Unlocked(optionId) {
         return this.tracker.Trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
-                .withResponse(optionId);
+                .WithResponse(optionId);
     }
 }
 

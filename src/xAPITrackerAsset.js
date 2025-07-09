@@ -21,18 +21,31 @@ export default class xAPITrackerAsset {
 
     /**
      * Settings of XAPI Tracker Asset
+     * @typedef {Object} settings
+     * @property {boolean} batch_mode
+     * @property {string} batch_endpoint
+     * @property {number} batch_length
+     * @property {number} batch_timeout
+     * @property {string} actor_homePage
+     * @property {string} actor_name
+     * @property {boolean} backup_mode
+     * @property {string} backup_endpoint
+     * @property {string} backup_type
+     * @property {string} default_uri
+     * @property {number} max_retry_delay
+     * @property {boolean} debug
      */
     settings={
         batch_mode:true,
-        batch_endpoint:null,
+        batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
         batch_timeout:ms("30sec"),
-        actor_homePage:null,
-        actor_name:null,
+        actor_homePage:"http://myhomepage.com",
+        actor_name:"my_default_actor",
         backup_mode:false,
-        backup_endpoint:null,
+        backup_endpoint:"http://myurl.com/backup-endpoint",
         backup_type:"XAPI",
-        default_uri:null,
+        default_uri:"mydefaulturi",
         max_retry_delay:ms("2min"),
         debug:false
     };

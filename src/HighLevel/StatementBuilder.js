@@ -45,7 +45,7 @@ export class StatementBuilder {
    * @param {boolean} success 
    * @returns {this} Returns the current instance for chaining
    */
-  withSuccess(success) {
+  WithSuccess(success) {
     this.statement.setSuccess(success);
     return this;
   }
@@ -55,7 +55,7 @@ export class StatementBuilder {
  * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
  * @returns {this} Returns the current instance for chaining
  */
-  withScore(score) {
+  WithScore(score) {
     this.statement.setScore(
       score.raw ?? score?.raw, 
       score.min ?? score?.min,
@@ -69,7 +69,7 @@ export class StatementBuilder {
    * @param {number} raw the raw score value
    * @returns {this} Returns the current instance for chaining
    */
-  withScoreRaw(raw) {
+  WithScoreRaw(raw) {
     this.statement.setScoreRaw(raw);
     return this;
   }
@@ -78,7 +78,7 @@ export class StatementBuilder {
    * @param {number} min the min score value
    * @returns {this} Returns the current instance for chaining
    */
-  withScoreMin(min) {
+  WithScoreMin(min) {
     this.statement.setScoreMin(min);
     return this;
   }
@@ -87,7 +87,7 @@ export class StatementBuilder {
    * @param {number} max the max score value
    * @returns {this} Returns the current instance for chaining
    */
-  withScoreMax(max) {
+  WithScoreMax(max) {
     this.statement.setScoreMax(max);
     return this;
   }
@@ -96,7 +96,7 @@ export class StatementBuilder {
    * @param {number} scaled the scaled score value
    * @returns {this} Returns the current instance for chaining
    */
-  withScoreScaled(scaled) {
+  WithScoreScaled(scaled) {
     this.statement.setScoreScaled(scaled);
     return this;
   }
@@ -106,7 +106,7 @@ export class StatementBuilder {
    * @param {boolean} value completion status of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withCompletion(value) {
+  WithCompletion(value) {
     this.statement.setCompletion(value);
     return this;
   }
@@ -117,7 +117,7 @@ export class StatementBuilder {
    * @param {Date} end end date of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withDuration(init, end) {
+  WithDuration(init, end) {
     this.statement.setDuration(init, end);
     return this;
   }
@@ -127,7 +127,7 @@ export class StatementBuilder {
    * @param {string} value response of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withResponse(value) {
+  WithResponse(value) {
     this.statement.setResponse(value);
     return this;
   }
@@ -137,7 +137,7 @@ export class StatementBuilder {
    * @param {number} value progress of statement
    * @returns {this} Returns the current instance for chaining
    */
-  withProgress(value) {
+  WithProgress(value) {
     this.statement.setProgress(value);
     return this;
   }
@@ -149,7 +149,7 @@ export class StatementBuilder {
    * @returns {this} Returns the current instance for chaining
    */
   
-  withResultExtension(key, value) {
+  WithResultExtension(key, value) {
     this.statement.addResultExtension(key, value);
     return this;
   }
@@ -158,7 +158,7 @@ export class StatementBuilder {
      * Set result extensions as Object key/values list of the statement
      * @param {Object} extensions extensions list
      */
-  withResultExtensions(extensions = {}) {
+  WithResultExtensions(extensions = {}) {
     this.statement.addResultExtensions(extensions);
     return this;
   }
@@ -170,7 +170,7 @@ export class StatementBuilder {
    * @param {(statement: Statement) => Statement} fn - Function to apply to statement
    * @returns {this} Returns the current instance for chaining
    */
-  apply(fn) {
+  Apply(fn) {
     const result = fn(this.statement);
     // if your fn returns a new statement, pick that up, otherwise
     // assume it has mutated in place

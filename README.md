@@ -20,19 +20,19 @@ After a game is developed, a common need is to know how the players play, what i
 ```js
 var tracker = new SeriousGameTracker();
 
-tracker.settings.activity_id="https://myendpoint.com/activities/activityId";
-tracker.settings.generateSettingsFromURLParams=false;
-tracker.tracker.settings.batch_endpoint = "https://myendpoint.com";
-tracker.tracker.settings.actor_homePage = "https://myhomepage.com";
-tracker.tracker.settings.actor_name = "username";
+tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityId";
+tracker.trackerSettings.generateSettingsFromURLParams=false;
+tracker.trackerSettings.batch_endpoint = "https://myendpoint.com";
+tracker.trackerSettings.actor_homePage = "https://myhomepage.com";
+tracker.trackerSettings.actor_name = "username";
 ```
 or 
 ```js
 var tracker = new SeriousGameTracker();
 
-tracker.settings.activity_id="https://myendpoint.com/activities/activityId";
-tracker.settings.generateSettingsFromURLParams=true;
-tracker.tracker.settings.default_uri="mygame";
+tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityId";
+tracker.trackerSettings.generateSettingsFromURLParams=true;
+tracker.trackerSettings.default_uri="mygame";
 ```
 1. More configuration can be done with:
     * **backup_endpoint**: 
@@ -65,7 +65,7 @@ var tracker = new SeriousGameTracker();
 tracker.addPlugin(new TrackerPlugins.Geolocation());
 
 //Enjoy the plugin
-tracker.Places("Madrid").Moved(1.4, 2.1, tracker.Places.PlaceType.UrbanArea).send();
+tracker.Places("Madrid").Moved(1.4, 2.1, tracker.Places.PlaceType.UrbanArea).Send();
 
 ```
 ### Tracker Login and Start
@@ -75,7 +75,8 @@ For tracker to send traces to the server, `tracker.Login()` has to be called. If
 ```js
 var tracker = new SeriousGameTracker();
 
-tracker.tracker.settings.batch_endpoint = "https://myendpoint.com/";
+tracker.trackerSettings.batch_endpoint = "https://myendpoint.com/";
+tracker.trackerSettings.oauth_type = "OAuth1";
 tracker.oauth1Settings.username = "username";
 tracker.oauth1Settings.password = "password";
 
@@ -86,30 +87,30 @@ tracker.Login();
 
 There are two methods used for sending traces:
 1. Using the xAPI for serious games interfaces (accessible(), alternative(), completable() and gameObject()).
-1. Using `TrackerAsset.Trace(verb,target_type,target_id)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `TrackerAsset.setVar(key, val)`.
+1. Using `tracker.Trace(verb,objectType,objectId)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `.WithResultExtension(key, val)`.
 
 ```js
 //simple trace
-tracker.gameObject("GameObjectID2", tracker.GAMEOBJECTTYPE.Item)
-      .used()
-      .withResultExtension("extension1", "value1")
-      .send();
+tracker.GameObject("GameObjectID2", tracker.GAMEOBJECTTYPE.Item)
+      .Used()
+      .WithResultExtension("extension1", "value1")
+      .Send();
 
 //Very complex trace
 tracker.Accessible("AccesibleID2", tracker.ACCESSIBLETYPE.Screen)
       .Skipped()
-      .withResponse("AnotherResponse")
-      .withScore(123.456)
-      .withSuccess(false)
-      .withCompletion(true)
-      .withResultExtension("extension1", "value1")
-      .withResultExtension("extension2", "value2")
-      .withResultExtension("extension3", 3)
-      .withResultExtension("extension4", 4.56)
-      .send();
+      .WithResponse("AnotherResponse")
+      .WithScore(123.456)
+      .WithSuccess(false)
+      .WithCompletion(true)
+      .WithResultExtension("extension1", "value1")
+      .WithResultExtension("extension2", "value2")
+      .WithResultExtension("extension3", 3)
+      .WithResultExtension("extension4", 4.56)
+      .Send();
 
 tracker.Trace("selected", "zone", "ObjectID3")
-      .send();
+      .Send();
 
 tracker.Flush();
 ```
@@ -158,20 +159,20 @@ Usage example for the tracking of an in-game quest. We decided to use a completa
 // Initialized
 tracker.Completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
         .Initialized()
-        .send();
+        .Send();
 
 // Progressed
 var progress = 0.8;
 tracker.Completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
         .Progressed(progress)
-        .send();
+        .Send();
 
 // Completed
 var success = true;
 var score = 0.75;
 var t = tracker.Completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
               .Completed(success,score)
-              .send();
+              .Send();
 ```
 
 ##### Accessible
@@ -183,12 +184,12 @@ Usage example for the tracking the player's movement through some in-game screen
 // The player accessed the 'MainMenu' screen
 tracker.Accessible("MainMenu", tracker.ACCESSIBLETYPE.Screen)
         .Accessed()
-        .send();
+        .Send();
 
 // The player skipped a cutscene
 tracker.Accessible("Intro", tracker.ACCESSIBLETYPE.Cutscene)
         .Skipped()
-        .send();
+        .Send();
 ```
 
 ##### Alternative
@@ -200,12 +201,12 @@ Usage example for the tracking the player's choices during a conversation:
 // The player selected the 'Ivan' answer for the question 'What's his name?'
 tracker.Alternative("What's his name?", tracker.ALTERNATIVETYPE.Question)
         .Selected("Ivan")
-        .send();
+        .Send();
 
 // The player unlocked 'Combat Mode' for the menu 'Menues/Start'
 tracker.Alternative("Menues/Start", tracker.ALTERNATIVETYPE.Menu)
       .Unlocked("Combat Mode")
-      .send();
+      .Send();
 ```
 
 ##### Game Object
@@ -217,12 +218,12 @@ Usage example for the tracking the player's with a NPC villager and using a heal
 // The player interacted with a Non Playable Character
 tracker.GameObject("NPC/Villager", tracker.GAMEOBJECTTYPE.Npc)
         .Interacted()
-        .send();
+        .Send();
 
 // The player used a health potion
 tracker.GameObject("Item/HealthPotion/Consumable", tracker.GAMEOBJECTTYPE.Item)
         .Used()
-        .send();
+        .Send();
 ```
 
 Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects ([Completable](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs), [GameObject](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [alternatives](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs) are the best choice.
