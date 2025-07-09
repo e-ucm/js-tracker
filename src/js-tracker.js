@@ -74,7 +74,6 @@ export class JSTracker {
      * @property {string} [code_challenge_method]
      * @property {string} username
      * @property {string} password
-     * @property {string} [refreshToken]
      * @property {string} login_hint
      */
     oauth2 = {
@@ -84,7 +83,6 @@ export class JSTracker {
         scope:                 "openid profile",
         state:                 "",
         code_challenge_method: "",
-        refreshToken:          "",
         username:              "alice@example.com",
         password:              "supersecret",
         login_hint:            "alice@example.com"
@@ -96,7 +94,11 @@ export class JSTracker {
     constructor() {
     }
 
-    Login() {
+    /**
+     * 
+     * @returns {Promise<void>} 
+     */
+    async Login() {
         if(this.trackerSettings.generateSettingsFromURLParams) {
             this.generateXAPITrackerFromURLParams();
         }
@@ -124,12 +126,26 @@ export class JSTracker {
             this.tracker = new xAPITrackerAsset();
         }
         this.tracker.settings = this.trackerSettings;
-        this.tracker.login();
+        await this.tracker.Login();
     }
+
+    Start() {
+        if(!this.tracker) {
+            this.tracker = new xAPITrackerAsset();
+        }
+        this.tracker.settings = this.trackerSettings;
+        this.tracker.Start();
+        this.Started=true;
+    }
+
+    Stop() {
+        this.tracker.Stop();
+        this.started = false;
+    };
 
     Logout() {
         if(this.tracker) {
-            this.tracker.logout();
+            this.tracker.Logout();
         }
         this.trackerSettings.oauth_type="OAuth0";
     }
@@ -284,8 +300,8 @@ export class JSScormTracker extends JSTracker {
         super();
     }
 
-    Login() {
-        super.Login();
+    async Login() {
+        await super.Login();
     }
 
     Logout() {
@@ -363,9 +379,9 @@ export class SeriousGameTracker extends JSTracker {
         this.trackerSettings.activityId="";
     }
 
-    Login() {
+    async Login() {
         this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, SCORMTYPE.SCO);
-        super.Login();
+        await super.Login();
     }
 
     Logout() {
@@ -379,11 +395,19 @@ export class SeriousGameTracker extends JSTracker {
         };
     }
 
+    Start() {
+        super.Start();
+    }
+
+    Stop() {
+        super.Stop();
+    }
+
     /**
      * Marks the game as started
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
      */
-    Start() {
+    Initialized() {
         return this.scormTracker.Initialized();
     }
 

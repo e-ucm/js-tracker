@@ -83,9 +83,11 @@ export default class OAuth2Protocol {
 
   /**
    * The current authentication token.
-   * @type {Object|null}
+   * @typedef {Object|null} token
+   * @property {string} access_token
+   * @property {string} refresh_token
    */
-  token = null;
+  token=null;
 
   /**
    * Flag indicating if a token refresh is currently in progress.
@@ -121,7 +123,6 @@ export default class OAuth2Protocol {
    * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
    * @param {string} [config.username] - Username for password grant type
    * @param {string} [config.password] - Password for password grant type
-   * @param {string} [config.refresh_token] - Refresh token for refresh_token grant type
    * @param {string} [config.login_hint] - Login hint for password grant type
    * @returns {Promise<void>}
    * @throws {Error} If required configuration values are missing or grant type is unsupported
@@ -145,10 +146,6 @@ export default class OAuth2Protocol {
     }
 
     switch (this.grantType) {
-      case "refresh_token":
-        const refreshToken = this.getRequiredValue(config, 'refresh_token');
-        this.token = await this.doRefreshToken(this.tokenEndpoint, this.clientId, refreshToken);
-        break;
       case "password":
         this.username = this.getRequiredValue(config, 'username');
         this.password = this.getRequiredValue(config, 'password');
@@ -339,7 +336,7 @@ export default class OAuth2Protocol {
    * @returns {Promise<void>}
    * @throws {Error} If the logout request fails
    */
-  async logout() {
+  async Logout() {
     const form = {
       grant_type: "refresh_token",
       client_id: this.clientId,

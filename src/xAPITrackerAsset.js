@@ -62,6 +62,18 @@ export default class xAPITrackerAsset {
      */
     online = false;
 
+    /**
+     * Current connected status
+     * @type {boolean}
+     */
+    connected = false;
+
+    /**
+     * Current started status
+     * @type {boolean}
+     */
+    started = false;
+
     // STATEMENTS PARAMETERS
 
     /**
@@ -125,10 +137,9 @@ export default class xAPITrackerAsset {
     /**
      * Logs out the current session by clearing the authentication token
      */
-    logout() {
-         if(this.online) {
+    Logout() {
+         if(this.connected) {
             this.auth_token = null;
-            this.onOffline();
          }
     }
 
@@ -136,13 +147,38 @@ export default class xAPITrackerAsset {
      * Event handler called when the client goes offline
      */
     onOffline() {
-        this.online = false;
+        this.online = false;        
+        if (this.settings.debug) console.warn("XAPI Tracker for Serious Games went offline");
+    }
+
+    Start() {
+        this.started = true;
+        this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
+        this.context = new ContextStatement();
+        if(this.connected) {
+            this.xapi = new XAPI({
+                endpoint: this.settings.batch_endpoint,
+                auth: this.auth_token
+            });
+        }
+        if(this.xapi != null) {
+            this.onOnline();
+        } else {
+            this.onOffline();
+        }
+    }
+
+    Stop() {
+        this.started = false;
+        this.connected=false;
+        this.online=false;
         this.offset = 0;
         this.statementsToSend = [];
         this.timer = null;
         this.actor = null;
         this.context = null;
-        if (this.settings.debug) console.warn("XAPI Tracker for Serious Games went offline");
+        this.xapi=null;
+        this.onOffline();
     }
 
     /**
@@ -156,24 +192,13 @@ export default class xAPITrackerAsset {
 
     /**
      * Updates the authentication configuration
+     * 
      */
-    login() {
-        if(!this.online) {
-            this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
-            this.context = new ContextStatement();
-            if(this.auth_token != null) {
-                this.xapi = new XAPI({
-                    endpoint: this.settings.batch_endpoint,
-                    auth: this.auth_token
-                });
-                if(this.xapi != null) {
-                    this.onOnline();
-                } else {
-                    this.onOffline();
-                }
-            } else {
-                this.onOffline();
-            }
+    async Login() {
+        if(this.auth_token) {
+            this.connected=true;
+        } else {
+            this.connected=false;
         }
     }
 
@@ -238,7 +263,7 @@ export default class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async refreshAuth() {
-        this.login();
+        this.Login();
     }
 
     /**

@@ -34,14 +34,73 @@ tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityI
 tracker.trackerSettings.generateSettingsFromURLParams=true;
 tracker.trackerSettings.default_uri="mygame";
 ```
-1. More configuration can be done with:
-    * **backup_endpoint**: 
-    * **backup_type**: 
-    * **batch_length**: max number of traces stored in the tracker queue
-    * **batch_timeout**: 
-    * **max_retry_delay**: 
-    * **debug**: Enable to see tracker messages in the Unity console.
-1. Start the tracker by using `tracker.Login()`
+Here is the complete list of configuration options for a JavaScript tracker:
+Here is the complete list of configuration options for a JavaScript tracker:
+
+**Tracker Configuration**
+
+* **generateSettingsFromURLParams**: boolean (default: `false`)
+	+ Generate settings from URL parameters.
+* **oauth_type**: string (default: `OAuth0`)
+	+ OAuth type (0, 1 or 2).
+* **batch_mode**: boolean (default: `true`)
+	+ Enable batch mode for sending data to the tracker.
+* **batch_endpoint**: string (default: `null`)
+	+ Endpoint for sending batch data to the tracker.
+* **batch_length**: integer (default: `100`)
+	+ Maximum number of traces stored in the tracker queue.
+* **batch_timeout**: integer (default: `30000`) // 30 seconds
+	+ Timeout for sending batch data to the tracker.
+* **actor_homePage**: string (default: ``)
+	+ Homepage URL for the actor.
+* **actor_name**: string (default: `mydefaultactor`)
+	+ Name of the actor.
+* **backup_mode**: boolean (default: `false`)
+	+ Enable backup mode for sending data to the tracker.
+* **backup_endpoint**: string (default: `null`)
+	+ Endpoint for sending backup data to the tracker.
+* **backup_type**: string (default: `null`)
+	+ Type of backup data to send to the tracker.
+* **default_uri**: string (default: `null`)
+	+ Default URI for the tracker.
+* **max_retry_delay**: integer (default: `5000`) // 5 seconds
+	+ Maximum retry delay for sending data to the tracker.
+
+**OAuth1 Configuration**
+
+* **tracker.oauth1.username**: string (default: `username`)
+	+ Username for OAuth1 authentication.
+* **tracker.oauth1.password**: string (default: `supersecret`)
+	+ Password for OAuth1 authentication.
+
+**OAuth2 Configuration**
+
+* **tracker.oauth2.token_endpoint**: string (default: `null`)
+	+ Token endpoint for OAuth2 authentication.
+* **tracker.oauth2.grant_type**: string (default: `null`)
+	+ Grant type for OAuth2 authentication.
+* **tracker.oauth2.client_id**: string (default: `null`)
+	+ Client ID for OAuth2 authentication.
+* **tracker.oauth2.scope**: string (default: `null`)
+	+ Scope for OAuth2 authentication.
+* **tracker.oauth2.state**: string (default: `null`)
+	+ State for OAuth2 authentication.
+* **tracker.oauth2.code_challenge_method**: string (default: `null`)
+	+ Code challenge method for OAuth2 authentication.
+* **tracker.oauth2.username**: string (default: `username`)
+	+ Username for OAuth2 authentication.
+* **tracker.oauth2.password**: string (default: `supersecret`)
+	+ Password for OAuth2 authentication.
+* **tracker.oauth2.login_hint**: string (default: `null`)
+	+ Login hint for OAuth2 authentication.
+
+**Debug Configuration**
+
+* **debug**: boolean (default: `false`)
+	+ Enable debug mode to see tracker messages in the Unity console.
+
+1. **Optional** Login the user configured by using `tracker.Login()`
+1. Start the tracker by using `tracker.Start()`
 1. Send traces
 
 ## Integration example
@@ -77,8 +136,8 @@ var tracker = new SeriousGameTracker();
 
 tracker.trackerSettings.batch_endpoint = "https://myendpoint.com/";
 tracker.trackerSettings.oauth_type = "OAuth1";
-tracker.oauth1Settings.username = "username";
-tracker.oauth1Settings.password = "password";
+tracker.oauth1.username = "username";
+tracker.oauth1.password = "password";
 
 //Login is optional. If not logged, anonymous actor is retrieved on start
 tracker.Login();

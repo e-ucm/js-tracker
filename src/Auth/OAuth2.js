@@ -17,7 +17,6 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      * @property {string} [code_challenge_method]
      * @property {string} username
      * @property {string} password
-     * @property {string} [refreshToken]
      * @property {string} login_hint
      */
     oauth2Settings = {
@@ -27,7 +26,6 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         scope:                 "openid profile",
         state:                 "",
         code_challenge_method: "",
-        refreshToken:          "",
         username:              "alice@example.com",
         password:              "supersecret",
         login_hint:            "alice@example.com"
@@ -49,17 +47,15 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         this.oauth2 = null;
         window.addEventListener('beforeunload', async () => {
             if (this.auth_token) {
-                await this.logout();
+                await this.Logout();
             }
         });
     }
 
-    async login() {
+    async Login() {
         if(!this.online) {
             // Fetch token after object construction
-            this.initAuth();
-            // Update the authorization or reinitialize xAPITrackerAsset with the token
-            super.login();
+            await this.initAuth();
         }
     }
 
@@ -90,7 +86,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            super.login();
+            return super.Login();
         }
     }
 
@@ -105,7 +101,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            super.login();
+            super.Login();
         }
     }
 
@@ -114,9 +110,9 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      *
      * @returns {Promise<void>}
      */
-    async logout() {
-        await this.oauth2.logout();
+    async Logout() {
+        await this.oauth2.Logout();
         // logout
-        super.logout();
+        super.Logout();
     }
 }

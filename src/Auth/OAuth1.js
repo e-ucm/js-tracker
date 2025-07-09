@@ -24,14 +24,14 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         this.oauth1Settings.password="";
         window.addEventListener('beforeunload', () => {
             if (this.auth_token) {
-                this.logout();
+                this.Logout();
             }
         });
     }
 
-    async login() {
+    async Login() {
         this.auth_token=XAPI.toBasicAuth(this.oauth1Settings.username, this.oauth1Settings.password);
-        super.login();
+        return super.Login();
     }
 
     /**
@@ -48,7 +48,7 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
      * Logs out the current session.
      * Delegates to the parent class implementation.
      */
-    logout() {
-        super.logout();
+    Logout() {
+        super.Logout();
     }
 }
