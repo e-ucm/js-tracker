@@ -49,7 +49,7 @@ export class StatementBuilder {
   }
 
 /**
- * Sets score-related properties
+ * Sets score-related properties to statemement
  * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
  * @returns {this} Returns the current instance for chaining
  */
@@ -153,7 +153,7 @@ export class StatementBuilder {
   }
 
   /**
-     * Set result extensions as Object key/values list of the statement
+     * Add result extensions as Object key/values list of the statement
      * @param {Object} extensions extensions list
      */
   withResultExtensions(extensions = {}) {
@@ -183,41 +183,10 @@ export class StatementBuilder {
    *
    * @returns {Promise<void>} The promise sent
    */
-  Send() {
+  async send() {
     if (!this._sendPromise) {
-      this._sendPromise = this.client.enqueue(this.statement);
+      this._sendPromise = await this.client.enqueue(this.statement);
     }
     return this._sendPromise;
-  }
-
-  /**
-   * Makes this builder awaitable (thenable).
-   *
-   * @param {(value: void) =>void | PromiseLike<void>} onFulfilled - Called when the promise is resolved
-   * @param {(reason:any)=>void | PromiseLike<void>} onRejected - Called when the promise is rejected
-   * @returns {Promise<void>} The resulting promise
-   */
-  then(onFulfilled, onRejected) {
-    return this.Send().then(onFulfilled, onRejected);
-  }
-
-  /**
-   * Catches any errors that occur during the processing of a statement.
-   *
-   * @param {(reason:any)=>void | PromiseLike<void>} onRejected - Called when an error occurs
-   * @returns {Promise<void>} The resulting promise
-   */
-  catch(onRejected) {
-    return this.Send().catch(onRejected);
-  }
-
-  /**
-   * Runs code regardless of whether a statement is processed successfully or not.
-   *
-   * @param {() => void} onFinally - Called after the promise has been resolved or rejected
-   * @returns {Promise<void>} The resulting promise
-   */
-  finally(onFinally) {
-    return this.Send().finally(onFinally);
   }
 }
