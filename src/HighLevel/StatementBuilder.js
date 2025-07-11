@@ -22,10 +22,10 @@ export class StatementBuilder {
     statement;
 
     /**
-     * Promise
+     * Promise of Statement sent
      * @type {Promise<void>}
      */
-    _promise;
+    _sendPromise;
 
   /**
    * @param  {xAPITrackerAsset} xapiClient  any client that has a `.sendStatement(statement)` → Promise
@@ -34,9 +34,7 @@ export class StatementBuilder {
   constructor(xapiClient, initial) {
     this.client    = xapiClient;
     this.statement = initial;
-    this._promise = Promise
-      .resolve()
-      .then(() => this.client.enqueue(this.statement));
+    this._sendPromise = null;
   }
 
   // RESULT
@@ -51,7 +49,7 @@ export class StatementBuilder {
   }
 
 /**
- * Sets score-related properties
+ * Sets score-related properties to statemement
  * @param {Partial<{raw: number; min: number; max: number; scaled: number}>} score - Score configuration
  * @returns {this} Returns the current instance for chaining
  */
@@ -155,7 +153,7 @@ export class StatementBuilder {
   }
 
   /**
-     * Set result extensions as Object key/values list of the statement
+     * Add result extensions as Object key/values list of the statement
      * @param {Object} extensions extensions list
      */
   withResultExtensions(extensions = {}) {
@@ -179,33 +177,16 @@ export class StatementBuilder {
     }
     return this;
   }
-
-  //— make this builder awaitable (thenable) ————————————————————————
+  
   /**
-   * 
-   * @param {*} onFulfilled
-   * @param {*} onRejected 
-   * @returns {Promise<void>}
+   * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
+   *
+   * @returns {Promise<void>} The promise sent
    */
-  then(onFulfilled, onRejected) {
-    return this._promise.then(onFulfilled, onRejected)
-  }
-
-  /**
-   * 
-   * @param {*} onRejected 
-   * @returns {Promise<void>}
-   */
-  catch(onRejected) {
-    return this._promise.catch(onRejected)
-  }
-
-  /**
-   * 
-   * @param {*} onFinally 
-   * @returns {Promise<void>}
-   */
-  finally(onFinally) {
-    return this._promise.finally(onFinally)
+  async send() {
+    if (!this._sendPromise) {
+      this._sendPromise = await this.client.enqueue(this.statement);
+    }
+    return this._sendPromise;
   }
 }
