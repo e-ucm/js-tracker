@@ -7,116 +7,170 @@ This code belongs to e-UCM research group and has been developed for the H2020 B
 
 ![Beaconing logo](http://beaconing.eu/wp-content/themes/beaconing/images/logo/original_version_(black).png)
 
-
-After a game is developed, a common need is to know how the players play, what interactions they follow within the game and how much time they spend in a game session; collectively, these are known as game analytics. Analytics are used to locate gameplay bottlenecks and assess  game effectiveness and learning outcomes, among other tasks.
+After a game is developed, a common need is to know how the players play, what interactions they follow within the game and how much time they spend in a game session; collectively, these are known as game analytics. Analytics are used to locate gameplay bottlenecks and assess game effectiveness and learning outcomes, among other tasks.
 
 ## Installation
 1. Obtain bundle library
     * Download files from Release
     * Clone or download repository and obtain them from /dist/
 1. Copy into your project folder
-1. Include library using, for example, `<script type="text/javascript" src="js-tracker.bundle.js"></script>>`
+1. Include library using, for example, `<script type="text/javascript" src="js-tracker-webpack.bundle.js"></script>>`
 1. Configure the tracker by:
 ```js
-var tracker = new TrackerAsset();
+var tracker = new SeriousGameTracker();
 
-tracker.settings.host = "http://my.host:port/";
-tracker.settings.trackingCode = "TrackingCode";
+tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityId";
+tracker.trackerSettings.generateSettingsFromURLParams=false;
+tracker.trackerSettings.batch_endpoint = "https://myendpoint.com";
+tracker.trackerSettings.actor_homePage = "https://myhomepage.com";
+tracker.trackerSettings.actor_name = "username";
 ```
-5. More configuration can be done with:
-    * **port**: This should have the port for the analysis server
-    * **secure**: Is the connection secure?
-    * **max_flush**: max number of traces sent when flush
-    * **batch_size**: max number of traces stored in the tracker queue
-    * **backupStorage**: if enabled, csv traces will be stored at `localStorage.getItem("backup")`
-    * **host**: This should have the host for the analysis server
-    * **trackingCode**: If storage type is set to `net`, this is the [tracking code identifying the game](https://github.com/e-ucm/rage-analytics/wiki/Tracking-code)
-    * **debug**: Enable to see tracker messages in the Unity console.
-1. **optional** tracker.Login()
-1. Start the tracker by using `tracker.Start()`
+or 
+```js
+var tracker = new SeriousGameTracker();
+
+tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityId";
+tracker.trackerSettings.generateSettingsFromURLParams=true;
+tracker.trackerSettings.default_uri="mygame";
+```
+Here is the complete list of configuration options for a JavaScript tracker:
+
+**Tracker Configuration**
+
+* **generateSettingsFromURLParams**: boolean (default: `false`)
+	+ Generate settings from URL parameters.
+* **oauth_type**: string (default: `OAuth0`)
+	+ OAuth type (0, 1 or 2).
+* **batch_mode**: boolean (default: `true`)
+	+ Enable batch mode for sending data to the tracker.
+* **batch_endpoint**: string (default: `null`)
+	+ Endpoint for sending batch data to the tracker.
+* **batch_length**: integer (default: `100`)
+	+ Maximum number of traces stored in the tracker queue.
+* **batch_timeout**: integer (default: `30000`) // 30 seconds
+	+ Timeout for sending batch data to the tracker.
+* **actor_homePage**: string (default: ``)
+	+ Homepage URL for the actor.
+* **actor_name**: string (default: `mydefaultactor`)
+	+ Name of the actor.
+* **backup_mode**: boolean (default: `false`)
+	+ Enable backup mode for sending data to the tracker.
+* **backup_endpoint**: string (default: `null`)
+	+ Endpoint for sending backup data to the tracker.
+* **backup_type**: string (default: `null`)
+	+ Type of backup data to send to the tracker.
+* **default_uri**: string (default: `null`)
+	+ Default URI for the tracker.
+* **max_retry_delay**: integer (default: `5000`) // 5 seconds
+	+ Maximum retry delay for sending data to the tracker.
+
+**OAuth1 Configuration**
+
+* **tracker.oauth1.username**: string (default: `username`)
+	+ Username for OAuth1 authentication.
+* **tracker.oauth1.password**: string (default: `supersecret`)
+	+ Password for OAuth1 authentication.
+
+**OAuth2 Configuration**
+
+* **tracker.oauth2.token_endpoint**: string (default: `null`)
+	+ Token endpoint for OAuth2 authentication.
+* **tracker.oauth2.grant_type**: string (default: `null`)
+	+ Grant type for OAuth2 authentication.
+* **tracker.oauth2.client_id**: string (default: `null`)
+	+ Client ID for OAuth2 authentication.
+* **tracker.oauth2.scope**: string (default: `null`)
+	+ Scope for OAuth2 authentication.
+* **tracker.oauth2.state**: string (default: `null`)
+	+ State for OAuth2 authentication.
+* **tracker.oauth2.code_challenge_method**: string (default: `null`)
+	+ Code challenge method for OAuth2 authentication.
+* **tracker.oauth2.username**: string (default: `username`)
+	+ Username for OAuth2 authentication.
+* **tracker.oauth2.password**: string (default: `supersecret`)
+	+ Password for OAuth2 authentication.
+* **tracker.oauth2.login_hint**: string (default: `null`)
+	+ Login hint for OAuth2 authentication.
+
+**Debug Configuration**
+
+* **debug**: boolean (default: `false`)
+	+ Enable debug mode to see tracker messages in the Unity console.
+
+1. **Optional** Login the user configured by using `tracker.login()`
+1. Start the tracker by using `tracker.start()`
 1. Send traces
 
 ## Integration example
 
 An example test app can be found [here](https://github.com/e-ucm/js-tracker/blob/master/test_app.html).
 
-## Plugin instalation
-
-Include the plugin file into your program.
-
-```html
-<script type="text/javascript" src="plugins/geolocation.js"></script>
-```
-
-Add the plugin to the tracker using `tracker.addPlugin(plugin)`.
-
-```js
-var tracker = new TrackerAsset();
-
-//Add the plugin
-tracker.addPlugin(new TrackerPlugins.Geolocation());
-
-//Enjoy the plugin
-tracker.Places.Moved("Madrid", 1.4, 2.1, tracker.Places.PlaceType.UrbanArea);
-
-```
 ### Tracker Login and Start
 
-For tracker to send traces to the server, `tracker.Start()` has to be called. If you want to use an authenticated user, you can login before starting the tracker.
+For tracker to send traces to the server, `tracker.login()` has to be called. If you want to use an authenticated user, you can login before starting the tracker with `tracker.start()`.
 
 ```js
-var tracker = new TrackerAsset();
+var tracker = new SeriousGameTracker();
 
-tracker.settings.host = "https://rage.e-ucm.es/";
-tracker.settings.trackingCode = "58e3779b1043c7006d76d0e07sj9hnzljjo1dcxr";
+tracker.trackerSettings.batch_endpoint = "https://myendpoint.com/";
+tracker.trackerSettings.oauth_type = "OAuth1";
+tracker.oauth1.username = "username";
+tracker.oauth1.password = "password";
 
 //Login is optional. If not logged, anonymous actor is retrieved on start
-
-var connected = false;
-// You can use tracker.LoginBeaconing("accessToken", callback); if you want
-tracker.Login("student","password", function(data,error){
-  if(!error){
-    tracker.Start(function(result, error){
-      if(!error){
-      	connected = true;
-        console.log("tracker started");
-      }else{
-        console.log("start error")
-      }
-		});
-  }else{
-    console.log("login error")
-  }
-});
+tracker.login();
+tracker.start();
 ```
-### Sending Traces to the Analytics Server
 
-There are two methods used for sending traces:
-1. Using the xAPI for serious games interfaces (Accessible, Alternative, Completable and GameObject).
-1. Using `TrackerAsset.ActionTrace(verb,target_type,target_id)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `TrackerAsset.setVar(key, val)`.
+### Sending Traces to the Learning Record Store (LRS) Server
+
+There are two methods used for sending traces that generate for you StatementBuilder that you can extend:
+1. Using the xAPI for serious games interfaces (accessible(), alternative(), completable() and gameObject()).
+1. Using `tracker.trace(verb,objectType,objectId)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `.withResultExtension(key, val)`.
+
+To extend yours statements, you can extend the StatementBuilder using : 
+* `.withSuccess(bool success)` : Set success to statemement
+* `.withScore({raw:number, min:number, max:number, scaled:number})` : Set score to statemement
+* `.withRawScore(double score)` : Set raw score to statemement
+* `.withMinScore(double score)` : Set min score to statemement
+* `.withMaxScore(double score)` : Set max score to statemement
+* `.withScaledScore(double score)` : Set scaled score to statemement
+* `.withCompletion(bool completion)` : Set completion status to statement
+* `.withDuration(Date init, Date end)` : Set duration to statement
+* `.withResponse(string response)` : Set response to statement
+* `.withProgress(double progress)` : Set progress to statement
+* `.withResultExtension(key, val)` : Add result extension to statement
+* `.withResultExtensions(exts = {})` : Add result extensions as Object key/values list of the statement
+* `.apply(function fn)` : Applies a function to the statement
+
+The statements are not sent until you enqueue it using `.send()` to the StatementBuilder.
 
 ```js
 //simple trace
-tracker.GameObject.Used("GameObjectID2", tracker.GameObject.GameObjectType.Item);
-
-//trace with extensions
-tracker.setVar("extension1", "value1");
-tracker.Accessible.Skipped("AccesibleID2", tracker.Accessible.AccessibleType.Screen);
+tracker.gameObject("GameObjectID2", tracker.GAMEOBJECTTYPE.Item)
+      .used()
+      .withResultExtension("extension1", "value1")
+	  .send();
 
 //Very complex trace
-tracker.setResponse("AnotherResponse");
-tracker.setScore(123.456);
-tracker.setSuccess(false);
-tracker.setCompletion(true);
-tracker.setVar("extension1", "value1");
-tracker.setVar("extension2", "value2");
-tracker.setVar("extension3", 3);
-tracker.setVar("extension4", 4.56);
-tracker.ActionTrace("selected", "zone", "ObjectID3");
+tracker.accessible("AccesibleID2", tracker.ACCESSIBLETYPE.Screen)
+      .skipped()
+      .withResponse("AnotherResponse")
+      .withScore(123.456)
+      .withSuccess(false)
+      .withCompletion(true)
+      .withResultExtension("extension1", "value1")
+      .withResultExtension("extension2", "value2")
+      .withResultExtension("extension3", 3)
+      .withResultExtension("extension4", 4.56)
+	  .send();
 
-//Sending the traces
-tracker.Flush();
+tracker.trace("selected", "zone", "ObjectID3")
+	  .send();
+
+tracker.flush();
 ```
+
 ### Trace sending automatization
 
 As in JavaScript is a language very oriented to Async programming, there are multiple alternatives to generate an automatic loop for sending traces automatically. For example, you can create a loop like:
@@ -124,7 +178,7 @@ As in JavaScript is a language very oriented to Async programming, there are mul
 
 setInterval(function(){
 	if(connected)
-		tracker.Flush(function(result, error){
+		tracker.flush(function(result, error){
 			console.log("flushed");
 		})
 }, 3000);
@@ -132,13 +186,7 @@ setInterval(function(){
 
 ## User Guide
 
-The tracker requires (if `net` mode is on) the [RAGE Analytics](https://github.com/e-ucm/rage-analytics) infrastructure up and running. Check out the [Quickstart guide](https://github.com/e-ucm/rage-analytics/wiki/Quickstart) and follow the `developer` and `teacher` steps in order to create a game and [setup a class](https://github.com/e-ucm/rage-analytics/wiki/Set-up-a-class). It also requires a:
-
-* **Host**: where the server is at. This value usually looks like `<rage_server_hostmane>/api/proxy/gleaner/collector/`. The [collector](https://github.com/e-ucm/rage-analytics/wiki/Back-end-collector) is an endpoint designed to retrieve traces and send them to the analysis pipeline.
-* **Tracking code**: an unique tracking code identifying the game. [This code is created in the frontend](https://github.com/e-ucm/rage-analytics/wiki/Tracking-code), when creating a new game.
-
-
-The tracker exposes an API designed to collect, analyze and visualize the data. The  API consists on defining a set of **game objects**. A game object represents an element of the game on which players can perform one or several types of interactions. Some examples of player's interactions are:
+The tracker send your generated data to a Learning Record Store (LRS) Server API designed to collect, analyze and visualize the data. It consists on defining a set of **game objects**. A game object represents an element of the game on which players can perform one or several types of interactions. Some examples of player's interactions are:
 
 * start or complete (interaction) a level (game object)
 * increase or decrease (interaction) the number of coins (game object)
@@ -148,10 +196,10 @@ A **gameplay** is the flow of interactions that a player performs over these gam
 
 The main typed of game objects supported are:
 
-* [Completable](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/CompletableTracker.cs) - for Game, Session, Level, Quest, Stage, Combat, StoryNode, Race or any other generic Completable. Methods: `Initialized`, `Progressed` and `Completed`.
-* [Accessible](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AccessibleTracker.cs) - for Screen, Area, Zone, Cutscene or any other generic Accessible. Methods: `Accessed` and `Skipped`.
-* [Alternative](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs) - for Question, Menu, Dialog, Path, Arena or any other generic Alternative. Methods: `Selected` and `Unlocked`.
-* [GameObject](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/GameObjectTracker.cs) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
+* [Completable](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-progress) - for Game, Session, Level, Quest, Stage, Combat, StoryNode, Race or any other generic Completable. Methods: `Initialized`, `Progressed` and `Completed`.
+* [Accessible](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-navigation) - for Screen, Area, Zone, Cutscene or any other generic Accessible. Methods: `Accessed` and `Skipped`.
+* [Alternative](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-decisions) - for Question, Menu, Dialog, Path, Arena or any other generic Alternative. Methods: `Selected` and `Unlocked`.
+* [GameObject](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-game-world-interactions) for Enemy, Npc, Item or any other generic GameObject. Methods: `Interacted` and `Used`.
 
 ##### Completable
 
@@ -160,16 +208,22 @@ Usage example for the tracking of an in-game quest. We decided to use a completa
 ```js
 // Completable
 // Initialized
-tracker.Completable.Initialized("MyGameQuestId", tracker.Completable.CompletableType.Quest);
+tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
+        .initialized()
+	  	.send();
 
 // Progressed
 var progress = 0.8;
-tracker.Completable.Progressed("MyGameQuestId", tracker.Completable.CompletableType.Quest, progress);
+tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
+        .progressed(progress)
+	  	.send();
 
-// Progressed
+// Completed
 var success = true;
 var score = 0.75;
-var t = tracker.Completable.Completed("MyGameQuestId",tracker.Completable.CompletableType.Quest, success,score);
+var t = tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
+              .completed(success,score)
+	  		  .send();
 ```
 
 ##### Accessible
@@ -179,10 +233,14 @@ Usage example for the tracking the player's movement through some in-game screen
 ```js
 // Accessible
 // The player accessed the 'MainMenu' screen
-tracker.Accessible.Accessed("MainMenu", tracker.Accessible.AccessibleType.Screen);
+tracker.accessible("MainMenu", tracker.ACCESSIBLETYPE.Screen)
+        .accessed()
+	    .send();
 
 // The player skipped a cutscene
-tracker.Accessible.Skipped("Intro", tracker.Accessible.AccessibleType.Cutscene);
+tracker.accessible("Intro", tracker.ACCESSIBLETYPE.Cutscene)
+        .skipped()
+		.send();
 ```
 
 ##### Alternative
@@ -192,10 +250,14 @@ Usage example for the tracking the player's choices during a conversation:
 ```js
 // Alternative
 // The player selected the 'Ivan' answer for the question 'What's his name?'
-tracker.Alternative.Selected("What's his name?", "Ivan", tracker.Alternative.AlternativeType.Question);
+tracker.alternative("What's his name?", tracker.ALTERNATIVETYPE.Question)
+        .selected("Ivan")
+		.send();
 
 // The player unlocked 'Combat Mode' for the menu 'Menues/Start'
-tracker.Alternative.Unlocked("Menues/Start", "Combat Mode", tracker.Alternative.AlternativeType.Menu);
+tracker.alternative("Menues/Start", tracker.ALTERNATIVETYPE.Menu)
+      .unlocked("Combat Mode")
+	  .send();
 ```
 
 ##### Game Object
@@ -205,15 +267,14 @@ Usage example for the tracking the player's with a NPC villager and using a heal
 ```js
 // Game Object
 // The player interacted with a Non Playable Character
-tracker.GameObject.Interacted("NPC/Villager", tracker.GameObject.GameObjectType.Npc);
+tracker.gameObject("NPC/Villager", tracker.GAMEOBJECTTYPE.Npc)
+        .interacted()
+		.send();
 
 // The player used a health potion
-tracker.GameObject.Used("Item/HealthPotion/Consumable", tracker.GameObject.GameObjectType.Item);
+tracker.gameObject("Item/HealthPotion/Consumable", tracker.GAMEOBJECTTYPE.Item)
+        .used()
+		.send();
 ```
 
-Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects ([Completable](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/CompletableTracker.cs), [Accessible](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AccessibleTracker.cs), [Alternative](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs), [GameObject](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/GameObjectTracker.cs)) for the given case. For instance, in order to track conversations [alternatives](https://github.com/e-ucm/csharp-tracker/blob/3c56f43a53e69c10b031887419113ac2817afd96/TrackerAsset/Interfaces/AlternativeTracker.cs) are the best choice.
-
-### Tracker and Collector Flow
-If the storage type is `net`, the tracker will try to connect to a `Collector` [endpoint](https://github.com/e-ucm/rage-analytics/wiki/Back-end-collector), exposed by the [rage-analytics Backend](https://github.com/e-ucm/rage-analytics-backend). 
-
-More information about the tracker can be found in the [official documentation of rage-analytics](https://github.com/e-ucm/rage-analytics/wiki/Tracker).
+Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects ([Completable](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-progress), [Accessible](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-navigation), [Alternative](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-decisions), [GameObject](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-game-world-interactions)) for the given case. For instance, in order to track conversations [alternatives](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-decisions) are the best choice.

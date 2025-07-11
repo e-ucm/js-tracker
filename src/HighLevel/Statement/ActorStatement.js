@@ -27,7 +27,7 @@ export default class ActorStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         return {
@@ -41,7 +41,7 @@ export default class ActorStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.accountName.replaceAll(',', '\\,') ;

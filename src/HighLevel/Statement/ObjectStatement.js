@@ -100,7 +100,7 @@ export default class ObjectStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var object= {};
@@ -123,7 +123,7 @@ export default class ObjectStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');

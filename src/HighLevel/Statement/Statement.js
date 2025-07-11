@@ -13,8 +13,8 @@ export default class Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {number} verbId verb id of the statement
-     * @param {number} objectId object id of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
      * @param {string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
@@ -80,7 +80,7 @@ export default class Statement {
      * Set as URI if it is not an URI already
 
      * @param {string} id the id of the part of the statement
-     * @returns string
+     * @returns {String}
      */
     setAsUri(id) {
         if(this.isUri(id)) {
@@ -93,7 +93,7 @@ export default class Statement {
     /**
      * Check if the string is an URI
      * @param {string} id 
-     * @returns boolean
+     * @returns {boolean}
      */
     isUri(id) {
         const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
@@ -175,13 +175,16 @@ export default class Statement {
 
     /**
      * Set duration of the statement
-     * @param {number} value the duration in second
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
      */
-    setDuration(diffInSeconds) {
-        const seconds = diffInSeconds % 60;
-        const minutes = Math.floor(diffInSeconds / 60) % 60;
-        const hours = Math.floor(diffInSeconds / 3600) % 24;
-        const days = Math.floor(diffInSeconds / 86400);
+    setDuration(init, end) {
+        const durationInMs = end.getTime()-init.getTime();
+        const durationInSec = durationInMs / 1000;
+        const seconds = durationInSec % 60;
+        const minutes = Math.floor(durationInSec / 60) % 60;
+        const hours = Math.floor(durationInSec / 3600) % 24;
+        const days = Math.floor(durationInSec / 86400);
 
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
@@ -198,7 +201,7 @@ export default class Statement {
 
     /**
      * Set progress status of the statement
-     * @param {boolean} value the progress status
+     * @param {number} value the progress status
      */
     setProgress(value) {
         this.addResultExtension('progress', value);
@@ -216,7 +219,7 @@ export default class Statement {
     /**
      * Set result extension for key of the statement
      * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
+     * @param {*} value the value of the extension
      */
     addResultExtension(key,value) {
         this.result.setExtension(key, value);
@@ -232,7 +235,7 @@ export default class Statement {
 
     /**
      * Convert to xAPI format
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var xapiTrace={};
@@ -266,7 +269,7 @@ export default class Statement {
     /**
      * Convert to CSV format
      * 
-     * @returns string
+     * @returns {String}
      */
     toCSV() {
         var csv=[];

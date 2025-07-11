@@ -44,7 +44,7 @@ TrackerPlugins.Geolocation = function() {
 
                  this.tracker.setLocation(latitude, longitude);
 
-                 return this.tracker.Trace('moved',this.PlaceType.properties[type],placeId);
+                 return this.tracker.trace('moved',this.PlaceType.properties[type],placeId);
              };
 
              this.Looked = function(placeId, type, orientation, latitude, longitude) {
@@ -56,19 +56,19 @@ TrackerPlugins.Geolocation = function() {
                      this.tracker.setLocation(latitude, longitude);
                  }
 
-                 return this.tracker.Trace('looked',this.PlaceType.properties[type],placeId);
+                 return this.tracker.trace('looked',this.PlaceType.properties[type],placeId);
              };
 
              this.Entered = function(placeId, type) {
                  if (typeof type === 'undefined') {type = 5;}
 
-                 return this.tracker.Trace('entered',this.PlaceType.properties[type],placeId);
+                 return this.tracker.trace('entered',this.PlaceType.properties[type],placeId);
              };
 
              this.Exited = function(placeId, type) {
                  if (typeof type === 'undefined') {type = 5;}
 
-                 return this.tracker.Trace('exited',this.PlaceType.properties[type],placeId);
+                 return this.tracker.trace('exited',this.PlaceType.properties[type],placeId);
              };
          },
 
@@ -86,7 +86,7 @@ TrackerPlugins.Geolocation = function() {
 
                  this.tracker.setLocation(location);
 
-                 return this.tracker.Trace('followed',this.DirectionType.properties[type],placeId);
+                 return this.tracker.trace('followed',this.DirectionType.properties[type],placeId);
              };
          }
     };
