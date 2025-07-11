@@ -104,16 +104,6 @@ export default class OAuth2Protocol {
   /**
    * Creates an instance of OAuth2Protocol.
    * Initializes error messages and default property values.
-   */
-  constructor() {
-    this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
-    this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
-    this.unsupportedCodeChallengeMethodMessage = 'Code challenge (PKCE) method "{0}" not supported. Please use "S256" method or disable it.';
-  }
-
-  /**
-   * Initializes the OAuth2 protocol with the provided configuration.
-   *
    * @param {Object} config - Configuration object containing OAuth2 parameters
    * @param {string} config.token_endpoint - The token endpoint URL
    * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
@@ -124,14 +114,14 @@ export default class OAuth2Protocol {
    * @param {string} [config.username] - Username for password grant type
    * @param {string} [config.password] - Password for password grant type
    * @param {string} [config.login_hint] - Login hint for password grant type
-   * @returns {Promise<void>}
-   * @throws {Error} If required configuration values are missing or grant type is unsupported
    */
-  async init(config) {
-    console.log("[OAuth2] Starting");
-    this.tokenEndpoint = this.getRequiredValue(config, 'token_endpoint');
-    this.grantType = this.getRequiredValue(config, 'grant_type').toLowerCase();
-    this.clientId = this.getRequiredValue(config, 'client_id');
+  constructor(config) {
+    this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
+    this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
+    this.unsupportedCodeChallengeMethodMessage = 'Code challenge (PKCE) method "{0}" not supported. Please use "S256" method or disable it.';
+    this.tokenEndpoint = this.#getRequiredValue(config, 'token_endpoint');
+    this.grantType = this.#getRequiredValue(config, 'grant_type').toLowerCase();
+    this.clientId = this.#getRequiredValue(config, 'client_id');
     this.scope = config.scope || null;
     this.state = config.state || null;
 
@@ -147,10 +137,28 @@ export default class OAuth2Protocol {
 
     switch (this.grantType) {
       case "password":
-        this.username = this.getRequiredValue(config, 'username');
-        this.password = this.getRequiredValue(config, 'password');
-        this.login_hint = this.getRequiredValue(config, 'login_hint');
-        this.token = await this.doResourceOwnedPasswordCredentialsFlow(
+        this.username = this.#getRequiredValue(config, 'username');
+        this.password = this.#getRequiredValue(config, 'password');
+        this.login_hint = this.#getRequiredValue(config, 'login_hint');
+      default:
+        throw new Error(this.unsupportedGrantTypeMessage.replace('{0}', this.grantType));
+    }
+  }
+
+  /**
+   * Initializes the OAuth2 protocol with the provided configuration.
+   *
+
+   * @returns {Promise<void>}
+   * @throws {Error} If required configuration values are missing or grant type is unsupported
+   */
+  async getToken() {
+    console.log("[OAuth2] Starting");
+    switch (this.grantType) {
+      case "refresh_token":
+        this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+      case "password":
+        this.token = await this.#doResourceOwnedPasswordCredentialsFlow(
           this.tokenEndpoint,
           this.clientId,
           this.username,
@@ -177,7 +185,7 @@ export default class OAuth2Protocol {
    * @returns {*} The value associated with the key
    * @throws {Error} If the required value is missing
    */
-  getRequiredValue(config, key) {
+  #getRequiredValue(config, key) {
     if (!config[key]) {
       throw new Error(this.fieldMissingMessage.replace('{0}', key));
     }
@@ -196,7 +204,7 @@ export default class OAuth2Protocol {
    * @param {string} login_hint - The login hint
    * @returns {Promise<Object>} The token response
    */
-  async doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
+  async #doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
     const form = {
       username,
       password,
@@ -208,7 +216,7 @@ export default class OAuth2Protocol {
     if(state) {
       form.state = state;
     }
-    return await this.doTokenRequest(tokenUrl, clientId, "password", form);
+    return await this.#doTokenRequest(tokenUrl, clientId, "password", form);
   }
 
   /**
@@ -221,7 +229,7 @@ export default class OAuth2Protocol {
    * @returns {Promise<Object>} The token response
    * @throws {Error} If the token request fails
    */
-  async doTokenRequest(tokenUrl, clientId, grantType, otherParams) {
+  async #doTokenRequest(tokenUrl, clientId, grantType, otherParams) {
     const form = {
       grant_type: grantType,
       client_id: clientId,
@@ -253,8 +261,8 @@ export default class OAuth2Protocol {
    * @param {string} refreshToken - The refresh token
    * @returns {Promise<Object>} The new token response
    */
-  async doRefreshToken(tokenUrl, clientId, refreshToken) {
-    return await this.doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
+  async #doRefreshToken(tokenUrl, clientId, refreshToken) {
+    return await this.#doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
   }
 
   /**
@@ -266,7 +274,7 @@ export default class OAuth2Protocol {
     if(this.tokenRefreshInProgress == false) {
       try {
         this.tokenRefreshInProgress = true;
-        this.token = await this.doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+        this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
         this.tokenRefreshInProgress = false;
         return this.token.access_token;
       } catch(error) {
@@ -302,9 +310,9 @@ export default class OAuth2Protocol {
    * @param {Object} request - The request object to update
    * @returns {Promise<void>}
    */
-  async updateParamsForAuth(request) {
+  async #updateParamsForAuth(request) {
     if (this.hasTokenExpired()) {
-      this.token = await this.doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+      this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
       if (this.onAuthorizationInfoUpdate) {
         this.onAuthorizationInfoUpdate(this.token);
       }
@@ -321,7 +329,7 @@ export default class OAuth2Protocol {
    *
    * @param {Function} callback - The callback function to register
    */
-  registerAuthInfoUpdate(callback) {
+  #registerAuthInfoUpdate(callback) {
     if (callback) {
       this.onAuthorizationInfoUpdate = callback;
       if (this.token) {

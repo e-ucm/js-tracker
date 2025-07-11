@@ -66,8 +66,8 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      */
     async getToken() {
         try {
-            this.oauth2 = new OAuth2Protocol();
-            await this.oauth2.init(this.oauth2Settings);
+            this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
+            await this.oauth2.getToken();
             return this.oauth2.token.access_token; // Return the access token
         } catch(e) {
             console.error(e);
