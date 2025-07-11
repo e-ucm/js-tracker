@@ -124,15 +124,33 @@ tracker.start();
 
 ### Sending Traces to the Learning Record Store (LRS) Server
 
-There are two methods used for sending traces:
+There are two methods used for sending traces that generate for you StatementBuilder that you can extend:
 1. Using the xAPI for serious games interfaces (accessible(), alternative(), completable() and gameObject()).
 1. Using `tracker.trace(verb,objectType,objectId)` method. This is **not recomended unless you have clear in mind what you're doing**. Remember that xAPI traces are focused on sending actions, not purely variable changes. If you want to track variables, you can add them as extensions using `.withResultExtension(key, val)`.
+
+To extend yours statements, you can extend the StatementBuilder using : 
+* `.withSuccess(bool success)` : Set success to statemement
+* `.withScore({raw:number, min:number, max:number, scaled:number})` : Set score to statemement
+* `.withRawScore(double score)` : Set raw score to statemement
+* `.withMinScore(double score)` : Set min score to statemement
+* `.withMaxScore(double score)` : Set max score to statemement
+* `.withScaledScore(double score)` : Set scaled score to statemement
+* `.withCompletion(bool completion)` : Set completion status to statement
+* `.withDuration(Date init, Date end)` : Set duration to statement
+* `.withResponse(string response)` : Set response to statement
+* `.withProgress(double progress)` : Set progress to statement
+* `.withResultExtension(key, val)` : Add result extension to statement
+* `.withResultExtensions(exts = {})` : Add result extensions as Object key/values list of the statement
+* `.apply(function fn)` : Applies a function to the statement
+
+The statements are not sent until you enqueue it using `.send()` to the StatementBuilder.
 
 ```js
 //simple trace
 tracker.gameObject("GameObjectID2", tracker.GAMEOBJECTTYPE.Item)
       .used()
-      .withResultExtension("extension1", "value1");
+      .withResultExtension("extension1", "value1")
+	  .send();
 
 //Very complex trace
 tracker.accessible("AccesibleID2", tracker.ACCESSIBLETYPE.Screen)
@@ -144,9 +162,11 @@ tracker.accessible("AccesibleID2", tracker.ACCESSIBLETYPE.Screen)
       .withResultExtension("extension1", "value1")
       .withResultExtension("extension2", "value2")
       .withResultExtension("extension3", 3)
-      .withResultExtension("extension4", 4.56);
+      .withResultExtension("extension4", 4.56)
+	  .send();
 
-tracker.trace("selected", "zone", "ObjectID3");
+tracker.trace("selected", "zone", "ObjectID3")
+	  .send();
 
 tracker.flush();
 ```
@@ -189,18 +209,21 @@ Usage example for the tracking of an in-game quest. We decided to use a completa
 // Completable
 // Initialized
 tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
-        .initialized();
+        .initialized()
+	  	.send();
 
 // Progressed
 var progress = 0.8;
 tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
-        .progressed(progress);
+        .progressed(progress)
+	  	.send();
 
 // Completed
 var success = true;
 var score = 0.75;
 var t = tracker.completable("MyGameQuestId", tracker.COMPLETABLETYPE.Quest)
-              .completed(success,score);
+              .completed(success,score)
+	  		  .send();
 ```
 
 ##### Accessible
@@ -211,11 +234,13 @@ Usage example for the tracking the player's movement through some in-game screen
 // Accessible
 // The player accessed the 'MainMenu' screen
 tracker.accessible("MainMenu", tracker.ACCESSIBLETYPE.Screen)
-        .accessed();
+        .accessed()
+	    .send();
 
 // The player skipped a cutscene
 tracker.accessible("Intro", tracker.ACCESSIBLETYPE.Cutscene)
-        .skipped();
+        .skipped()
+		.send();
 ```
 
 ##### Alternative
@@ -226,11 +251,13 @@ Usage example for the tracking the player's choices during a conversation:
 // Alternative
 // The player selected the 'Ivan' answer for the question 'What's his name?'
 tracker.alternative("What's his name?", tracker.ALTERNATIVETYPE.Question)
-        .selected("Ivan");
+        .selected("Ivan")
+		.send();
 
 // The player unlocked 'Combat Mode' for the menu 'Menues/Start'
 tracker.alternative("Menues/Start", tracker.ALTERNATIVETYPE.Menu)
-      .unlocked("Combat Mode");
+      .unlocked("Combat Mode")
+	  .send();
 ```
 
 ##### Game Object
@@ -241,11 +268,13 @@ Usage example for the tracking the player's with a NPC villager and using a heal
 // Game Object
 // The player interacted with a Non Playable Character
 tracker.gameObject("NPC/Villager", tracker.GAMEOBJECTTYPE.Npc)
-        .interacted();
+        .interacted()
+		.send();
 
 // The player used a health potion
 tracker.gameObject("Item/HealthPotion/Consumable", tracker.GAMEOBJECTTYPE.Item)
-        .used();
+        .used()
+		.send();
 ```
 
 Note that in order to track other type of user interactions it is required to perform a previous analysis to identify the most suitable game objects ([Completable](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-progress), [Accessible](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-navigation), [Alternative](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-decisions), [GameObject](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-game-world-interactions)) for the given case. For instance, in order to track conversations [alternatives](https://github.com/e-ucm/xapi-seriousgames/blob/master/xAPI%20Profile.md#tracking-decisions) are the best choice.
