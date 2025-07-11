@@ -40,7 +40,7 @@ export class ScormTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized=false;
+    isInitialized=false;
 
     /**
      * Initialized Time
@@ -52,9 +52,9 @@ export class ScormTracker {
      * Send Initialized statement
      * @returns {StatementBuilder}
      */
-    Initialized() {
+    initialized() {
         var addInitializedTime = true;
-        if(this.initialized) {
+        if(this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
@@ -65,20 +65,20 @@ export class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=true;
+            this.isInitialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
-        return this.tracker.Trace('initialized', this.ScormType[this.type], this.scormId);
+        return this.tracker.trace('initialized', this.ScormType[this.type], this.scormId);
     }
 
     /**
      * Send Suspended statement
      * @returns {StatementBuilder}
      */
-    Suspended() {
-        if(!this.initialized) {
+    suspended() {
+        if(!this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
@@ -87,21 +87,21 @@ export class ScormTracker {
             }
         }
         let actualDate=new Date();
-        this.initialized=false;
+        this.isInitialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
-        return this.tracker.Trace('suspended', this.ScormType[this.type], this.scormId)
-                .WithDuration(this.initializedTime, actualDate);
+        return this.tracker.trace('suspended', this.ScormType[this.type], this.scormId)
+                .withDuration(this.initializedTime, actualDate);
     }
 
     /**
      * Send Resumed statement
      * @returns {StatementBuilder}
      */
-    Resumed() {
+    resumed() {
         var addInitializedTime = true;
-        if(this.initialized) {
+        if(this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("The Resumed statement for the specified id has already been sent!");
             } else {
@@ -112,20 +112,20 @@ export class ScormTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=true;
+            this.isInitialized=true;
         }
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
-        return this.tracker.Trace('resumed', this.ScormType[this.type], this.scormId);
+        return this.tracker.trace('resumed', this.ScormType[this.type], this.scormId);
     }
 
     /**
      * Send Terminated statement
      * @returns {StatementBuilder}
      */
-    Terminated() {
-        if(!this.initialized) {
+    terminated() {
+        if(!this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Terminated statement!");
             } else {
@@ -134,28 +134,28 @@ export class ScormTracker {
             }
         }
         let actualDate=new Date();
-        this.initialized=false;
+        this.isInitialized=false;
         if(this.type != SCORMTYPE.SCO) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
-        return this.tracker.Trace('terminated', this.ScormType[this.type], this.scormId)
-                    .WithDuration(this.initializedTime, actualDate);
+        return this.tracker.trace('terminated', this.ScormType[this.type], this.scormId)
+                    .withDuration(this.initializedTime, actualDate);
     }
 
     /**
      * Send Passed statement
      * @returns {StatementBuilder}
      */
-    Passed() {
-        return this.tracker.Trace('passed',this.ScormType[this.type], this.scormId);
+    passed() {
+        return this.tracker.trace('passed',this.ScormType[this.type], this.scormId);
     }
 
     /**
      * Send Failed statement
      * @returns {StatementBuilder}
      */
-    Failed() {
-        return this.tracker.Trace('failed',this.ScormType[this.type], this.scormId);
+    failed() {
+        return this.tracker.trace('failed',this.ScormType[this.type], this.scormId);
     }
 
     /**
@@ -163,11 +163,11 @@ export class ScormTracker {
      * @param {number} score the score of the Scorm object
      * @returns {StatementBuilder}
      */
-    Scored(score) {
+    scored(score) {
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.tracker.Trace('scored',this.ScormType[this.type], this.scormId)
-            .WithScore({raw:score});
+        return this.tracker.trace('scored',this.ScormType[this.type], this.scormId)
+            .withScore({raw:score});
     }
 
     /**
@@ -177,12 +177,12 @@ export class ScormTracker {
      * @param {number} score the score of the Scorm object
      * @returns {StatementBuilder}
      */
-    Completed(success, completion, score) {
+    completed(success, completion, score) {
         if (typeof success === 'undefined') {success = true;}
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        if(!this.initialized) {
+        if(!this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an suspended statement!");
             } else {
@@ -191,11 +191,11 @@ export class ScormTracker {
             }
         }
         let actualDate=new Date();
-        return this.tracker.Trace('completed',this.ScormType[this.type], this.scormId)
-            .WithSuccess(success)
-            .WithCompletion(completion)
-            .WithScore({raw:score})
-            .WithDuration(this.initializedTime, actualDate);
+        return this.tracker.trace('completed',this.ScormType[this.type], this.scormId)
+            .withSuccess(success)
+            .withCompletion(completion)
+            .withScore({raw:score})
+            .withDuration(this.initializedTime, actualDate);
     }
 }
 

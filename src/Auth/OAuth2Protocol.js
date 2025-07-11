@@ -344,7 +344,7 @@ export default class OAuth2Protocol {
    * @returns {Promise<void>}
    * @throws {Error} If the logout request fails
    */
-  async Logout() {
+  async logout() {
     const form = {
       grant_type: "refresh_token",
       client_id: this.clientId,

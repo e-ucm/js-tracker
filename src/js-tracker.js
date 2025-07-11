@@ -98,7 +98,7 @@ export class JSTracker {
      * 
      * @returns {Promise<void>} 
      */
-    async Login() {
+    async login() {
         if(this.trackerSettings.generateSettingsFromURLParams) {
             this.generateXAPITrackerFromURLParams();
         }
@@ -126,26 +126,26 @@ export class JSTracker {
             this.tracker = new xAPITrackerAsset();
         }
         this.tracker.settings = this.trackerSettings;
-        await this.tracker.Login();
+        await this.tracker.login();
     }
 
-    Start() {
+    start() {
         if(!this.tracker) {
             this.tracker = new xAPITrackerAsset();
         }
         this.tracker.settings = this.trackerSettings;
-        this.tracker.Start();
+        this.tracker.start();
         this.Started=true;
     }
 
-    Stop() {
-        this.tracker.Stop();
+    stop() {
+        this.tracker.stop();
         this.started = false;
     };
 
-    Logout() {
+    logout() {
         if(this.tracker) {
-            this.tracker.Logout();
+            this.tracker.logout();
         }
         this.trackerSettings.oauth_type="OAuth0";
     }
@@ -156,7 +156,7 @@ export class JSTracker {
      * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
      * @returns {Promise<void>} Promise that resolves when flushing is complete
      */
-    Flush({ withBackup = false } = {}) {
+    flush({ withBackup = false } = {}) {
         if(this.tracker) {
             return this.tracker.flush({ withBackup: withBackup });
         }
@@ -300,12 +300,12 @@ export class JSScormTracker extends JSTracker {
         super();
     }
 
-    async Login() {
-        await super.Login();
+    async login() {
+        await super.login();
     }
 
-    Logout() {
-        super.Logout();
+    logout() {
+        super.logout();
         this.scormInstances={};
     }
 
@@ -315,7 +315,7 @@ export class JSScormTracker extends JSTracker {
      * @param {number} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    Scorm(id, type=SCORMTYPE.SCO) {
+    scorm(id, type=SCORMTYPE.SCO) {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
@@ -379,13 +379,13 @@ export class SeriousGameTracker extends JSTracker {
         this.trackerSettings.activityId="";
     }
 
-    async Login() {
+    async login() {
         this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, SCORMTYPE.SCO);
-        await super.Login();
+        await super.login();
     }
 
-    Logout() {
-        super.Logout();
+    logout() {
+        super.logout();
         this.scormTracker=null;
         this.instances={
             "completable": {},
@@ -395,44 +395,44 @@ export class SeriousGameTracker extends JSTracker {
         };
     }
 
-    Start() {
-        super.Start();
+    start() {
+        super.start();
     }
 
-    Stop() {
-        super.Stop();
+    stop() {
+        super.stop();
     }
 
     /**
      * Marks the game as started
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
      */
-    Initialized() {
-        return this.scormTracker.Initialized();
+    initialized() {
+        return this.scormTracker.initialized();
     }
 
     /**
      * Marks the game as paused
      * @returns {StatementBuilder} Promise that resolves when the pause is recorded
      */
-    Pause() {
-        return this.scormTracker.Suspended();
+    pause() {
+        return this.scormTracker.suspended();
     }
 
     /**
      * Marks the game as resumed
      * @returns {StatementBuilder} Promise that resolves when the resume is recorded
      */
-    Resumed() {
-        return this.scormTracker.Resumed();
+    resumed() {
+        return this.scormTracker.resumed();
     }
 
     /**
      * Marks the game as finished
      * @returns {StatementBuilder} Promise that resolves when the finish is recorded
      */
-    Terminated() {
-        return this.scormTracker.Terminated();
+    terminated() {
+        return this.scormTracker.terminated();
     }
 
     /**
@@ -442,8 +442,8 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    Trace(verbId, objectType, objectId) {
-        return this.tracker.Trace(verbId, objectType, objectId);
+    trace(verbId, objectType, objectId) {
+        return this.tracker.trace(verbId, objectType, objectId);
     }
     
     
@@ -453,7 +453,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    Accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
         var accessible;
         if(!this.instances["accessible"][type]) {
             this.instances["accessible"][type]={};
@@ -473,7 +473,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    GameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
         var gameObject;
         if(!this.instances["gameObject"][type]) {
             this.instances["gameObject"][type]={};
@@ -493,7 +493,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    Completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
+    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
         var completable;
         if(!this.instances["completable"][type]) {
             this.instances["completable"][type]={};
@@ -513,7 +513,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {number} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    Alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
         var alternative;
         if(!this.instances["alternative"][type]) {
             this.instances["alternative"][type]={};

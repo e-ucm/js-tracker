@@ -44,7 +44,7 @@ export class CompletableTracker {
      * is initialized
      * @type {boolean}
      */
-    initialized=false;
+    isInitialized=false;
 
     /**
      * Initialized Time
@@ -57,7 +57,7 @@ export class CompletableTracker {
      * Send Initialized statement
      * @returns {StatementBuilder}
      */
-    Initialized() {
+    initialized() {
         var addInitializedTime = true;
         if(this.initializedTime) {
             if (this.tracker.settings.debug) {
@@ -69,9 +69,9 @@ export class CompletableTracker {
         }
         if (addInitializedTime) {
             this.initializedTime = new Date();
-            this.initialized=true;
+            this.IsInitialized=true;
         }
-        return this.tracker.Trace('initialized',this.CompletableType[this.type],this.completableId);
+        return this.tracker.trace('initialized',this.CompletableType[this.type],this.completableId);
     }
 
     /**
@@ -79,9 +79,9 @@ export class CompletableTracker {
      * @param {number} progress the progress of the completable object
      * @returns {StatementBuilder}
      */
-    Progressed(progress) {
-        return this.tracker.Trace('progressed',this.CompletableType[this.type],this.completableId)
-            .WithProgress(progress);
+    progressed(progress) {
+        return this.tracker.trace('progressed',this.CompletableType[this.type],this.completableId)
+            .withProgress(progress);
     }
 
     /**
@@ -91,12 +91,12 @@ export class CompletableTracker {
      * @param {number} score the score of the completable object
      * @returns {StatementBuilder}
      */
-    Completed(success, completion, score) {
+    completed(success, completion, score) {
         if (typeof success === 'undefined') {success = true;}
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        if(!this.initialized) {
+        if(!this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Completed statement!");
             } else {
@@ -105,13 +105,13 @@ export class CompletableTracker {
             }
         }
         let actualDate=new Date();
-        this.initialized=false;
+        this.isInitialized=false;
 
-        return this.tracker.Trace('completed',this.CompletableType[this.type],this.completableId)
-            .WithSuccess(success)
-            .WithCompletion(completion)
-            .WithScore({raw:score})
-            .WithDuration(this.initializedTime, actualDate);
+        return this.tracker.trace('completed',this.CompletableType[this.type],this.completableId)
+            .withSuccess(success)
+            .withCompletion(completion)
+            .withScore({raw:score})
+            .withDuration(this.initializedTime, actualDate);
     }
 }
 

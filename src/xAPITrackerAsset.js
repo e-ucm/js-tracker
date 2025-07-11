@@ -131,13 +131,13 @@ export default class xAPITrackerAsset {
      * Creates an instance of xAPITrackerAsset
      */
     constructor() {
-        this.onOffline();
+        this.#onOffline();
     }
 
     /**
      * Logs out the current session by clearing the authentication token
      */
-    Logout() {
+    logout() {
          if(this.connected) {
             this.auth_token = null;
          }
@@ -146,12 +146,12 @@ export default class xAPITrackerAsset {
     /**
      * Event handler called when the client goes offline
      */
-    onOffline() {
+    #onOffline() {
         this.online = false;        
         if (this.settings.debug) console.warn("XAPI Tracker for Serious Games went offline");
     }
 
-    Start() {
+    start() {
         this.started = true;
         this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
         this.context = new ContextStatement();
@@ -162,13 +162,13 @@ export default class xAPITrackerAsset {
             });
         }
         if(this.xapi != null) {
-            this.onOnline();
+            this.#onOnline();
         } else {
-            this.onOffline();
+            this.#onOffline();
         }
     }
 
-    Stop() {
+    stop() {
         this.started = false;
         this.connected=false;
         this.online=false;
@@ -178,14 +178,14 @@ export default class xAPITrackerAsset {
         this.actor = null;
         this.context = null;
         this.xapi=null;
-        this.onOffline();
+        this.#onOffline();
     }
 
     /**
      * Event handler called when the client comes online
      * @returns {Promise<void>}
      */
-    async onOnline() {
+    async #onOnline() {
         this.online = true;
         if (this.settings.debug) console.info("XAPI Tracker for Serious Games back Online");
     }
@@ -194,7 +194,7 @@ export default class xAPITrackerAsset {
      * Updates the authentication configuration
      * 
      */
-    async Login() {
+    async login() {
         if(this.auth_token) {
             this.connected=true;
         } else {
@@ -206,7 +206,7 @@ export default class xAPITrackerAsset {
      * Sends a batch of statements to the xAPI endpoint
      * @returns {Promise<void>}
      */
-    async sendBatch() {
+    async #sendBatch() {
         if (!this.online) return;
         if (this.offset >= this.statementsToSend.length) return;
 
@@ -234,15 +234,15 @@ export default class xAPITrackerAsset {
                 case 401: // Unauthorized
                 case 403: // Forbidden
                     console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
-                    this.onOffline();
+                    this.#onOffline();
                     await this.refreshAuth();
                     this.sendingInProgress = false;
-                    await this.sendBatch();
+                    await this.#sendBatch();
                     break;
                 default:
                     console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
                     this.sendingInProgress = false;
-                    this.onOffline();
+                    this.#onOffline();
                     break;
             }
 
@@ -254,7 +254,7 @@ export default class xAPITrackerAsset {
         }
 
         if (this.offset < this.statementsToSend.length) {
-            this.startTimer();
+            this.#startTimer();
         }
     }
 
@@ -263,21 +263,21 @@ export default class xAPITrackerAsset {
      * @returns {Promise<void>}
      */
     async refreshAuth() {
-        this.Login();
+        this.login();
     }
 
     /**
      * Starts the timer for batch processing
      */
-    startTimer() {
+    #startTimer() {
         if (this.timer) return;
         let timeout = this.retryDelay ? this.retryDelay : this.settings.batch_timeout;
 
         this.timer = setTimeout(async () => {
-            await this.sendBatch();
+            await this.#sendBatch();
             this.timer = null;
             if (this.offset < this.statementsToSend.length) {
-                this.startTimer();
+                this.#startTimer();
             }
         }, timeout);
     }
@@ -289,7 +289,7 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    Trace(verbId, objectType, objectId) {
+    trace(verbId, objectType, objectId) {
         const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }
@@ -298,7 +298,7 @@ export default class xAPITrackerAsset {
      * Sends statements to the backup endpoint
      * @returns {Promise<void>}
      */
-    async sendBackup() {
+    async #sendBackup() {
         if (this.online && this.settings.backup_endpoint && this.settings.backup_endpoint.trim()) {
             let contentType;
             let statements;
@@ -360,10 +360,10 @@ export default class xAPITrackerAsset {
                     switch (status) {
                         case 401: // Unauthorized
                         case 403: // Forbidden
-                            this.onOffline();
+                            this.#onOffline();
                             console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
                             await this.refreshAuth();
-                            await this.sendBackup();
+                            await this.#sendBackup();
                             break;
                         default:
                             console.error(`[TRACKER: Backup Processor] Backup upload returned status ${status} with message: ${errorMessage}`);
@@ -390,10 +390,10 @@ export default class xAPITrackerAsset {
         this.statementsToSend.push(statement);
 
         if (this.online && this.statementsToSend.length >= this.offset + this.settings.batch_length) {
-            await this.sendBatch();
+            await this.#sendBatch();
         }
 
-        this.startTimer();
+        this.#startTimer();
     }
 
     /**
@@ -405,11 +405,11 @@ export default class xAPITrackerAsset {
     async flush({withBackup = false} = {}) {
         if(withBackup) {
             await Promise.all([
-                this.sendBatch(),
-                this.sendBackup()
+                this.#sendBatch(),
+                this.#sendBackup()
             ]);
         } else {
-            await this.sendBatch();
+            await this.#sendBatch();
         }
     }
 }

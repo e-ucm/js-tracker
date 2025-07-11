@@ -41,9 +41,9 @@ export class AlternativeTracker {
      * @param {string} optionId the optionId of the selected statement
      * @returns {StatementBuilder}
      */
-    Selected(optionId) {        
-        return this.tracker.Trace('selected',this.AlternativeType[this.type],this.alternativeId)
-            .WithResponse(optionId);
+    selected(optionId) {        
+        return this.tracker.trace('selected',this.AlternativeType[this.type],this.alternativeId)
+            .withResponse(optionId);
     }
 
     /**
@@ -51,9 +51,9 @@ export class AlternativeTracker {
      * @param {string} optionId the optionId of the Unlocked statement
      * @returns {StatementBuilder}
      */
-    Unlocked(optionId) {
-        return this.tracker.Trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
-                .WithResponse(optionId);
+    unlocked(optionId) {
+        return this.tracker.trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
+                .withResponse(optionId);
     }
 }
 

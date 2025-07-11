@@ -47,15 +47,15 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         this.oauth2 = null;
         window.addEventListener('beforeunload', async () => {
             if (this.auth_token) {
-                await this.Logout();
+                await this.logout();
             }
         });
     }
 
-    async Login() {
+    async login() {
         if(!this.online) {
             // Fetch token after object construction
-            await this.initAuth();
+            await this.#initAuth();
         }
     }
 
@@ -64,7 +64,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      *
      * @returns {Promise<string|null>} The access token or null if failed
      */
-    async getToken() {
+    async #getToken() {
         try {
             this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
             await this.oauth2.getToken();
@@ -80,13 +80,13 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      *
      * @returns {Promise<void>}
      */
-    async initAuth() {
-        const oAuth2Token = await this.getToken();
+    async #initAuth() {
+        const oAuth2Token = await this.#getToken();
         if(oAuth2Token !== null) {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            return super.Login();
+            return super.login();
         }
     }
 
@@ -101,7 +101,7 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
             // Now that we have the token, update the authorization in the super class
-            super.Login();
+            super.login();
         }
     }
 
@@ -110,9 +110,9 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      *
      * @returns {Promise<void>}
      */
-    async Logout() {
-        await this.oauth2.Logout();
+    async logout() {
+        await this.oauth2.logout();
         // logout
-        super.Logout();
+        super.logout();
     }
 }

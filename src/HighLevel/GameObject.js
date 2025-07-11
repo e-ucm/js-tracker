@@ -41,16 +41,16 @@ export class GameObjectTracker {
      * Send Interacted statement
      * @returns {StatementBuilder}
      */
-    Interacted() {
-        return this.tracker.Trace('interacted',this.GameObjectType[this.type],this.gameobjectId);
+    interacted() {
+        return this.tracker.trace('interacted',this.GameObjectType[this.type],this.gameobjectId);
     }
     
     /**
      * Send Used statement
      * @returns {StatementBuilder}
      */
-    Used() {
-        return this.tracker.Trace('used',this.GameObjectType[this.type],this.gameobjectId);
+    used() {
+        return this.tracker.trace('used',this.GameObjectType[this.type],this.gameobjectId);
     }
 }
 

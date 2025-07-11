@@ -40,16 +40,16 @@ export class AccessibleTracker {
      * Send Accessed statement
      * @returns {StatementBuilder}
      */
-    Accessed() {
-        return this.tracker.Trace('accessed',this.AccessibleType[this.type],this.accessibleId);
+    accessed() {
+        return this.tracker.trace('accessed',this.AccessibleType[this.type],this.accessibleId);
     }
 
     /**
      * Send Skipped statement
      * @returns {StatementBuilder}
      */
-    Skipped() {
-        return this.tracker.Trace('skipped',this.AccessibleType[this.type],this.accessibleId);
+    skipped() {
+        return this.tracker.trace('skipped',this.AccessibleType[this.type],this.accessibleId);
     }
 }
 
