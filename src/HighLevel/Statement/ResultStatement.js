@@ -91,7 +91,6 @@ export default class ResultStatement {
      * @param {Object} extensions extension list
      */
     setExtensions(extensions) {
-        this.Extensions = {};
         for (var key in extensions) {
             this.setExtension(key,extensions[key]);
         }
