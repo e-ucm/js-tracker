@@ -59,7 +59,7 @@ export class CompletableTracker {
      */
     initialized() {
         var addInitializedTime = true;
-        if(this.initializedTime) {
+        if(this.isInitialized) {
             if (this.tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
