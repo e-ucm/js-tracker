@@ -102,7 +102,7 @@ export class JSTracker {
         if(this.trackerSettings.generateSettingsFromURLParams) {
             this.generateXAPITrackerFromURLParams();
         }
-         if (this.trackerSettings.oauth_type="OAuth2") {
+         if (this.trackerSettings.oauth_type === "OAuth2") {
             /**
              * @type {xAPITrackerAssetOAuth2}
              */
@@ -112,7 +112,7 @@ export class JSTracker {
             } else {
                 throw new Error("tracker isn't OAuth2");
             }
-        } else if (this.trackerSettings.oauth_type="OAuth1") {
+        } else if (this.trackerSettings.oauth_type === "OAuth1") {
             /**
              * @type {xAPITrackerAssetOAuth1}
              */
