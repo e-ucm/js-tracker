@@ -5,52 +5,53 @@ import { StatementBuilder } from "./StatementBuilder.js";
  */
 export class CompletableTracker {
     /**
-     * Constructor of completable tracker
-     * @param {xAPITrackerAsset} tracker the tracker
+     * Constructor of completable Tracker
+     * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the completable object
-     * @param {number} type the type of the completable object
+     * @param {number} type the Type of the completable object
      */
     constructor(tracker, id, type=COMPLETABLETYPE.COMPLETABLE) {
-        this.completableId=id;
-        this.type=type;
-        this.tracker = tracker;
+        this.CompletableId=id;
+        this.Type=type;
+        this.Tracker = tracker;
+        this.IsInitialized=false;
     }
 
     /**
      * the id of the completable object
-     * @type {string}
+     * @Type {string}
      */
-    completableId;
+    CompletableId;
 
     /**
-     * the type of the completable object
-     * @type {number}
+     * the Type of the completable object
+     * @Type {number}
      */
-    type;
+    Type;
 
     /**
-     * the tracker of the completable object
-     * @type {xAPITrackerAsset}
+     * the Tracker of the completable object
+     * @Type {xAPITrackerAsset}
      */
-    tracker;
+    Tracker;
 
     /**
-     * the list of types possible for the completable object
-     * @type {Array}
+     * the list of Types possible for the completable object
+     * @Type {Array}
      */
     CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
     /**
      * is initialized
-     * @type {boolean}
+     * @Type {boolean}
      */
-    isInitialized=false;
+    IsInitialized;
 
     /**
      * Initialized Time
-     * @type {Date}
+     * @Type {Date}
      */
-    initializedTime;
+    InitializedTime;
 
 
     /**
@@ -59,8 +60,8 @@ export class CompletableTracker {
      */
     initialized() {
         var addInitializedTime = true;
-        if(this.isInitialized) {
-            if (this.tracker.settings.debug) {
+        if(this.IsInitialized) {
+            if (this.Tracker.settings.debug) {
                 throw new Error("The initialized statement for the specified id has already been sent!");
             } else {
                 console.warn("The initialized statement for the specified id has already been sent!");
@@ -71,7 +72,7 @@ export class CompletableTracker {
             this.initializedTime = new Date();
             this.IsInitialized=true;
         }
-        return this.tracker.trace('initialized',this.CompletableType[this.type],this.completableId);
+        return this.Tracker.trace('initialized',this.CompletableType[this.Type],this.CompletableId);
     }
 
     /**
@@ -80,7 +81,7 @@ export class CompletableTracker {
      * @returns {StatementBuilder}
      */
     progressed(progress) {
-        return this.tracker.trace('progressed',this.CompletableType[this.type],this.completableId)
+        return this.Tracker.trace('progressed',this.CompletableType[this.Type],this.CompletableId)
             .withProgress(progress);
     }
 
@@ -96,8 +97,8 @@ export class CompletableTracker {
         if (typeof completion === 'undefined') {completion = false;}
         if (typeof score === 'undefined') {score = 1;}
 
-        if(!this.isInitialized) {
-            if (this.tracker.settings.debug) {
+        if(!this.IsInitialized) {
+            if (this.Tracker.settings.debug) {
                 throw new Error("You need to send a initialized statement before sending an Completed statement!");
             } else {
                 console.warn("You need to send a initialized statement before sending an Completed statement!");
@@ -105,9 +106,9 @@ export class CompletableTracker {
             }
         }
         let actualDate=new Date();
-        this.isInitialized=false;
+        this.IsInitialized=false;
 
-        return this.tracker.trace('completed',this.CompletableType[this.type],this.completableId)
+        return this.Tracker.trace('completed',this.CompletableType[this.Type],this.CompletableId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
@@ -116,7 +117,7 @@ export class CompletableTracker {
 }
 
 /**
- * the list of types possible for the completable object
+ * the list of Types possible for the completable object
  */
 export const COMPLETABLETYPE = Object.freeze({
     GAME: 0,

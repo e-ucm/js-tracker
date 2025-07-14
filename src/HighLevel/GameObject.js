@@ -9,31 +9,31 @@ export class GameObjectTracker {
      * Constructor of Game Object tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the Game Object object
-     * @param {number} type the type of the Game Object object
+     * @param {number} type the Type of the Game Object object
      */
     constructor(tracker,id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
-        this.gameobjectId=id;
-        this.type=type;
-        this.tracker = tracker;
+        this.GameobjectId=id;
+        this.Type=type;
+        this.Tracker= tracker;
     }
     /**
      * the id of the Game Object object
-     * @type {string}
+     * @Type {string}
      */
-    gameobjectId;
+    GameobjectId;
     /**
-     * the type of the Game Object object
-     * @type {number}
+     * the Type of the Game Object object
+     * @Type {number}
      */
-    type;
+    Type;
     /**
-     * the tracker of the Game Object object
-     * @type {xAPITrackerAsset}
+     * the Trackerof the Game Object object
+     * @Type {xAPITrackerAsset}
      */
     tracker;
     /**
      * the list of types possible for the Game Object object
-     * @type {Array}
+     * @Type {Array}
      */
     GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
@@ -42,7 +42,7 @@ export class GameObjectTracker {
      * @returns {StatementBuilder}
      */
     interacted() {
-        return this.tracker.trace('interacted',this.GameObjectType[this.type],this.gameobjectId);
+        return this.Tracker.trace('interacted',this.GameObjectType[this.Type],this.GameobjectId);
     }
     
     /**
@@ -50,7 +50,7 @@ export class GameObjectTracker {
      * @returns {StatementBuilder}
      */
     used() {
-        return this.tracker.trace('used',this.GameObjectType[this.type],this.gameobjectId);
+        return this.Tracker.trace('used',this.GameObjectType[this.Type],this.GameobjectId);
     }
 }
 

@@ -11,25 +11,25 @@ export class AlternativeTracker {
      * @param {number} type the type of the accessible object
      */
     constructor(tracker, id, type=ALTERNATIVETYPE.ALTERNATIVE) {
-        this.alternativeId=id;
-        this.type=type;
-        this.tracker = tracker;
+        this.AlternativeId=id;
+        this.Type=type;
+        this.Tracker = tracker;
     }
     /**
      * the id of the alternative object
      * @type {string}
      */
-    alternativeId;
+    AlternativeId;
     /**
      * the type of the alternative object
      * @type {number}
      */
-    type;
+    Type;
     /**
      * the tracker of the alternative object
      * @type {xAPITrackerAsset}
      */
-    tracker;
+    Tracker;
     /**
      * the list of types possible for the alternative object
      * @type {Array}
@@ -42,7 +42,7 @@ export class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     selected(optionId) {        
-        return this.tracker.trace('selected',this.AlternativeType[this.type],this.alternativeId)
+        return this.Tracker.trace('selected',this.AlternativeType[this.Type],this.AlternativeId)
             .withResponse(optionId);
     }
 
@@ -52,7 +52,7 @@ export class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     unlocked(optionId) {
-        return this.tracker.trace('unlocked',this.AlternativeType[this.type],this.alternativeId)
+        return this.Tracker.trace('unlocked',this.AlternativeType[this.Type],this.AlternativeId)
                 .withResponse(optionId);
     }
 }

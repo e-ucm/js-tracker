@@ -11,25 +11,25 @@ export class AccessibleTracker {
      * @param {number} type the type of the accessible object
      */
     constructor(tracker, id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        this.accessibleId=id;
-        this.type=type;
-        this.tracker = tracker;
+        this.AccessibleId=id;
+        this.Type=type;
+        this.Tracker = tracker;
     }
     /**
      * the id of the accessible object
      * @type {string}
      */
-    accessibleId;
+    AccessibleId;
     /**
      * the type of the accessible object
      * @type {number}
      */
-    type;
+    Type;
     /**
      * the tracker of the accessible object
      * @type {xAPITrackerAsset}
      */
-    tracker;
+    Tracker;
     /**
      * the list of types possible for the accessible object
      * @type {Array}
@@ -41,7 +41,7 @@ export class AccessibleTracker {
      * @returns {StatementBuilder}
      */
     accessed() {
-        return this.tracker.trace('accessed',this.AccessibleType[this.type],this.accessibleId);
+        return this.Tracker.trace('accessed',this.AccessibleType[this.Type],this.AccessibleId);
     }
 
     /**
@@ -49,7 +49,7 @@ export class AccessibleTracker {
      * @returns {StatementBuilder}
      */
     skipped() {
-        return this.tracker.trace('skipped',this.AccessibleType[this.type],this.accessibleId);
+        return this.Tracker.trace('skipped',this.AccessibleType[this.Type],this.AccessibleId);
     }
 }
 
