@@ -140,6 +140,7 @@ export default class OAuth2Protocol {
         this.username = this.#getRequiredValue(config, 'username');
         this.password = this.#getRequiredValue(config, 'password');
         this.login_hint = this.#getRequiredValue(config, 'login_hint');
+        break;
       default:
         throw new Error(this.unsupportedGrantTypeMessage.replace('{0}', this.grantType));
     }
@@ -157,6 +158,7 @@ export default class OAuth2Protocol {
     switch (this.grantType) {
       case "refresh_token":
         this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+        break;
       case "password":
         this.token = await this.#doResourceOwnedPasswordCredentialsFlow(
           this.tokenEndpoint,
