@@ -30,13 +30,13 @@ export default class ContextStatement {
      */
     categoryIDs = {
         seriousgame : 'https://w3id.org/xapi/seriousgame',
-        scorm: 'https://w3id.org/xapi/scorm'
+        scorm: 'https://w3id.org/xapi/scorm/v/2'
     };
     
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         return {
@@ -55,7 +55,7 @@ export default class ContextStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;

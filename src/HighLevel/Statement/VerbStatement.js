@@ -54,7 +54,7 @@ export default class VerbStatement {
     /**
      * convert to XAPI
      * 
-     * @returns Object
+     * @returns {Object}
      */
     toXAPI() {
         var verb = {};
@@ -71,7 +71,7 @@ export default class VerbStatement {
     /**
      * convert to CSV
      * 
-     * @returns String
+     * @returns {String}
      */
     toCSV() {
         return this.verbId;
