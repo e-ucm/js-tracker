@@ -229,10 +229,19 @@ export class JSTracker {
             strDebug = urlParams.get('debug');
 
             // BATCH
-            batchLength = parseInt(urlParams.get('batch_length'));
-            batchTimeout = ms(urlParams.get('batch_timeout'));
-            maxRetryDelay = ms(urlParams.get('max_retry_delay'));
-
+            var batch_length_param=urlParams.get('batch_length');
+            var batch_timeout_param=urlParams.get('batch_timeout');
+            var max_retry_delay_param=urlParams.get('max_retry_delay');
+            if(batch_length_param) {
+                batchLength = parseInt(batch_length_param);
+            }
+            if(batch_timeout_param) {
+                batchTimeout = ms(batch_timeout_param);
+            }
+            if(max_retry_delay_param) {
+                maxRetryDelay = ms(max_retry_delay_param);
+            }
+            
             if (strDebug !== null && strDebug === "true") {
                 debug = Boolean(strDebug);
                 console.debug(result_uri);
