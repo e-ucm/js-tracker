@@ -39,67 +39,69 @@ Here is the complete list of configuration options for a JavaScript tracker:
 
 * **generateSettingsFromURLParams**: boolean (default: `false`)
 	+ Generate settings from URL parameters.
-* **oauth_type**: string (default: `OAuth0`)
+* **oauth_type**: string (from URL param: 'sso_grant_type' | default: `OAuth0`)
 	+ OAuth type (0, 1 or 2).
-* **batch_mode**: boolean (default: `true`)
+* **batch_mode**: boolean (defined by the parameters used by OAuth1 or OAuth2 | default: `true`)
 	+ Enable batch mode for sending data to the tracker.
-* **batch_endpoint**: string (default: `null`)
+* **batch_endpoint**: string (from URL param: 'result_uri' | default: `null`)
 	+ Endpoint for sending batch data to the tracker.
-* **batch_length**: integer (default: `100`)
+* **batch_length**: integer (from URL param: 'batch_length' | default: `100`)
 	+ Maximum number of traces stored in the tracker queue.
-* **batch_timeout**: integer (default: `30000`) // 30 seconds
+* **batch_timeout**: integer (from URL param: 'batch_timeout' | default: `30000`) // 30 seconds
 	+ Timeout for sending batch data to the tracker.
-* **actor_homePage**: string (default: ``)
+* **actor_homePage**: string (from URL param: 'actor_homepage' | default: ``)
 	+ Homepage URL for the actor.
-* **actor_name**: string (default: `mydefaultactor`)
+* **actor_name**: string (from URL param: 'actor_user' | default: `mydefaultactor`)
 	+ Name of the actor.
-* **backup_mode**: boolean (default: `false`)
+* **backup_mode**: boolean (if URL param: 'backup_uri' defined  | default: `false`)
 	+ Enable backup mode for sending data to the tracker.
-* **backup_endpoint**: string (default: `null`)
+* **backup_endpoint**: string (from URL param: 'backup_uri' | default: `null`)
 	+ Endpoint for sending backup data to the tracker.
-* **backup_type**: string (default: `null`)
+* **backup_type**: string (from URL param: 'backup_uri' | default: `null`)
 	+ Type of backup data to send to the tracker.
-* **default_uri**: string (default: `null`)
+* **default_uri**: string (can't be defined for URL param from now | default: `null`)
 	+ Default URI for the tracker.
-* **max_retry_delay**: integer (default: `5000`) // 5 seconds
+* **max_retry_delay**: integer (from URL param: 'max_retry_delay' | default: `5000`) // 5 seconds
 	+ Maximum retry delay for sending data to the tracker.
 
 **OAuth1 Configuration**
 
-* **tracker.oauth1.username**: string (default: `username`)
+* **tracker.oauth1.username**: string (from URL param: 'username' | default: `username`)
 	+ Username for OAuth1 authentication.
-* **tracker.oauth1.password**: string (default: `supersecret`)
+* **tracker.oauth1.password**: string (from URL param: 'password' | default: `supersecret`)
 	+ Password for OAuth1 authentication.
 
 **OAuth2 Configuration**
 
-* **tracker.oauth2.token_endpoint**: string (default: `null`)
+* **tracker.oauth2.token_endpoint**: string (from URL param: 'sso_token_endpoint' | default: `null`)
 	+ Token endpoint for OAuth2 authentication.
-* **tracker.oauth2.grant_type**: string (default: `null`)
+* **tracker.oauth2.grant_type**: string (from URL param: 'sso_grant_type' | default: `null`)
 	+ Grant type for OAuth2 authentication.
-* **tracker.oauth2.client_id**: string (default: `null`)
+* **tracker.oauth2.client_id**: string (from URL param: 'sso_client_id' | default: `null`)
 	+ Client ID for OAuth2 authentication.
-* **tracker.oauth2.scope**: string (default: `null`)
+* **tracker.oauth2.scope**: string (from URL param: 'sso_scope' | default: `null`)
 	+ Scope for OAuth2 authentication.
-* **tracker.oauth2.state**: string (default: `null`)
+* **tracker.oauth2.state**: string (can't be defined for URL param from now | default: `null`)
 	+ State for OAuth2 authentication.
-* **tracker.oauth2.code_challenge_method**: string (default: `null`)
+* **tracker.oauth2.code_challenge_method**: string (can't be defined for URL param from now | default: `null`)
 	+ Code challenge method for OAuth2 authentication.
-* **tracker.oauth2.username**: string (default: `username`)
+* **tracker.oauth2.username**: string (from URL param: 'sso_username' | default: `username`)
 	+ Username for OAuth2 authentication.
-* **tracker.oauth2.password**: string (default: `supersecret`)
+* **tracker.oauth2.password**: string (from URL param: 'sso_password' | default: `supersecret`)
 	+ Password for OAuth2 authentication.
-* **tracker.oauth2.login_hint**: string (default: `null`)
+* **tracker.oauth2.login_hint**: string (from URL param: 'sso_login_hint' | default: `null`)
 	+ Login hint for OAuth2 authentication.
 
 **Debug Configuration**
 
-* **debug**: boolean (default: `false`)
+* **debug**: boolean (from URL param: 'debug' | default: `false`)
 	+ Enable debug mode to see tracker messages in the Unity console.
 
 1. **Optional** Login the user configured by using `tracker.login()`
 1. Start the tracker by using `tracker.start()`
 1. Send traces
+
+
 
 ## Integration example
 
