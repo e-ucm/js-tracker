@@ -123,7 +123,7 @@ export default class xAPITrackerAsset {
 
     /**
      * Timer reference for batch processing
-     * @type {NodeJS.Timeout|null}
+     * @type {number|null}
      */
     timer = null;
 
