@@ -13,6 +13,13 @@
       "require": "./dist/js-tracker.bundle.cjs"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "plugins",
+    "declarations.d.ts",
+    "index.js"
+  ],
   "repository": "https://github.com/e-ucm/js-tracker",
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
