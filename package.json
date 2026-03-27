@@ -4,12 +4,12 @@
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
   "type": "module",
   "main": "dist/js-tracker.bundle.cjs",
-  "module": "src/js-tracker.js",
+  "module": "dist/js-tracker.bundle.js",
   "types": "dist/types/js-tracker.bundle.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/js-tracker.bundle.d.ts",
-      "import": "src/js-tracker.js",
+      "import": "./dist/js-tracker.bundle.js",
       "require": "./dist/js-tracker.bundle.cjs"
     }
   },
