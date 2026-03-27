@@ -181,10 +181,11 @@ export class StatementBuilder {
   /**
    * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
    *
-   * @returns {Promise<void>} The promise sent
+   * @returns {Promise} The promise sent
    */
   async send() {
     if (!this._sendPromise) {
+      // @ts-ignore
       this._sendPromise = await this.client.enqueue(this.statement);
     }
     return this._sendPromise;

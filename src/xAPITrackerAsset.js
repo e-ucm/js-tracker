@@ -1,10 +1,13 @@
-import XAPI from "@xapi/xapi";
+/**
+ * @typedef {import('./HighLevel/StatementBuilder.js').StatementBuilder} StatementBuilder
+ */
+import XAPI from "@XAPI/XAPI";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
 import axios from 'axios';
-import ms from 'ms';
-import { StatementBuilder } from "./HighLevel/StatementBuilder.js";
+import * as ms from "ms";
+const msFn = ms.default || ms;
 
 /**
  * XAPI Tracker Asset Class
@@ -39,14 +42,14 @@ export default class xAPITrackerAsset {
         batch_mode:true,
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
-        batch_timeout:ms("30sec"),
+        batch_timeout:msFn("30sec"),
         actor_homePage:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
-        max_retry_delay:ms("2min"),
+        max_retry_delay:msFn("2min"),
         debug:false
     };
 
@@ -290,6 +293,7 @@ export default class xAPITrackerAsset {
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
     trace(verbId, objectType, objectId) {
+        const { StatementBuilder } = require("./HighLevel/StatementBuilder.js");
         const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }

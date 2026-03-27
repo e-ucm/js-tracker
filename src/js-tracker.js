@@ -7,7 +7,8 @@ import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js'
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE } from './HighLevel/SCORM.js';
 import { StatementBuilder } from './HighLevel/StatementBuilder.js';
-import ms from "ms";
+import * as ms from "ms";
+const msFn = ms.default || ms;
 
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
@@ -44,14 +45,14 @@ export class JSTracker {
         batch_mode:true,
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
-        batch_timeout:ms("30sec"),
+        batch_timeout:msFn("30sec"),
         actor_homePage:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
-        max_retry_delay:ms("2min"),
+        max_retry_delay:msFn("2min"),
         debug:false
     };
     /**
@@ -236,10 +237,10 @@ export class JSTracker {
                 batchLength = parseInt(batch_length_param);
             }
             if(batch_timeout_param) {
-                batchTimeout = ms(batch_timeout_param);
+                batchTimeout = msFn(batch_timeout_param);
             }
             if(max_retry_delay_param) {
-                maxRetryDelay = ms(max_retry_delay_param);
+                maxRetryDelay = msFn(max_retry_delay_param);
             }
             
             if (strDebug !== null && strDebug === "true") {

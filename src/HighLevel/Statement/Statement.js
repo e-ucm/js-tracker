@@ -234,6 +234,23 @@ export default class Statement {
     }
 
     /**
+     * Set result extension for key of the statement
+     * @param {string} key the key of the extension
+     * @param {*} value the value of the extension
+     */
+    addContextExtension(key,value) {
+        this.context.setExtension(key, value);
+    }
+
+    /**
+     * Set result extension as Object key/values of the statement
+     * @param {Object} extensions extensions list
+     */
+    addContextExtensions(extensions) {
+        this.context.setExtensions(extensions);
+    }
+    
+    /**
      * Convert to xAPI format
      * @returns {Object}
      */

@@ -25,6 +25,13 @@ export default class ContextStatement {
      */
     registration;
 
+    /** 
+     * Extensions of the Context
+     * 
+     * @type {Object}
+     */
+    extensions;
+
     /**
      * The category IDs list
      */
@@ -48,8 +55,20 @@ export default class ContextStatement {
                         type : "http://adlnet.gov/expapi/activities/profile"
                     }
                 }]
-            }
+            }, 
+            extensions: this.extensions
         };
+    }
+
+    setExtensions(ext) {
+        this.extensions = ext;
+    }
+
+    setExtension(key, value) {
+        if(!this.extensions) {
+            this.extensions = {};
+        }
+        this.extensions[key] = value;
     }
 
     /**
