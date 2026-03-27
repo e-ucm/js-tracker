@@ -6,7 +6,7 @@ import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js'
 import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker, SCORMTYPE } from './HighLevel/SCORM.js';
-import { StatementBuilder } from './HighLevel/StatementBuilder.js';
+import StatementBuilder from './HighLevel/StatementBuilder.js';
 import * as ms from "ms";
 const msFn = ms.default || ms;
 

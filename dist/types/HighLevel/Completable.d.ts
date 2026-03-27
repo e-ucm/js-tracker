@@ -75,4 +75,4 @@ export const COMPLETABLETYPE: Readonly<{
     COMPLETABLE: 8;
 }>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";

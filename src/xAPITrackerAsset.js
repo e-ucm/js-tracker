@@ -1,10 +1,8 @@
-/**
- * @typedef {import('./HighLevel/StatementBuilder.js').StatementBuilder} StatementBuilder
- */
 import XAPI from "@XAPI/XAPI";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
+import StatementBuilder from "./HighLevel/StatementBuilder.js";
 import axios from 'axios';
 import * as ms from "ms";
 const msFn = ms.default || ms;
@@ -293,7 +291,6 @@ export default class xAPITrackerAsset {
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
     trace(verbId, objectType, objectId) {
-        const { StatementBuilder } = require("./HighLevel/StatementBuilder.js");
         const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }

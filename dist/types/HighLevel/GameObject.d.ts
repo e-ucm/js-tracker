@@ -51,4 +51,4 @@ export const GAMEOBJECTTYPE: Readonly<{
     GAMEOBJECT: 3;
 }>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";

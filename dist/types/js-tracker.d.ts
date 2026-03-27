@@ -242,7 +242,7 @@ import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
 import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAsset from './xAPITrackerAsset.js';
 import { ScormTracker } from './HighLevel/SCORM.js';
-import { StatementBuilder } from './HighLevel/StatementBuilder.js';
+import StatementBuilder from './HighLevel/StatementBuilder.js';
 import { AccessibleTracker } from './HighLevel/Accessible.js';
 import { GameObjectTracker } from './HighLevel/GameObject.js';
 import { CompletableTracker } from './HighLevel/Completable.js';

@@ -121,7 +121,7 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId: string, objectType: string, objectId: string): import("./HighLevel/StatementBuilder.js").StatementBuilder;
+    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
     /**
      * Adds a statement to the queue and starts processing if needed
      * @param {Statement} statement - The statement to enqueue
@@ -139,8 +139,8 @@ export default class xAPITrackerAsset {
     }): Promise<void>;
     #private;
 }
-export type StatementBuilder = import("./HighLevel/StatementBuilder.js").StatementBuilder;
 import XAPI from "@XAPI/XAPI";
 import Statement from "./HighLevel/Statement/Statement.js";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
+import StatementBuilder from "./HighLevel/StatementBuilder.js";

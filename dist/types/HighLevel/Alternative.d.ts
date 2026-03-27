@@ -54,4 +54,4 @@ export const ALTERNATIVETYPE: Readonly<{
     ALTERNATIVE: 5;
 }>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";

@@ -51,4 +51,4 @@ export const ACCESSIBLETYPE: Readonly<{
     ACCESSIBLE: 4;
 }>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";

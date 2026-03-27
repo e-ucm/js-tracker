@@ -1,5 +1,5 @@
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";
 /**
  * Scorm Tracker
  */

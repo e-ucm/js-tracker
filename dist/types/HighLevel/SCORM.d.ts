@@ -97,4 +97,4 @@ export const SCORMTYPE: Readonly<{
     ATTEMPT: 6;
 }>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import { StatementBuilder } from "./StatementBuilder.js";
+import StatementBuilder from "./StatementBuilder.js";
