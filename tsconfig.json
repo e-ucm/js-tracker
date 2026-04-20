@@ -4,9 +4,13 @@
         "declaration": true,
         "emitDeclarationOnly": true,
         "outDir": "dist/types",
+        "rootDir": "./src",
         "checkJs": true,
         "moduleResolution": "node10",
-        "target": "es2021"
+        "target": "es2021",
+        "strict": false,
+        "noImplicitAny": false,
+        "skipLibCheck": true
     },
     "include": [
         "declarations.d.ts",

@@ -1,3 +1,5 @@
+import { isUri, setAsUri } from "./helper.js";
+
 /**
  * The Verb Class  of a Statement
  */
@@ -5,11 +7,20 @@ export default class VerbStatement {
     /**
      * Constructor of VerbStatement class
      * 
-     * @param {string} verbDisplay The verb display id of the statement
+     * @param {string} verbId The verb id of the statement
+     * @param {string} baseURI The base URI for the statement
      */
-    constructor(verbDisplay) {
-        this.verbId = this.verbIds[verbDisplay];
-        this.verbDisplay = verbDisplay;
+    constructor(verbId, baseURI) {
+        if(isUri(verbId)) {
+            this.verbId = verbId;
+        } else {
+            if(verbId in this.verbIds) {
+                this.verbId = this.verbIds[verbId];
+                this.verbDisplay.set('en', verbId);
+            } else {
+                this.verbId = setAsUri(verbId, baseURI);
+            }
+        }
     }
     
     /**
@@ -47,9 +58,18 @@ export default class VerbStatement {
 
     /**
      * The Verb display 
-     * @type {string}
+     * @type {Map<string, string>}
      */
-    verbDisplay;
+    verbDisplay = new Map();
+
+    /**
+     * Add or set a verb display
+     * @param {string} lang
+     * @param {string} display
+     */
+    addDisplay(lang, display) {
+        this.verbDisplay.set(lang, display);
+    }
 
     /**
      * convert to XAPI
@@ -63,7 +83,7 @@ export default class VerbStatement {
         }
         
         if(this.verbDisplay) {
-            verb.display = { "en": this.verbDisplay };
+            verb.display = this.verbDisplay;
         }
         return verb;
     }

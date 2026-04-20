@@ -5,18 +5,34 @@ export default class ContextStatement {
     /**
      * Constructor of the ContextStatement class
      *
-     * @param {*} categoryId category Id of context
-     * @param {*} registrationId registration id of context
+     * @param {string} base default URI for the context construction
+     * @param {string} platform platform of context
+     * @param {string} categoryId category Id of context
+     * @param {string} registrationId registration id of context
      */
-    constructor(categoryId?: any, registrationId?: any);
+    constructor(base: string, platform: string, registrationId?: string, categoryId?: string);
+    /**
+     * default URI for the context construction
+     * @type {string}
+      */
+    defaultURI: string;
+    /**
+     * Platform of the Context
+     *
+     * @type {string}
+     */
+    platform: string;
     /**
      * Registration Id of the Context
      *
      * @type {string}
      */
     registration: string;
-    categoryId: any;
-    category: any;
+    /**
+     * Context Activities (parent, grouping, category, other)
+     * @type {Object}
+     */
+    contextActivities: any;
     /**
      * Extensions of the Context
      *
@@ -30,6 +46,13 @@ export default class ContextStatement {
         seriousgame: string;
         scorm: string;
     };
+    /**
+     * Add or set a context activity
+     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {ObjectStatement|ObjectStatement[]|string} activity activity object(s) or activity id
+     * @param {string} [activityType] activity type when activity is an id
+     */
+    addContextActivity(type: "parent" | "grouping" | "category" | "other", activity: ObjectStatement | ObjectStatement[] | string, activityType?: string): void;
     /**
      * convert to XAPI
      *
@@ -45,3 +68,4 @@ export default class ContextStatement {
      */
     toCSV(): string;
 }
+import ObjectStatement from './ObjectStatement.js';

@@ -2,6 +2,7 @@
 // 1) THE BUILDER
 
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
+import InteractionObjectStatement from "./Statement/InteractionObjectStatement.js";
 import Statement from "./Statement/Statement.js";
 
 // ------------------------------------------------------------------
@@ -44,7 +45,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withSuccess(success) {
-    this.statement.setSuccess(success);
+    this.statement.result.setSuccess(success);
     return this;
   }
 
@@ -54,7 +55,7 @@ export default class StatementBuilder {
  * @returns {StatementBuilder} Returns the current instance for chaining
  */
   withScore(score) {
-    this.statement.setScore(
+    this.statement.result.setScore(
       score.raw ?? score?.raw, 
       score.min ?? score?.min,
       score.max ?? score?.max,
@@ -68,7 +69,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreRaw(raw) {
-    this.statement.setScoreRaw(raw);
+    this.statement.result.setScoreRaw(raw);
     return this;
   }
   /**
@@ -77,7 +78,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreMin(min) {
-    this.statement.setScoreMin(min);
+    this.statement.result.setScoreMin(min);
     return this;
   }
   /**
@@ -86,7 +87,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreMax(max) {
-    this.statement.setScoreMax(max);
+    this.statement.result.setScoreMax(max);
     return this;
   }
   /**
@@ -95,7 +96,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreScaled(scaled) {
-    this.statement.setScoreScaled(scaled);
+    this.statement.result.setScoreScaled(scaled);
     return this;
   }
 
@@ -105,7 +106,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withCompletion(value) {
-    this.statement.setCompletion(value);
+    this.statement.result.setCompletion(value);
     return this;
   }
 
@@ -116,7 +117,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withDuration(init, end) {
-    this.statement.setDuration(init, end);
+    this.statement.result.setDuration(init, end);
     return this;
   }
 
@@ -126,7 +127,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withResponse(value) {
-    this.statement.setResponse(value);
+    this.statement.result.setResponse(value);
     return this;
   }
 
@@ -136,7 +137,7 @@ export default class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withProgress(value) {
-    this.statement.setProgress(value);
+    this.statement.result.setProgress(value);
     return this;
   }
 
@@ -148,7 +149,7 @@ export default class StatementBuilder {
    */
   
   withResultExtension(key, value) {
-    this.statement.addResultExtension(key, value);
+    this.statement.result.setExtension(key, value);
     return this;
   }
 
@@ -157,27 +158,149 @@ export default class StatementBuilder {
      * @param {Object} extensions extensions list
      */
   withResultExtensions(extensions = {}) {
-    this.statement.addResultExtensions(extensions);
+    this.statement.result.setExtensions(extensions);
+    return this;
+  }
+  /**
+   * Add context extension to statement
+   * @param {string} key key of the context extension
+   * @param {*} value value of the context extension
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withContextExtension(key, value) {
+    this.statement.context.setExtension(key, value);
+    return this;
+  }
+  
+  /**
+     * Add context activity to statement
+     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {string} activityId
+     * @param {string} activityType
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+  withContextActivity(type, activityId, activityType) {
+    this.statement.context.addContextActivity(type, activityId, activityType);
     return this;
   }
 
   /**
-   * let me run any function on the statement
-   * fn can either mutate `stmt` in‐place, or return a brand new statement
-   * Applies a function to the statement
-   * @param {(statement: Statement) => Statement} fn - Function to apply to statement
-   * @returns {StatementBuilder} Returns the current instance for chaining
+   * Add or set a verb display
+   * @param {string} lang
+   * @param {string} display
+   * @return {StatementBuilder} Returns the current instance for chaining
    */
-  apply(fn) {
-    const result = fn(this.statement);
-    // if your fn returns a new statement, pick that up, otherwise
-    // assume it has mutated in place
-    if (result instanceof Statement) {
-      this.statement = result;
+  withVerbDisplay(lang, display) {
+    this.statement.verb.addDisplay(lang, display);
+    return this;
+  }
+
+  /**
+   * Add or set a name of the Object definition
+   * @param {string} lang
+   * @param {Set<string>} list list of the Object definition names
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionsName(lang, list) {
+    for(const name of list) {
+      this.statement.object.setObjectDefinitionName(lang, name);
+    }
+    return this;
+  }
+
+  /**
+   * Add or set a description of the Object definition
+   * @param {string} lang
+   * @param {Set<string>} list list of the Object definition descriptions
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionsDescription(lang, list) {
+    for(const description of list) {
+      this.statement.object.setObjectDefinitionDescription(lang, description);
+    }
+    return this;
+  }
+  /**
+   * Add or set a name of the Object definition
+   * @param {string} lang
+   * @param {string} name name of the Object definition
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionName(lang, name) {
+    this.statement.object.setObjectDefinitionName(lang, name);
+    return this;
+  }
+  /**
+   * Add or set a description of the Object definition
+   * @param {string} lang
+   * @param {string} description description of the Object definition
+   * @return {StatementBuilder} Returns the current instance for chaining
+   * */ 
+  withObjectDefinitionDescription(lang, description) {
+    this.statement.object.setObjectDefinitionDescription(lang, description);
+    return this;
+  }
+
+  /**
+   * Add or set an interaction component with language support (for interaction activities)
+   * @param {string} type - One of 'choices', 'scale', 'source', 'target', 'steps'
+   * @param {string} id - The identifier for the component
+   * @param {string} lang - The language code (e.g., 'en')
+   * @param {string} description - The description in the given language
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withInteractionWithLang(type, id, lang, description) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.addInteractionWithLang(type, id, lang, description);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set interaction choice on a non-interaction object");
+      } else {
+        console.warn("Trying to set interaction choice on a non-interaction object");
+        return this;
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Add or set an interaction type for interaction activities
+   * @param {string} type interaction type to set
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withInteractionType(type) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.setInteractionType(type);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set interaction scale on a non-interaction object");
+      } else {
+        console.warn("Trying to set interaction choice on a non-interaction object");
+        return this;
+      }
     }
     return this;
   }
   
+  /**
+   * Add or set a correct responses pattern for interaction activities
+   * @param {string|string[]} pattern correct responses pattern(s) to add
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withCorrectResponsesPattern(pattern) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.addCorrectResponsesPattern(pattern);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set correct responses pattern on a non-interaction object");
+      } else {
+        console.warn("Trying to set correct responses pattern on a non-interaction object");
+        return this;
+      }
+    }
+    return this;
+  }
+
   /**
    * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
    *

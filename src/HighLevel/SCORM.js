@@ -1,4 +1,5 @@
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
+import ContextStatement from "./Statement/ContextStatement.js";
 import StatementBuilder from "./StatementBuilder.js";
 /**
  * Scorm Tracker
@@ -8,12 +9,14 @@ export class ScormTracker {
      * Constructor of Scorm Tracker
      * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the Scorm object
-     * @param {number} type the type of the Scorm object
+     * @param {string} type the type of the Scorm object
+     * @param {ContextStatement} context the context statement of the Scorm object
      */
-    constructor(tracker, id, type=SCORMTYPE.SCO) {
+    constructor(tracker, id, type="SCO", context = tracker.context) {
         this.ScormId=id;
         this.Type=type;
         this.Tracker = tracker;
+        this.Context = context;
         this.IsInitialized=false;
     }
     /**
@@ -23,7 +26,7 @@ export class ScormTracker {
     ScormId;
     /**
      * the type of the Scorm object
-     * @type {number}
+     * @type {string}
      */
     Type;
     /**
@@ -33,9 +36,19 @@ export class ScormTracker {
     Tracker;
     /**
      * the list of types possible for the Scorm object
-     * @type {Array}
+     * @type {Map<string, string>}
      */
-    ScormType = ['SCO', 'course', 'module', 'assessment', 'interaction', 'objective', 'attempt'];
+    ScormType = new Map([
+        ["SCO", 'http://adlnet.gov/expapi/activities/lesson'],
+        ["course", 'http://adlnet.gov/expapi/activities/course'],
+        ["module", 'http://adlnet.gov/expapi/activities/module'],
+        ["assessment", 'http://adlnet.gov/expapi/activities/assessment'],
+        ["interaction", 'http://adlnet.gov/expapi/activities/interaction'],
+        ["cmi_interaction", "http://adlnet.gov/expapi/activities/cmi.interaction"],
+        ["objective", 'http://adlnet.gov/expapi/activities/objective'],
+        ["attempt", 'http://adlnet.gov/expapi/activities/attempt'],
+        ["profile", 'http://adlnet.gov/expapi/activities/profile']
+    ]);
 
     /**
      * is initialized
@@ -68,10 +81,10 @@ export class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
-        return this.Tracker.trace('initialized', this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('initialized', this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -89,10 +102,10 @@ export class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
-        return this.Tracker.trace('suspended', this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('suspended', this.ScormType.get(this.Type), this.ScormId, this.Context)
                 .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -115,10 +128,10 @@ export class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
-        return this.Tracker.trace('resumed', this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('resumed', this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -136,10 +149,10 @@ export class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
-        return this.Tracker.trace('terminated', this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('terminated', this.ScormType.get(this.Type), this.ScormId, this.Context)
                     .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -148,7 +161,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     passed() {
-        return this.Tracker.trace('passed',this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('passed',this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -156,7 +169,7 @@ export class ScormTracker {
      * @returns {StatementBuilder}
      */
     failed() {
-        return this.Tracker.trace('failed',this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('failed',this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -167,7 +180,7 @@ export class ScormTracker {
     scored(score) {
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.Tracker.trace('scored',this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('scored',this.ScormType.get(this.Type), this.ScormId, this.Context)
             .withScore({raw:score});
     }
 
@@ -192,23 +205,10 @@ export class ScormTracker {
             }
         }
         let actualDate=new Date();
-        return this.Tracker.trace('completed',this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('completed',this.ScormType.get(this.Type), this.ScormId, this.Context)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
             .withDuration(this.InitializedTime, actualDate);
     }
 }
-
-/**
- * the list of types possible for the scorm object
- */
-export const SCORMTYPE = Object.freeze({
-    SCO: 0,
-    COURSE: 1,
-    MODULE: 2,
-    ASSESSMENT: 3,
-    INTERACTION: 4,
-    OBJECTIVE: 5,
-    ATTEMPT: 6
-});

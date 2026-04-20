@@ -1,3 +1,5 @@
+import { isUri, setAsUri } from "./helper.js";
+
 /**
  * The Object Class of a Statement
  */
@@ -7,14 +9,32 @@ export default class ObjectStatement {
      * 
      * @param {string} id the id of the object
      * @param {string} type the type of the object
+     * @param {string} baseURI the base URI for the object construction
      * @param {string} name the name of the object
      * @param {string} description the description of the object
      */
-    constructor(id, type, name = null, description = null) {
-        this.id = id;
-        this.type = type;
-        this.name = name;
-        this.description = description;
+    constructor(id, type, baseURI, language = "en", name = null, description = null) {
+        if(isUri(id)) {
+            this.id = id;
+        } else {
+            this.id = setAsUri(id, baseURI);
+        }
+        if(isUri(type)) {
+            this.definitionType = type;
+        } else {
+            if(type in this.typeIds) {
+                this.definitionType = this.typeIds[type];
+            } else {
+                this.definitionType = setAsUri(type, baseURI);
+            }
+        }
+        if(name) {
+            this.definitionName.set(language, name);
+        }
+        if(description) {
+            this.definitionDescription.set(language, description);
+        }
+        this.defaultURI = baseURI;
     }
     
     /**
@@ -83,39 +103,62 @@ export default class ObjectStatement {
      * 
      * @type {string}
      */
-    type;
+    definitionType;
     /**
      * The name of the Object
      * 
-     * @type {string}
+     * @type {Map<string, string>}
      */
-    name;
+    definitionName = new Map();
     /**
      * The description of the Object
      * 
-     * @type {string}
+     * @type {Map<string, string>}
      */
-    description;
+    definitionDescription = new Map();
 
     /**
-     * convert to XAPI
-     * 
+     * default URI for the object construction
+     * @type {string}
+     * */
+    defaultURI;
+
+    /**
+     * Set the name of the Object definition
+     * @param {string} lang - The language code
+     * @param {string} name - The name of the Object definition
+     */
+    setObjectDefinitionName(lang, name) {
+        this.definitionName.set(lang, name);
+    }
+
+    /**
+     * Set the description of the Object definition
+     * @param {string} lang - The language code
+     * @param {string} description - The description of the Object definition
+     */
+    setObjectDefinitionDescription(lang, description) {
+        this.definitionDescription.set(lang, description);
+    }
+
+    /**
+     * Convert to xAPI object, including interaction activities if set
      * @returns {Object}
      */
     toXAPI() {
-        var object= {};
-        if(this.id) {
+        var object = {};
+        if (this.id) {
             object.id = this.id;
         }
-        object.definition={};
-        if(this.name) {
-            object.definition.name = { "en-US": this.name };
+        object.definition = {};
+        if (this.definitionName && this.definitionName.size > 0) {
+            object.definition.name = Object.fromEntries(this.definitionName);
         }
-        if(this.description) {
-            object.definition.description = { "en-US": this.description };
+        if (this.definitionDescription && this.definitionDescription.size > 0) {
+            object.definition.description = Object.fromEntries(this.definitionDescription);
         }
-        if(this.type) {
-            object.definition.type = this.typeIds[this.type];
+        if (this.definitionType) {
+            object.definition.type = this.typeIds[this.definitionType] ? this.typeIds[this.definitionType] : this.definitionType;
         }
         return object;
     }
@@ -126,6 +169,6 @@ export default class ObjectStatement {
      * @returns {String}
      */
     toCSV() {
-        return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
+        return this.definitionType + ',' + this.id.replaceAll(',', '\\,');
     }
 }

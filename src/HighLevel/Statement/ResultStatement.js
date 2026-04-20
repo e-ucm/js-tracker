@@ -1,3 +1,5 @@
+import { setAsUri } from "./helper.js";
+
 /**
  * The Result Class of a Statement
  */
@@ -5,10 +7,10 @@ export default class ResultStatement {
     /**
      * Constructor of the ResultStatement class
      * 
-     * @param {string} defautURI The default URI for the extensions
+     * @param {string} defaultURI The default URI for the extensions
      */
-    constructor(defautURI) {
-        this.defautURI = defautURI;
+    constructor(defaultURI) {
+        this.defaultURI = defaultURI;
         this.Score = null;
         this.Success = null;
         this.Completion = null;
@@ -22,7 +24,7 @@ export default class ResultStatement {
      * 
      * @type {string}
      */
-    defautURI;
+    defaultURI;
 
     /**
      * The Score of the Result
@@ -113,30 +115,6 @@ export default class ResultStatement {
     }
 
     /**
-     * Set as URI if it is not an URI already
-
-     * @param {string} id the id of the part of the statement
-     * @returns {String}
-     */
-    setAsUri(id) {
-        if(this.isUri(id)) {
-            return id;
-        } else {
-            return `${this.defautURI}://${id}`;
-        }
-    }
-    
-    /**
-     * Check if the string is an URI
-     * @param {string} id 
-     * @returns {boolean}
-     */
-    isUri(id) {
-        const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
-        return pattern.test(id);
-    }
-
-    /**
      * Set the score of the statement
      * @param {string} key the key for the score 
      * @param {number} value the score 
@@ -148,6 +126,122 @@ export default class ResultStatement {
         if(this.ScoreKey.includes(key)) {
             this.Score[key] = Number(value);
         }    
+    }
+
+        /**
+     * Set the score of the statement
+     * @param {number} raw the raw score
+     * @param {number} min the min score
+     * @param {number} max the max score
+     * @param {number} scaled the scaled score
+     */
+    setScore(raw, min, max, scaled) {
+        if (raw) {
+            this.setScoreRaw(raw);
+        }
+
+        if (min) {
+            this.setScoreMin(min);
+        }
+
+        if (max) {
+            this.setScoreMax(max);
+        }
+
+        if (scaled) {
+            this.setScoreScaled(scaled);
+        }
+    }
+
+        /**
+     * Set the raw score of the statement
+     * @param {number} raw the raw score 
+     */
+    setScoreRaw(raw) {
+        this.setScoreValue('raw', raw);
+    }
+    
+    /**
+     * Set the min score of the statement
+     * @param {number} min the min score 
+     */
+    setScoreMin(min) {
+        this.setScoreValue('min', min);
+    }
+
+    /**
+     * Set the max score of the statement
+     * @param {number} max the max score 
+     */
+    setScoreMax(max) {
+        this.setScoreValue('max', max);
+    }
+
+    /**
+     * Set the scaled score of the statement
+     * @param {number} scaled the scaled score 
+     */
+    setScoreScaled(scaled) {
+        this.setScoreValue('scaled', scaled);
+    }
+
+    /**
+     * Set completion status of the statement
+     * @param {boolean} value the completion status
+     */
+    setCompletion(value) {
+        this.setExtension('completion', value);
+    }
+
+    /**
+     * Set success status of the statement
+     * @param {boolean} value the success status
+     */
+    setSuccess(value) {
+        this.setExtension('success', value);
+    }
+
+    /**
+     * Set duration of the statement
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
+     */
+    setDuration(init, end) {
+        const durationInMs = end.getTime()-init.getTime();
+        const durationInSec = durationInMs / 1000;
+        const seconds = durationInSec % 60;
+        const minutes = Math.floor(durationInSec / 60) % 60;
+        const hours = Math.floor(durationInSec / 3600) % 24;
+        const days = Math.floor(durationInSec / 86400);
+
+        // Construct the ISO 8601 duration string
+        const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
+        this.setExtension('duration', isoDuration);
+    }
+
+    /**
+     * Set response of the statement
+     * @param {string} value the response
+     */
+    setResponse(value) {
+        this.setExtension('response', value);
+    }
+
+    /**
+     * Set progress status of the statement
+     * @param {number} value the progress status
+     */
+    setProgress(value) {
+        this.setExtension('progress', value);
+    }
+
+    /**
+     * Set result extension for key of the statement
+     * @param {string} key the key of the extension
+     * @param {string} value the value of the extension
+     */
+    setVar(key,value) {
+        this.setExtension(key, value);
     }
 
     /**
@@ -187,7 +281,7 @@ export default class ResultStatement {
                     this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
                     delete this.Extensions[key];
                 } else {
-                    var newuri= this.setAsUri(key);
+                    var newuri= setAsUri(key, this.defaultURI);
                     this.Extensions[newuri] = this.Extensions[key];
                     if(newuri !== key) {
                         delete this.Extensions[key];

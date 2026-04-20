@@ -5,19 +5,15 @@ export default class VerbStatement {
     /**
      * Constructor of VerbStatement class
      *
-     * @param {string} verbDisplay The verb display id of the statement
+     * @param {string} verbId The verb id of the statement
+     * @param {string} baseURI The base URI for the statement
      */
-    constructor(verbDisplay: string);
+    constructor(verbId: string, baseURI: string);
     /**
      * The Verb Id
      * @type {string}
      */
     verbId: string;
-    /**
-     * The Verb display
-     * @type {string}
-     */
-    verbDisplay: string;
     /**
      * The Verb Ids array
      */
@@ -39,6 +35,17 @@ export default class VerbStatement {
         failed: string;
         scored: string;
     };
+    /**
+     * The Verb display
+     * @type {Map<string, string>}
+     */
+    verbDisplay: Map<string, string>;
+    /**
+     * Add or set a verb display
+     * @param {string} lang
+     * @param {string} display
+     */
+    addDisplay(lang: string, display: string): void;
     /**
      * convert to XAPI
      *

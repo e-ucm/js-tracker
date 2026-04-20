@@ -25,6 +25,8 @@ export class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     trackerSettings: {
         generateSettingsFromURLParams: boolean;
@@ -41,6 +43,8 @@ export class JSTracker {
         default_uri: string;
         max_retry_delay: any;
         debug: boolean;
+        parent_activity_id: any;
+        parent_activity_type: string;
     };
     /**
      * @typedef {Object} oauth1
@@ -103,21 +107,37 @@ export class JSTracker {
  */
 export class JSScormTracker extends JSTracker {
     /**
-     * SCORM type constants
-     * @type {Object}
-     */
-    SCORMTYPE: any;
-    /**
      * list of scorm instances
      */
     scormInstances: {};
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - SCORM type
+     * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id: string, type?: number): ScormTracker;
+    scorm(id: string, type?: string): ScormTracker;
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
+}
+/**
+ * SCORM-specific tracker extending JSTracker
+ */
+export class MyTracker extends JSTracker {
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -208,7 +228,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
+    trace(verbId: string, objectType: string, objectId: string, context?: import("./HighLevel/Statement/ContextStatement.js").default): StatementBuilder;
     /**
      * Creates an accessible tracker instance
      * @param {string} id - Activity ID

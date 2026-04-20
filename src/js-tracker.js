@@ -5,7 +5,7 @@ import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/Accessible.js';
 import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js';
 import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
-import { ScormTracker, SCORMTYPE } from './HighLevel/SCORM.js';
+import { ScormTracker } from './HighLevel/SCORM.js';
 import StatementBuilder from './HighLevel/StatementBuilder.js';
 import * as ms from "ms";
 const msFn = ms.default || ms;
@@ -38,6 +38,8 @@ export class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     trackerSettings={
         generateSettingsFromURLParams:false,
@@ -53,7 +55,9 @@ export class JSTracker {
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
         max_retry_delay:msFn("2min"),
-        debug:false
+        debug:false,
+        parent_activity_id:null,
+        parent_activity_type:'COURSE'
     };
     /**
      * @typedef {Object} oauth1
@@ -293,12 +297,6 @@ export class JSTracker {
  */
 export class JSScormTracker extends JSTracker {
     /**
-     * SCORM type constants
-     * @type {Object}
-     */
-    SCORMTYPE = SCORMTYPE;
-
-    /**
      * list of scorm instances
      */
     scormInstances={};
@@ -312,6 +310,12 @@ export class JSScormTracker extends JSTracker {
 
     async login() {
         await super.login();
+        if(!this.scormInstances[this.trackerSettings.parent_activity_type]) {
+            this.scormInstances[this.trackerSettings.parent_activity_type]= {};
+        }
+        if(this.trackerSettings.parent_activity_id && !(this.trackerSettings.parent_activity_id in this.scormInstances[this.trackerSettings.parent_activity_type])) {
+            this.scormInstances[this.trackerSettings.parent_activity_type][this.trackerSettings.parent_activity_id]= new ScormTracker(this.tracker, this.trackerSettings.parent_activity_id, this.trackerSettings.parent_activity_type, this.tracker.context_without_parent);
+        }
     }
 
     logout() {
@@ -322,21 +326,69 @@ export class JSScormTracker extends JSTracker {
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - SCORM type
+     * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type=SCORMTYPE.SCO) {
+    scorm(id, type="SCO") {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
         }
         if(!this.scormInstances[type][id]) {
-            scorm =new ScormTracker(this.tracker, id, type);;
+            scorm =new ScormTracker(this.tracker, id, type);
             this.scormInstances[type][id]=scorm;
         } else {
             scorm=this.scormInstances[type][id];
         }
         return scorm;
+    }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
+    }
+}
+
+/**
+ * SCORM-specific tracker extending JSTracker
+ */
+export class MyTracker extends JSTracker {
+    /**
+     * Creates a new MyTracker instance
+     */
+    constructor() {
+        super();
+    }
+
+    async login() {
+        await super.login();
+    }
+
+    logout() {
+        super.logout();
+    }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
     }
 }
 
@@ -386,11 +438,11 @@ export class SeriousGameTracker extends JSTracker {
      */
     constructor() {
         super();
-        this.trackerSettings.activityId="";
+        this.trackerSettings.parent_activity_id="";
     }
 
     async login() {
-        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, SCORMTYPE.SCO);
+        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.parent_activity_id, this.trackerSettings.parent_activity_type, this.tracker.context_without_parent);
         await super.login();
     }
 
@@ -452,10 +504,12 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId) {
-        return this.tracker.trace(verbId, objectType, objectId);
+    trace(verbId, objectType, objectId, context = this.tracker.context) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId, context);
     }
-    
     
     /**
      * Creates an accessible tracker instance

@@ -1,5 +1,5 @@
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import XAPI from "@XAPI/XAPI";
+import XAPI from "@xapi/xapi";
 
 /**
  * A specialized tracker asset that implements OAuth1 authentication.

@@ -1,6 +1,6 @@
 'use strict';
 
-var XAPI = require('@XAPI/XAPI');
+var XAPI = require('@xapi/xapi');
 var uuid = require('uuid');
 var axios = require('axios');
 var ms = require('ms');
@@ -25,215 +25,92 @@ function _interopNamespaceDefault(e) {
 var ms__namespace = /*#__PURE__*/_interopNamespaceDefault(ms);
 
 /**
- * Actor Class of a Statement
+ * Actor Class of a Statement (xAPI Agent or Group)
  */
 class ActorStatement {
     /**
-     * Actor constructor
-     * @param {string} accountName account name
-     * @param {string} homepage account homepage 
+     * Create an Agent or Group
+     * @param {Object} options
+     *  - objectType: "Agent" | "Group" (default: "Agent")
+     *  - name: string (optional)
+     *  - mbox: string (optional, mailto:...)
+     *  - mbox_sha1sum: string (optional)
+     *  - openid: string (optional)
+     *  - account: { homePage: string, name: string } (optional)
+     *  - member: ActorStatement[] (for Group)
      */
-    constructor(accountName, homepage) {
-        this.accountName = accountName;
-        this.homepage = homepage;
+    constructor(options = {}) {
+        this.objectType = options.objectType || "Agent";
+        this.name = options.name;
+        this.mbox = options.mbox;
+        this.mbox_sha1sum = options.mbox_sha1sum;
+        this.openid = options.openid;
+        this.account = options.account;
+        this.member = options.member;
     }
 
     /**
-     * Account name
-     * @type {string}
-     */
-    accountName;
-
-    /**
-     * Account homePage
-     * @type {string}
-     */
-    homepage;
-
-    /**
-     * convert to XAPI
-     * 
+     * Convert to xAPI Agent or Group object
      * @returns {Object}
      */
     toXAPI() {
-        return {
-            account: {
-                name: this.accountName,
-                homePage: this.homepage
-            }
-        };
+        const obj = { objectType: this.objectType };
+        if (this.name) obj.name = this.name;
+        // Agent or Identified Group: one of mbox, mbox_sha1sum, openid, account
+        if (this.mbox) obj.mbox = this.mbox;
+        else if (this.mbox_sha1sum) obj.mbox_sha1sum = this.mbox_sha1sum;
+        else if (this.openid) obj.openid = this.openid;
+        else if (this.account) obj.account = this.account;
+        // Group: add member if present
+        if (this.objectType === "Group" && Array.isArray(this.member)) {
+            obj.member = this.member.map(m => (typeof m.toXAPI === 'function' ? m.toXAPI() : m));
+        }
+        return obj;
     }
 
     /**
-     * convert to CSV
-     * 
+     * Convert to CSV (uses name or account name)
      * @returns {String}
      */
     toCSV() {
-        return this.accountName.replaceAll(',', '\\,') ;
+        if (this.name) return this.name.replaceAll(',', '\\,');
+        if (this.account && this.account.name) return this.account.name.replaceAll(',', '\\,');
+        if (this.mbox) return this.mbox.replaceAll(',', '\\,');
+        return '';
     }
 }
 
 /**
- * The Context Class of a Statement
+ * Set as URI if it is not an URI already
+ * @param {string} id the id of the part of the statement
+ * @param {string} base the base URI to use if id is not an URI
+ * @returns {String}
  */
-class ContextStatement {
-    /**
-     * Constructor of the ContextStatement class
-     * 
-     * @param {*} categoryId category Id of context
-     * @param {*} registrationId registration id of context
-     */
-    constructor(categoryId="seriousgame", registrationId=null) {
-        if(registrationId != null) {
-            this.registration=registrationId;
-        } else {
-            this.registration=uuid.v4();
-        }
-        this.categoryId=this.categoryIDs[categoryId];
-        this.category=categoryId;
+function setAsUri(id, base) {
+    if (isUri(id)) {
+        return id;
     }
-    /** 
-     * Registration Id of the Context
-     * 
-     * @type {string}
-     */
-    registration;
-
-    /** 
-     * Extensions of the Context
-     * 
-     * @type {Object}
-     */
-    extensions;
-
-    /**
-     * The category IDs list
-     */
-    categoryIDs = {
-        seriousgame : 'https://w3id.org/xapi/seriousgame',
-        scorm: 'https://w3id.org/xapi/scorm/v/2'
-    };
-    
-    /**
-     * convert to XAPI
-     * 
-     * @returns {Object}
-     */
-    toXAPI() {
-        return {
-            registration: this.registration,
-            contextActivities: { 
-                category:[{
-                    id: this.categoryId,
-                    definition: {
-                        type : "http://adlnet.gov/expapi/activities/profile"
-                    }
-                }]
-            }, 
-            extensions: this.extensions
-        };
+    // Remove trailing slash if present
+    if (base.endsWith('/')) {
+        base = base.slice(0, -1);
     }
-
-    setExtensions(ext) {
-        this.extensions = ext;
-    }
-
-    setExtension(key, value) {
-        if(!this.extensions) {
-            this.extensions = {};
-        }
-        this.extensions[key] = value;
-    }
-
-    /**
-     * convert to CSV
-     * 
-     * @returns {String}
-     */
-    toCSV() {
-        return this.registration.replaceAll(',', '\\,') ;
+    // Remove leading slash from id if present
+    let cleanId = id.startsWith('/') ? id.slice(1) : id;
+    if (base.includes('://')) {
+        return `${base}/${cleanId}`;
+    } else {
+        return `${base}://${cleanId}`;
     }
 }
 
 /**
- * The Verb Class  of a Statement
+ * Check if the string is an URI
+ * @param {string} id 
+ * @returns {boolean}
  */
-class VerbStatement {
-    /**
-     * Constructor of VerbStatement class
-     * 
-     * @param {string} verbDisplay The verb display id of the statement
-     */
-    constructor(verbDisplay) {
-        this.verbId = this.verbIds[verbDisplay];
-        this.verbDisplay = verbDisplay;
-    }
-    
-    /**
-     * The Verb Ids array
-     */
-    verbIds = {
-        //Completable Verbs
-        initialized: 'http://adlnet.gov/expapi/verbs/initialized',
-        progressed: 'http://adlnet.gov/expapi/verbs/progressed',
-        completed: 'http://adlnet.gov/expapi/verbs/completed',
-        //Accessible Verbs
-        accessed: 'https://w3id.org/xapi/seriousgames/verbs/accessed',
-        skipped: 'http://id.tincanapi.com/verb/skipped',
-        //Alternative Verbs
-        selected: 'https://w3id.org/xapi/adb/verbs/selected',
-        unlocked: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
-        //GameObject Verbs
-        interacted: 'http://adlnet.gov/expapi/verbs/interacted',
-        used: 'https://w3id.org/xapi/seriousgames/verbs/used',
-
-        //SCORM Verbs
-        responded: 'http://adlnet.gov/expapi/verbs/responded',
-        resumed: 'http://adlnet.gov/expapi/verbs/resumed',
-        suspended: 'http://adlnet.gov/expapi/verbs/suspended',
-        terminated: 'http://adlnet.gov/expapi/verbs/resumed',
-        passed: 'http://adlnet.gov/expapi/verbs/passed',
-        failed: 'http://adlnet.gov/expapi/verbs/failed',
-        scored: 'http://adlnet.gov/expapi/verbs/scored',
-    };
-    /**
-     * The Verb Id 
-     * @type {string}
-     */
-    verbId;
-
-    /**
-     * The Verb display 
-     * @type {string}
-     */
-    verbDisplay;
-
-    /**
-     * convert to XAPI
-     * 
-     * @returns {Object}
-     */
-    toXAPI() {
-        var verb = {};
-        if(this.verbId) {
-            verb.id = this.verbId;
-        }
-        
-        if(this.verbDisplay) {
-            verb.display = { "en": this.verbDisplay };
-        }
-        return verb;
-    }
-
-    /**
-     * convert to CSV
-     * 
-     * @returns {String}
-     */
-    toCSV() {
-        return this.verbId;
-    }
+function isUri(id) {
+    const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
+    return pattern.test(id);
 }
 
 /**
@@ -245,14 +122,32 @@ class ObjectStatement {
      * 
      * @param {string} id the id of the object
      * @param {string} type the type of the object
+     * @param {string} baseURI the base URI for the object construction
      * @param {string} name the name of the object
      * @param {string} description the description of the object
      */
-    constructor(id, type, name = null, description = null) {
-        this.id = id;
-        this.type = type;
-        this.name = name;
-        this.description = description;
+    constructor(id, type, baseURI, language = "en", name = null, description = null) {
+        if(isUri(id)) {
+            this.id = id;
+        } else {
+            this.id = setAsUri(id, baseURI);
+        }
+        if(isUri(type)) {
+            this.definitionType = type;
+        } else {
+            if(type in this.typeIds) {
+                this.definitionType = this.typeIds[type];
+            } else {
+                this.definitionType = setAsUri(type, baseURI);
+            }
+        }
+        if(name) {
+            this.definitionName.set(language, name);
+        }
+        if(description) {
+            this.definitionDescription.set(language, description);
+        }
+        this.defaultURI = baseURI;
     }
     
     /**
@@ -321,39 +216,62 @@ class ObjectStatement {
      * 
      * @type {string}
      */
-    type;
+    definitionType;
     /**
      * The name of the Object
      * 
-     * @type {string}
+     * @type {Map<string, string>}
      */
-    name;
+    definitionName = new Map();
     /**
      * The description of the Object
      * 
-     * @type {string}
+     * @type {Map<string, string>}
      */
-    description;
+    definitionDescription = new Map();
 
     /**
-     * convert to XAPI
-     * 
+     * default URI for the object construction
+     * @type {string}
+     * */
+    defaultURI;
+
+    /**
+     * Set the name of the Object definition
+     * @param {string} lang - The language code
+     * @param {string} name - The name of the Object definition
+     */
+    setObjectDefinitionName(lang, name) {
+        this.definitionName.set(lang, name);
+    }
+
+    /**
+     * Set the description of the Object definition
+     * @param {string} lang - The language code
+     * @param {string} description - The description of the Object definition
+     */
+    setObjectDefinitionDescription(lang, description) {
+        this.definitionDescription.set(lang, description);
+    }
+
+    /**
+     * Convert to xAPI object, including interaction activities if set
      * @returns {Object}
      */
     toXAPI() {
-        var object= {};
-        if(this.id) {
+        var object = {};
+        if (this.id) {
             object.id = this.id;
         }
-        object.definition={};
-        if(this.name) {
-            object.definition.name = { "en-US": this.name };
+        object.definition = {};
+        if (this.definitionName && this.definitionName.size > 0) {
+            object.definition.name = Object.fromEntries(this.definitionName);
         }
-        if(this.description) {
-            object.definition.description = { "en-US": this.description };
+        if (this.definitionDescription && this.definitionDescription.size > 0) {
+            object.definition.description = Object.fromEntries(this.definitionDescription);
         }
-        if(this.type) {
-            object.definition.type = this.typeIds[this.type];
+        if (this.definitionType) {
+            object.definition.type = this.typeIds[this.definitionType] ? this.typeIds[this.definitionType] : this.definitionType;
         }
         return object;
     }
@@ -364,7 +282,258 @@ class ObjectStatement {
      * @returns {String}
      */
     toCSV() {
-        return this.typeIds[this.type].replaceAll(',','\\,') + ',' + this.id.replaceAll(',', '\\,');
+        return this.definitionType + ',' + this.id.replaceAll(',', '\\,');
+    }
+}
+
+/**
+ * The Context Class of a Statement
+ */
+class ContextStatement {
+    /**
+     * Constructor of the ContextStatement class
+     * 
+     * @param {string} base default URI for the context construction
+     * @param {string} platform platform of context
+     * @param {string} categoryId category Id of context
+     * @param {string} registrationId registration id of context
+     */
+    constructor(base, platform, registrationId=null, categoryId=null) {
+        this.defaultURI = base;
+        this.platform = platform;
+        if(registrationId != null) {
+            this.registration=registrationId;
+        } else {
+            this.registration=uuid.v4();
+        }
+        // Initialize contextActivities with category by default
+        this.contextActivities = {};
+        if(categoryId && categoryId in this.categoryIDs) {
+            this.contextActivities.category = [
+                {
+                    id: isUri(categoryId) ? categoryId : categoryId in this.categoryIDs ? this.categoryIDs[categoryId] : setAsUri(categoryId, this.defaultURI),
+                    definition: {
+                        type : "http://adlnet.gov/expapi/activities/profile"
+                    }
+                }
+            ];
+        }
+    }
+
+    /** 
+     * default URI for the context construction
+     * @type {string}
+      */
+    defaultURI;
+
+    /** 
+     * Registration Id of the Context
+     * 
+     * @type {string}
+     */
+    registration;
+
+    
+    /** 
+     * Platform of the Context
+     * 
+     * @type {string}
+     */
+    platform;
+
+    /** 
+     * Extensions of the Context
+     * 
+     * @type {Object}
+     */
+    extensions;
+
+    /**
+     * Context Activities (parent, grouping, category, other)
+     * @type {Object}
+     */
+    contextActivities;
+
+    
+
+    /**
+     * The category IDs list
+     */
+    categoryIDs = {
+        seriousgame : 'https://w3id.org/xapi/seriousgame',
+        scorm: 'https://w3id.org/xapi/scorm/v/2'
+    };
+
+    /**
+     * Add or set a context activity
+     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {ObjectStatement|ObjectStatement[]|string} activity activity object(s) or activity id
+     * @param {string} [activityType] activity type when activity is an id
+     */
+    addContextActivity(type, activity, activityType) {
+        if (typeof activity === 'string') {
+              activity = new ObjectStatement(activity, activityType, this.defaultURI);
+        }
+        if (["parent", "grouping", "category", "other"].includes(type)) {
+            // Accept single object or array
+            if (!this.contextActivities[type]) {
+                this.contextActivities[type] = [];
+            }
+            if (Array.isArray(activity)) {
+                this.contextActivities[type].push(...activity);
+            } else {
+                this.contextActivities[type].push(activity);
+            }
+        }
+    }
+    
+    /**
+     * convert to XAPI
+     * 
+     * @returns {Object}
+     */
+    toXAPI() {
+        // Deep copy and serialize contextActivities
+        const serializedContextActivities = {};
+        for (const [type, activities] of Object.entries(this.contextActivities)) {
+            serializedContextActivities[type] = activities.map(act => {
+                // If it has a toXAPI method, use it
+                if (act && typeof act.toXAPI === 'function') {
+                    const obj = act.toXAPI();
+                    // Flatten definition fields to top-level for contextActivities (xAPI spec)
+                    return {
+                        id: obj.id,
+                        ...(obj.definition && obj.definition.type ? { definition: { type: obj.definition.type } } : {})
+                    };
+                }
+                // Otherwise, assume it's already a plain object
+                return act;
+            });
+        }
+        return {
+            platform: this.platform,
+            registration: this.registration,
+            contextActivities: serializedContextActivities,
+            ...(this.extensions ? { extensions: this.extensions } : {})
+        };
+    }
+
+    setExtensions(ext) {
+        this.extensions = ext;
+    }
+
+    setExtension(key, value) {
+        if(!this.extensions) {
+            this.extensions = {};
+        }
+        this.extensions[key] = value;
+    }
+
+    /**
+     * convert to CSV
+     * 
+     * @returns {String}
+     */
+    toCSV() {
+        return this.registration.replaceAll(',', '\\,') ;
+    }
+}
+
+/**
+ * The Verb Class  of a Statement
+ */
+class VerbStatement {
+    /**
+     * Constructor of VerbStatement class
+     * 
+     * @param {string} verbId The verb id of the statement
+     * @param {string} baseURI The base URI for the statement
+     */
+    constructor(verbId, baseURI) {
+        if(isUri(verbId)) {
+            this.verbId = verbId;
+        } else {
+            if(verbId in this.verbIds) {
+                this.verbId = this.verbIds[verbId];
+                this.verbDisplay.set('en', verbId);
+            } else {
+                this.verbId = setAsUri(verbId, baseURI);
+            }
+        }
+    }
+    
+    /**
+     * The Verb Ids array
+     */
+    verbIds = {
+        //Completable Verbs
+        initialized: 'http://adlnet.gov/expapi/verbs/initialized',
+        progressed: 'http://adlnet.gov/expapi/verbs/progressed',
+        completed: 'http://adlnet.gov/expapi/verbs/completed',
+        //Accessible Verbs
+        accessed: 'https://w3id.org/xapi/seriousgames/verbs/accessed',
+        skipped: 'http://id.tincanapi.com/verb/skipped',
+        //Alternative Verbs
+        selected: 'https://w3id.org/xapi/adb/verbs/selected',
+        unlocked: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
+        //GameObject Verbs
+        interacted: 'http://adlnet.gov/expapi/verbs/interacted',
+        used: 'https://w3id.org/xapi/seriousgames/verbs/used',
+
+        //SCORM Verbs
+        responded: 'http://adlnet.gov/expapi/verbs/responded',
+        resumed: 'http://adlnet.gov/expapi/verbs/resumed',
+        suspended: 'http://adlnet.gov/expapi/verbs/suspended',
+        terminated: 'http://adlnet.gov/expapi/verbs/resumed',
+        passed: 'http://adlnet.gov/expapi/verbs/passed',
+        failed: 'http://adlnet.gov/expapi/verbs/failed',
+        scored: 'http://adlnet.gov/expapi/verbs/scored',
+    };
+    /**
+     * The Verb Id 
+     * @type {string}
+     */
+    verbId;
+
+    /**
+     * The Verb display 
+     * @type {Map<string, string>}
+     */
+    verbDisplay = new Map();
+
+    /**
+     * Add or set a verb display
+     * @param {string} lang
+     * @param {string} display
+     */
+    addDisplay(lang, display) {
+        this.verbDisplay.set(lang, display);
+    }
+
+    /**
+     * convert to XAPI
+     * 
+     * @returns {Object}
+     */
+    toXAPI() {
+        var verb = {};
+        if(this.verbId) {
+            verb.id = this.verbId;
+        }
+        
+        if(this.verbDisplay) {
+            verb.display = this.verbDisplay;
+        }
+        return verb;
+    }
+
+    /**
+     * convert to CSV
+     * 
+     * @returns {String}
+     */
+    toCSV() {
+        return this.verbId;
     }
 }
 
@@ -375,10 +544,10 @@ class ResultStatement {
     /**
      * Constructor of the ResultStatement class
      * 
-     * @param {string} defautURI The default URI for the extensions
+     * @param {string} defaultURI The default URI for the extensions
      */
-    constructor(defautURI) {
-        this.defautURI = defautURI;
+    constructor(defaultURI) {
+        this.defaultURI = defaultURI;
         this.Score = null;
         this.Success = null;
         this.Completion = null;
@@ -392,7 +561,7 @@ class ResultStatement {
      * 
      * @type {string}
      */
-    defautURI;
+    defaultURI;
 
     /**
      * The Score of the Result
@@ -483,30 +652,6 @@ class ResultStatement {
     }
 
     /**
-     * Set as URI if it is not an URI already
-
-     * @param {string} id the id of the part of the statement
-     * @returns {String}
-     */
-    setAsUri(id) {
-        if(this.isUri(id)) {
-            return id;
-        } else {
-            return `${this.defautURI}://${id}`;
-        }
-    }
-    
-    /**
-     * Check if the string is an URI
-     * @param {string} id 
-     * @returns {boolean}
-     */
-    isUri(id) {
-        const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
-        return pattern.test(id);
-    }
-
-    /**
      * Set the score of the statement
      * @param {string} key the key for the score 
      * @param {number} value the score 
@@ -518,6 +663,122 @@ class ResultStatement {
         if(this.ScoreKey.includes(key)) {
             this.Score[key] = Number(value);
         }    
+    }
+
+        /**
+     * Set the score of the statement
+     * @param {number} raw the raw score
+     * @param {number} min the min score
+     * @param {number} max the max score
+     * @param {number} scaled the scaled score
+     */
+    setScore(raw, min, max, scaled) {
+        if (raw) {
+            this.setScoreRaw(raw);
+        }
+
+        if (min) {
+            this.setScoreMin(min);
+        }
+
+        if (max) {
+            this.setScoreMax(max);
+        }
+
+        if (scaled) {
+            this.setScoreScaled(scaled);
+        }
+    }
+
+        /**
+     * Set the raw score of the statement
+     * @param {number} raw the raw score 
+     */
+    setScoreRaw(raw) {
+        this.setScoreValue('raw', raw);
+    }
+    
+    /**
+     * Set the min score of the statement
+     * @param {number} min the min score 
+     */
+    setScoreMin(min) {
+        this.setScoreValue('min', min);
+    }
+
+    /**
+     * Set the max score of the statement
+     * @param {number} max the max score 
+     */
+    setScoreMax(max) {
+        this.setScoreValue('max', max);
+    }
+
+    /**
+     * Set the scaled score of the statement
+     * @param {number} scaled the scaled score 
+     */
+    setScoreScaled(scaled) {
+        this.setScoreValue('scaled', scaled);
+    }
+
+    /**
+     * Set completion status of the statement
+     * @param {boolean} value the completion status
+     */
+    setCompletion(value) {
+        this.setExtension('completion', value);
+    }
+
+    /**
+     * Set success status of the statement
+     * @param {boolean} value the success status
+     */
+    setSuccess(value) {
+        this.setExtension('success', value);
+    }
+
+    /**
+     * Set duration of the statement
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
+     */
+    setDuration(init, end) {
+        const durationInMs = end.getTime()-init.getTime();
+        const durationInSec = durationInMs / 1000;
+        const seconds = durationInSec % 60;
+        const minutes = Math.floor(durationInSec / 60) % 60;
+        const hours = Math.floor(durationInSec / 3600) % 24;
+        const days = Math.floor(durationInSec / 86400);
+
+        // Construct the ISO 8601 duration string
+        const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
+        this.setExtension('duration', isoDuration);
+    }
+
+    /**
+     * Set response of the statement
+     * @param {string} value the response
+     */
+    setResponse(value) {
+        this.setExtension('response', value);
+    }
+
+    /**
+     * Set progress status of the statement
+     * @param {number} value the progress status
+     */
+    setProgress(value) {
+        this.setExtension('progress', value);
+    }
+
+    /**
+     * Set result extension for key of the statement
+     * @param {string} key the key of the extension
+     * @param {string} value the value of the extension
+     */
+    setVar(key,value) {
+        this.setExtension(key, value);
     }
 
     /**
@@ -557,7 +818,7 @@ class ResultStatement {
                     this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
                     delete this.Extensions[key];
                 } else {
-                    var newuri= this.setAsUri(key);
+                    var newuri= setAsUri(key, this.defaultURI);
                     this.Extensions[newuri] = this.Extensions[key];
                     if(newuri !== key) {
                         delete this.Extensions[key];
@@ -672,6 +933,119 @@ var exists = function(value) {
 };
 
 /**
+ * The Object Class of a Statement
+ */
+class InteractionObjectStatement extends ObjectStatement {
+    constructor(objectId, objectType, defaultURI) {
+        super(objectId, objectType, defaultURI);
+    }
+
+    /**
+     * Set the interactionType for interaction activities
+     * @param {string} interactionType
+     */
+    setInteractionType(interactionType, debug = false) {
+        if(!this.interactionType) {
+            this.interactionType = interactionType; // Set interactionType based on the first component type added if not already set
+        } else if (this.interactionType !== interactionType) {
+            // Handle case where component type differs from existing interactionType
+            if (debug) {
+                throw new Error(`Component type ${interactionType} does not match existing interactionType ${this.interactionType}`);
+            } else {
+                console.warn(`Adding component of type ${interactionType} to interaction with interactionType ${this.interactionType}`);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Set the correctResponsesPattern array
+     * @param {string|string[]} pattern
+     */
+    addCorrectResponsesPattern(pattern) {
+        if (!this.correctResponsesPattern) {
+            this.correctResponsesPattern = [];
+        }
+        if (Array.isArray(pattern)) {
+            this.correctResponsesPattern.push(...pattern);
+        } else {
+            this.correctResponsesPattern.push(pattern);
+        }
+    }
+
+    /**
+     * Add a single choice with language support (for interaction activities)
+     * @param {string} componentType - One of 'choices', 'scale', 'source', 'target', 'steps'
+     * @param {string} id - The identifier for the choice
+     * @param {string} lang - The language code (e.g., 'en')
+     * @param {string} description - The description in the given language
+     */
+    addInteractionWithLang(componentType, id, lang, description) {
+        if (["choices", "scale", "source", "target", "steps"].includes(componentType)) {
+            if (!this[componentType]) {
+                this[componentType] = [];
+            }
+            // Check if choice with this id exists
+            let existing = this[componentType].find(c => c.id === id);
+            if (existing) {
+                existing.description[lang] = description;
+            } else {
+                let desc = {};
+                desc[lang] = description;
+                this[componentType].push({ id, description: desc });
+            }
+        }
+    }
+
+    toXAPI() {
+        var object = super.toXAPI();
+        // Add interaction activity properties if present
+        if (this.interactionType) {
+            object.definition.interactionType = this.interactionType;
+        }
+        if (this.correctResponsesPattern) {
+            object.definition.correctResponsesPattern = this.correctResponsesPattern;
+        }
+        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+            if (this[key]) {
+                // For choices/scale, ensure each item is {id, description: {lang: text}}
+                if ((key === "choices" || key === "scale") && Array.isArray(this[key])) {
+                    object.definition[key] = this[key].map(item => {
+                        if (item.id && item.description && typeof item.description === 'object') {
+                            return { id: item.id, description: item.description };
+                        } else if (item.id && typeof item.description === 'string') {
+                            // fallback: wrap string in default lang
+                            return { id: item.id, description: { en: item.description } };
+                        } else {
+                            return item;
+                        }
+                    });
+                } else {
+                    object.definition[key] = this[key];
+                }
+            }
+        });
+        return object;
+    }
+
+    toCSV() {
+        let csv = super.toCSV();
+        if (this.interactionType) {
+            csv += `,${this.interactionType}`;
+        }
+        if (this.correctResponsesPattern) {
+            csv += `,${this.correctResponsesPattern.join('|')}`;
+        }
+        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+            if (this[key]) {
+                csv += `,${key}:${this[key].map(item => item.id).join('|')}`;
+            }
+        });
+        return csv;
+    }
+}
+
+/**
 * Statement class
 */
 class Statement {
@@ -687,9 +1061,13 @@ class Statement {
     constructor(actor, verbId, objectId, objectType, context, defaultURI) {
         this.id = uuid.v4();
         this.actor = actor;
-        this.verb = new VerbStatement(verbId);
+        this.verb = new VerbStatement(verbId, defaultURI);
         this.defaultURI = defaultURI;
-        this.object = new ObjectStatement(this.setAsUri(objectId), objectType);
+        if(!isUri(objectType) && objectType === 'interaction' || objectType === 'cmi.interaction') {
+            this.object = new InteractionObjectStatement(objectId, objectType, this.defaultURI);
+        } else {
+            this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
+        }   
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
@@ -740,180 +1118,6 @@ class Statement {
      * @type {ResultStatement}
      */
     result;
-
-    /**
-     * Set as URI if it is not an URI already
-
-     * @param {string} id the id of the part of the statement
-     * @returns {String}
-     */
-    setAsUri(id) {
-        if(this.isUri(id)) {
-            return id;
-        } else {
-            return `${this.defaultURI}://${id}`;
-        }
-    }
-    
-    /**
-     * Check if the string is an URI
-     * @param {string} id 
-     * @returns {boolean}
-     */
-    isUri(id) {
-        const pattern = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\/[^\s/$.?#].[^\s]*$/i;
-        return pattern.test(id);
-    }
-
-    /**
-     * Set the score of the statement
-     * @param {number} raw the raw score
-     * @param {number} min the min score
-     * @param {number} max the max score
-     * @param {number} scaled the scaled score
-     */
-    setScore(raw, min, max, scaled) {
-        if (raw) {
-            this.setScoreRaw(raw);
-        }
-
-        if (min) {
-            this.setScoreMin(min);
-        }
-
-        if (max) {
-            this.setScoreMax(max);
-        }
-
-        if (scaled) {
-            this.setScoreScaled(scaled);
-        }
-    }
-
-    /**
-     * Set the raw score of the statement
-     * @param {number} raw the raw score 
-     */
-    setScoreRaw(raw) {
-        this.result.setScoreValue('raw', raw);
-    }
-    
-    /**
-     * Set the min score of the statement
-     * @param {number} min the min score 
-     */
-    setScoreMin(min) {
-        this.result.setScoreValue('min', min);
-    }
-
-    /**
-     * Set the max score of the statement
-     * @param {number} max the max score 
-     */
-    setScoreMax(max) {
-        this.result.setScoreValue('max', max);
-    }
-
-    /**
-     * Set the scaled score of the statement
-     * @param {number} scaled the scaled score 
-     */
-    setScoreScaled(scaled) {
-        this.result.setScoreValue('scaled', scaled);
-    }
-
-    /**
-     * Set completion status of the statement
-     * @param {boolean} value the completion status
-     */
-    setCompletion(value) {
-        this.addResultExtension('completion', value);
-    }
-
-    /**
-     * Set success status of the statement
-     * @param {boolean} value the success status
-     */
-    setSuccess(value) {
-        this.addResultExtension('success', value);
-    }
-
-    /**
-     * Set duration of the statement
-     * @param {Date} init init date of statement
-     * @param {Date} end end date of statement
-     */
-    setDuration(init, end) {
-        const durationInMs = end.getTime()-init.getTime();
-        const durationInSec = durationInMs / 1000;
-        const seconds = durationInSec % 60;
-        const minutes = Math.floor(durationInSec / 60) % 60;
-        const hours = Math.floor(durationInSec / 3600) % 24;
-        const days = Math.floor(durationInSec / 86400);
-
-        // Construct the ISO 8601 duration string
-        const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
-        this.addResultExtension('duration', isoDuration);
-    }
-
-    /**
-     * Set response of the statement
-     * @param {string} value the response
-     */
-    setResponse(value) {
-        this.addResultExtension('response', value);
-    }
-
-    /**
-     * Set progress status of the statement
-     * @param {number} value the progress status
-     */
-    setProgress(value) {
-        this.addResultExtension('progress', value);
-    }
-
-    /**
-     * Set result extension for key of the statement
-     * @param {string} key the key of the extension
-     * @param {string} value the value of the extension
-     */
-    setVar(key,value) {
-        this.addResultExtension(key,value);
-    }
-
-    /**
-     * Set result extension for key of the statement
-     * @param {string} key the key of the extension
-     * @param {*} value the value of the extension
-     */
-    addResultExtension(key,value) {
-        this.result.setExtension(key, value);
-    }
-
-    /**
-     * Set result extension as Object key/values of the statement
-     * @param {Object} extensions extensions list
-     */
-    addResultExtensions(extensions) {
-        this.result.setExtensions(extensions);
-    }
-
-    /**
-     * Set result extension for key of the statement
-     * @param {string} key the key of the extension
-     * @param {*} value the value of the extension
-     */
-    addContextExtension(key,value) {
-        this.context.setExtension(key, value);
-    }
-
-    /**
-     * Set result extension as Object key/values of the statement
-     * @param {Object} extensions extensions list
-     */
-    addContextExtensions(extensions) {
-        this.context.setExtensions(extensions);
-    }
     
     /**
      * Convert to xAPI format
@@ -933,17 +1137,17 @@ class Statement {
         if(this.object) {
             xapiTrace.object = this.object.toXAPI();
         }
-        if(this.timestamp) {
-            xapiTrace.timestamp = this.timestamp.toISOString();
+        if(!this.result.isEmpty()) {
+            xapiTrace.result = this.result.toXAPI();
         }
         if(this.context) {
             xapiTrace.context = this.context.toXAPI();
         }
+        if(this.timestamp) {
+            xapiTrace.timestamp = this.timestamp.toISOString();
+        }
         if(this.version) {
             xapiTrace.version = this.version;
-        }
-        if(!this.result.isEmpty()) {
-            xapiTrace.result = this.result.toXAPI();
         }
         return xapiTrace;
     }
@@ -1010,7 +1214,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withSuccess(success) {
-    this.statement.setSuccess(success);
+    this.statement.result.setSuccess(success);
     return this;
   }
 
@@ -1020,7 +1224,7 @@ class StatementBuilder {
  * @returns {StatementBuilder} Returns the current instance for chaining
  */
   withScore(score) {
-    this.statement.setScore(
+    this.statement.result.setScore(
       score.raw ?? score?.raw, 
       score.min ?? score?.min,
       score.max ?? score?.max,
@@ -1034,7 +1238,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreRaw(raw) {
-    this.statement.setScoreRaw(raw);
+    this.statement.result.setScoreRaw(raw);
     return this;
   }
   /**
@@ -1043,7 +1247,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreMin(min) {
-    this.statement.setScoreMin(min);
+    this.statement.result.setScoreMin(min);
     return this;
   }
   /**
@@ -1052,7 +1256,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreMax(max) {
-    this.statement.setScoreMax(max);
+    this.statement.result.setScoreMax(max);
     return this;
   }
   /**
@@ -1061,7 +1265,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withScoreScaled(scaled) {
-    this.statement.setScoreScaled(scaled);
+    this.statement.result.setScoreScaled(scaled);
     return this;
   }
 
@@ -1071,7 +1275,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withCompletion(value) {
-    this.statement.setCompletion(value);
+    this.statement.result.setCompletion(value);
     return this;
   }
 
@@ -1082,7 +1286,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withDuration(init, end) {
-    this.statement.setDuration(init, end);
+    this.statement.result.setDuration(init, end);
     return this;
   }
 
@@ -1092,7 +1296,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withResponse(value) {
-    this.statement.setResponse(value);
+    this.statement.result.setResponse(value);
     return this;
   }
 
@@ -1102,7 +1306,7 @@ class StatementBuilder {
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
   withProgress(value) {
-    this.statement.setProgress(value);
+    this.statement.result.setProgress(value);
     return this;
   }
 
@@ -1114,7 +1318,7 @@ class StatementBuilder {
    */
   
   withResultExtension(key, value) {
-    this.statement.addResultExtension(key, value);
+    this.statement.result.setExtension(key, value);
     return this;
   }
 
@@ -1123,27 +1327,149 @@ class StatementBuilder {
      * @param {Object} extensions extensions list
      */
   withResultExtensions(extensions = {}) {
-    this.statement.addResultExtensions(extensions);
+    this.statement.result.setExtensions(extensions);
+    return this;
+  }
+  /**
+   * Add context extension to statement
+   * @param {string} key key of the context extension
+   * @param {*} value value of the context extension
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withContextExtension(key, value) {
+    this.statement.context.setExtension(key, value);
+    return this;
+  }
+  
+  /**
+     * Add context activity to statement
+     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {string} activityId
+     * @param {string} activityType
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+  withContextActivity(type, activityId, activityType) {
+    this.statement.context.addContextActivity(type, activityId, activityType);
     return this;
   }
 
   /**
-   * let me run any function on the statement
-   * fn can either mutate `stmt` in‐place, or return a brand new statement
-   * Applies a function to the statement
-   * @param {(statement: Statement) => Statement} fn - Function to apply to statement
-   * @returns {StatementBuilder} Returns the current instance for chaining
+   * Add or set a verb display
+   * @param {string} lang
+   * @param {string} display
+   * @return {StatementBuilder} Returns the current instance for chaining
    */
-  apply(fn) {
-    const result = fn(this.statement);
-    // if your fn returns a new statement, pick that up, otherwise
-    // assume it has mutated in place
-    if (result instanceof Statement) {
-      this.statement = result;
+  withVerbDisplay(lang, display) {
+    this.statement.verb.addDisplay(lang, display);
+    return this;
+  }
+
+  /**
+   * Add or set a name of the Object definition
+   * @param {string} lang
+   * @param {Set<string>} list list of the Object definition names
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionsName(lang, list) {
+    for(const name of list) {
+      this.statement.object.setObjectDefinitionName(lang, name);
+    }
+    return this;
+  }
+
+  /**
+   * Add or set a description of the Object definition
+   * @param {string} lang
+   * @param {Set<string>} list list of the Object definition descriptions
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionsDescription(lang, list) {
+    for(const description of list) {
+      this.statement.object.setObjectDefinitionDescription(lang, description);
+    }
+    return this;
+  }
+  /**
+   * Add or set a name of the Object definition
+   * @param {string} lang
+   * @param {string} name name of the Object definition
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectDefinitionName(lang, name) {
+    this.statement.object.setObjectDefinitionName(lang, name);
+    return this;
+  }
+  /**
+   * Add or set a description of the Object definition
+   * @param {string} lang
+   * @param {string} description description of the Object definition
+   * @return {StatementBuilder} Returns the current instance for chaining
+   * */ 
+  withObjectDefinitionDescription(lang, description) {
+    this.statement.object.setObjectDefinitionDescription(lang, description);
+    return this;
+  }
+
+  /**
+   * Add or set an interaction component with language support (for interaction activities)
+   * @param {string} type - One of 'choices', 'scale', 'source', 'target', 'steps'
+   * @param {string} id - The identifier for the component
+   * @param {string} lang - The language code (e.g., 'en')
+   * @param {string} description - The description in the given language
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withInteractionWithLang(type, id, lang, description) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.addInteractionWithLang(type, id, lang, description);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set interaction choice on a non-interaction object");
+      } else {
+        console.warn("Trying to set interaction choice on a non-interaction object");
+        return this;
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Add or set an interaction type for interaction activities
+   * @param {string} type interaction type to set
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withInteractionType(type) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.setInteractionType(type);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set interaction scale on a non-interaction object");
+      } else {
+        console.warn("Trying to set interaction choice on a non-interaction object");
+        return this;
+      }
     }
     return this;
   }
   
+  /**
+   * Add or set a correct responses pattern for interaction activities
+   * @param {string|string[]} pattern correct responses pattern(s) to add
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withCorrectResponsesPattern(pattern) {
+    if(this.statement.object instanceof InteractionObjectStatement) {
+      this.statement.object.addCorrectResponsesPattern(pattern);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set correct responses pattern on a non-interaction object");
+      } else {
+        console.warn("Trying to set correct responses pattern on a non-interaction object");
+        return this;
+      }
+    }
+    return this;
+  }
+
   /**
    * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
    *
@@ -1188,6 +1514,8 @@ class xAPITrackerAsset {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     settings={
         batch_mode:true,
@@ -1201,7 +1529,9 @@ class xAPITrackerAsset {
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
         max_retry_delay:msFn$1("2min"),
-        debug:false
+        debug:false,
+        parent_activity_id:null,
+        parent_activity_type:"SCO"
     };
 
     /**
@@ -1267,6 +1597,12 @@ class xAPITrackerAsset {
      * @type {ContextStatement}
      */
     context;
+    
+    /**
+     * Context statement without parent object
+     * @type {ContextStatement}
+     */
+    context_without_parent;
 
     // BATCH AND RETRY PARAMETERS
     /**
@@ -1307,8 +1643,12 @@ class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
-        this.context = new ContextStatement();
+        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage);
+        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration, null);
+        if(this.settings.parent_activity_id) {
+            this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
+        }
         if(this.connected) {
             this.xapi = new XAPI({
                 endpoint: this.settings.batch_endpoint,
@@ -1443,8 +1783,8 @@ class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId) {
-        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
+    trace(verbId, objectType, objectId, context = this.context) {
+        const statement = new Statement(this.actor, verbId, objectId, objectType, context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }
 
@@ -2445,12 +2785,14 @@ class ScormTracker {
      * Constructor of Scorm Tracker
      * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the Scorm object
-     * @param {number} type the type of the Scorm object
+     * @param {string} type the type of the Scorm object
+     * @param {ContextStatement} context the context statement of the Scorm object
      */
-    constructor(tracker, id, type=SCORMTYPE.SCO) {
+    constructor(tracker, id, type="SCO", context = tracker.context) {
         this.ScormId=id;
         this.Type=type;
         this.Tracker = tracker;
+        this.Context = context;
         this.IsInitialized=false;
     }
     /**
@@ -2460,7 +2802,7 @@ class ScormTracker {
     ScormId;
     /**
      * the type of the Scorm object
-     * @type {number}
+     * @type {string}
      */
     Type;
     /**
@@ -2470,9 +2812,19 @@ class ScormTracker {
     Tracker;
     /**
      * the list of types possible for the Scorm object
-     * @type {Array}
+     * @type {Map<string, string>}
      */
-    ScormType = ['SCO', 'course', 'module', 'assessment', 'interaction', 'objective', 'attempt'];
+    ScormType = new Map([
+        ["SCO", 'http://adlnet.gov/expapi/activities/lesson'],
+        ["course", 'http://adlnet.gov/expapi/activities/course'],
+        ["module", 'http://adlnet.gov/expapi/activities/module'],
+        ["assessment", 'http://adlnet.gov/expapi/activities/assessment'],
+        ["interaction", 'http://adlnet.gov/expapi/activities/interaction'],
+        ["cmi_interaction", "http://adlnet.gov/expapi/activities/cmi.interaction"],
+        ["objective", 'http://adlnet.gov/expapi/activities/objective'],
+        ["attempt", 'http://adlnet.gov/expapi/activities/attempt'],
+        ["profile", 'http://adlnet.gov/expapi/activities/profile']
+    ]);
 
     /**
      * is initialized
@@ -2505,10 +2857,10 @@ class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
-        return this.Tracker.trace('initialized', this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('initialized', this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -2526,10 +2878,10 @@ class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
-        return this.Tracker.trace('suspended', this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('suspended', this.ScormType.get(this.Type), this.ScormId, this.Context)
                 .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -2552,10 +2904,10 @@ class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
-        return this.Tracker.trace('resumed', this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('resumed', this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -2573,10 +2925,10 @@ class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMTYPE.SCO) {
+        if(this.Type != "SCO") {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
-        return this.Tracker.trace('terminated', this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('terminated', this.ScormType.get(this.Type), this.ScormId, this.Context)
                     .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -2585,7 +2937,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     passed() {
-        return this.Tracker.trace('passed',this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('passed',this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -2593,7 +2945,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     failed() {
-        return this.Tracker.trace('failed',this.ScormType[this.Type], this.ScormId);
+        return this.Tracker.trace('failed',this.ScormType.get(this.Type), this.ScormId, this.Context);
     }
 
     /**
@@ -2604,7 +2956,7 @@ class ScormTracker {
     scored(score) {
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.Tracker.trace('scored',this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('scored',this.ScormType.get(this.Type), this.ScormId, this.Context)
             .withScore({raw:score});
     }
 
@@ -2629,26 +2981,13 @@ class ScormTracker {
             }
         }
         let actualDate=new Date();
-        return this.Tracker.trace('completed',this.ScormType[this.Type], this.ScormId)
+        return this.Tracker.trace('completed',this.ScormType.get(this.Type), this.ScormId, this.Context)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
             .withDuration(this.InitializedTime, actualDate);
     }
 }
-
-/**
- * the list of types possible for the scorm object
- */
-const SCORMTYPE = Object.freeze({
-    SCO: 0,
-    COURSE: 1,
-    MODULE: 2,
-    ASSESSMENT: 3,
-    INTERACTION: 4,
-    OBJECTIVE: 5,
-    ATTEMPT: 6
-});
 
 const msFn = ms__namespace.default || ms__namespace;
 
@@ -2680,6 +3019,8 @@ class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     trackerSettings={
         generateSettingsFromURLParams:false,
@@ -2695,7 +3036,9 @@ class JSTracker {
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
         max_retry_delay:msFn("2min"),
-        debug:false
+        debug:false,
+        parent_activity_id:null,
+        parent_activity_type:'COURSE'
     };
     /**
      * @typedef {Object} oauth1
@@ -2935,12 +3278,6 @@ class JSTracker {
  */
 class JSScormTracker extends JSTracker {
     /**
-     * SCORM type constants
-     * @type {Object}
-     */
-    SCORMTYPE = SCORMTYPE;
-
-    /**
      * list of scorm instances
      */
     scormInstances={};
@@ -2954,6 +3291,12 @@ class JSScormTracker extends JSTracker {
 
     async login() {
         await super.login();
+        if(!this.scormInstances[this.trackerSettings.parent_activity_type]) {
+            this.scormInstances[this.trackerSettings.parent_activity_type]= {};
+        }
+        if(this.trackerSettings.parent_activity_id && !(this.trackerSettings.parent_activity_id in this.scormInstances[this.trackerSettings.parent_activity_type])) {
+            this.scormInstances[this.trackerSettings.parent_activity_type][this.trackerSettings.parent_activity_id]= new ScormTracker(this.tracker, this.trackerSettings.parent_activity_id, this.trackerSettings.parent_activity_type, this.tracker.context_without_parent);
+        }
     }
 
     logout() {
@@ -2964,20 +3307,69 @@ class JSScormTracker extends JSTracker {
     /**
      * Creates a new SCORM tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - SCORM type
+     * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type=SCORMTYPE.SCO) {
+    scorm(id, type="SCO") {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
         }
         if(!this.scormInstances[type][id]) {
-            scorm =new ScormTracker(this.tracker, id, type);            this.scormInstances[type][id]=scorm;
+            scorm =new ScormTracker(this.tracker, id, type);
+            this.scormInstances[type][id]=scorm;
         } else {
             scorm=this.scormInstances[type][id];
         }
         return scorm;
+    }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
+    }
+}
+
+/**
+ * SCORM-specific tracker extending JSTracker
+ */
+class MyTracker extends JSTracker {
+    /**
+     * Creates a new MyTracker instance
+     */
+    constructor() {
+        super();
+    }
+
+    async login() {
+        await super.login();
+    }
+
+    logout() {
+        super.logout();
+    }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
     }
 }
 
@@ -3027,11 +3419,11 @@ class SeriousGameTracker extends JSTracker {
      */
     constructor() {
         super();
-        this.trackerSettings.activityId="";
+        this.trackerSettings.parent_activity_id="";
     }
 
     async login() {
-        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, SCORMTYPE.SCO);
+        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.parent_activity_id, this.trackerSettings.parent_activity_type, this.tracker.context_without_parent);
         await super.login();
     }
 
@@ -3093,10 +3485,12 @@ class SeriousGameTracker extends JSTracker {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId) {
-        return this.tracker.trace(verbId, objectType, objectId);
+    trace(verbId, objectType, objectId, context = this.tracker.context) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId, context);
     }
-    
     
     /**
      * Creates an accessible tracker instance
@@ -3181,4 +3575,5 @@ class SeriousGameTracker extends JSTracker {
 
 exports.JSScormTracker = JSScormTracker;
 exports.JSTracker = JSTracker;
+exports.MyTracker = MyTracker;
 exports.SeriousGameTracker = SeriousGameTracker;

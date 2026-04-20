@@ -5,15 +5,15 @@ export default class ResultStatement {
     /**
      * Constructor of the ResultStatement class
      *
-     * @param {string} defautURI The default URI for the extensions
+     * @param {string} defaultURI The default URI for the extensions
      */
-    constructor(defautURI: string);
+    constructor(defaultURI: string);
     /**
      * The ID of the Result
      *
      * @type {string}
      */
-    defautURI: string;
+    defaultURI: string;
     /**
      * The Score of the Result
      *
@@ -82,24 +82,71 @@ export default class ResultStatement {
      */
     setExtension(key: string, value: any): void;
     /**
-     * Set as URI if it is not an URI already
-
-     * @param {string} id the id of the part of the statement
-     * @returns {String}
-     */
-    setAsUri(id: string): string;
-    /**
-     * Check if the string is an URI
-     * @param {string} id
-     * @returns {boolean}
-     */
-    isUri(id: string): boolean;
-    /**
      * Set the score of the statement
      * @param {string} key the key for the score
      * @param {number} value the score
      */
     setScoreValue(key: string, value: number): void;
+    /**
+ * Set the score of the statement
+ * @param {number} raw the raw score
+ * @param {number} min the min score
+ * @param {number} max the max score
+ * @param {number} scaled the scaled score
+ */
+    setScore(raw: number, min: number, max: number, scaled: number): void;
+    /**
+ * Set the raw score of the statement
+ * @param {number} raw the raw score
+ */
+    setScoreRaw(raw: number): void;
+    /**
+     * Set the min score of the statement
+     * @param {number} min the min score
+     */
+    setScoreMin(min: number): void;
+    /**
+     * Set the max score of the statement
+     * @param {number} max the max score
+     */
+    setScoreMax(max: number): void;
+    /**
+     * Set the scaled score of the statement
+     * @param {number} scaled the scaled score
+     */
+    setScoreScaled(scaled: number): void;
+    /**
+     * Set completion status of the statement
+     * @param {boolean} value the completion status
+     */
+    setCompletion(value: boolean): void;
+    /**
+     * Set success status of the statement
+     * @param {boolean} value the success status
+     */
+    setSuccess(value: boolean): void;
+    /**
+     * Set duration of the statement
+     * @param {Date} init init date of statement
+     * @param {Date} end end date of statement
+     */
+    setDuration(init: Date, end: Date): void;
+    /**
+     * Set response of the statement
+     * @param {string} value the response
+     */
+    setResponse(value: string): void;
+    /**
+     * Set progress status of the statement
+     * @param {number} value the progress status
+     */
+    setProgress(value: number): void;
+    /**
+     * Set result extension for key of the statement
+     * @param {string} key the key of the extension
+     * @param {string} value the value of the extension
+     */
+    setVar(key: string, value: string): void;
     /**
      * convert to XAPI
      *

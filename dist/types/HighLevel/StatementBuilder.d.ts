@@ -101,13 +101,76 @@ export default class StatementBuilder {
        */
     withResultExtensions(extensions?: any): this;
     /**
-     * let me run any function on the statement
-     * fn can either mutate `stmt` in‐place, or return a brand new statement
-     * Applies a function to the statement
-     * @param {(statement: Statement) => Statement} fn - Function to apply to statement
+     * Add context extension to statement
+     * @param {string} key key of the context extension
+     * @param {*} value value of the context extension
      * @returns {StatementBuilder} Returns the current instance for chaining
      */
-    apply(fn: (statement: Statement) => Statement): StatementBuilder;
+    withContextExtension(key: string, value: any): StatementBuilder;
+    /**
+       * Add context activity to statement
+       * @param {"parent"|"grouping"|"category"|"other"} type
+       * @param {string} activityId
+       * @param {string} activityType
+       * @return {StatementBuilder} Returns the current instance for chaining
+       */
+    withContextActivity(type: "parent" | "grouping" | "category" | "other", activityId: string, activityType: string): StatementBuilder;
+    /**
+     * Add or set a verb display
+     * @param {string} lang
+     * @param {string} display
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withVerbDisplay(lang: string, display: string): StatementBuilder;
+    /**
+     * Add or set a name of the Object definition
+     * @param {string} lang
+     * @param {Set<string>} list list of the Object definition names
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withObjectDefinitionsName(lang: string, list: Set<string>): StatementBuilder;
+    /**
+     * Add or set a description of the Object definition
+     * @param {string} lang
+     * @param {Set<string>} list list of the Object definition descriptions
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withObjectDefinitionsDescription(lang: string, list: Set<string>): StatementBuilder;
+    /**
+     * Add or set a name of the Object definition
+     * @param {string} lang
+     * @param {string} name name of the Object definition
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withObjectDefinitionName(lang: string, name: string): StatementBuilder;
+    /**
+     * Add or set a description of the Object definition
+     * @param {string} lang
+     * @param {string} description description of the Object definition
+     * @return {StatementBuilder} Returns the current instance for chaining
+     * */
+    withObjectDefinitionDescription(lang: string, description: string): StatementBuilder;
+    /**
+     * Add or set an interaction component with language support (for interaction activities)
+     * @param {string} type - One of 'choices', 'scale', 'source', 'target', 'steps'
+     * @param {string} id - The identifier for the component
+     * @param {string} lang - The language code (e.g., 'en')
+     * @param {string} description - The description in the given language
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withInteractionWithLang(type: string, id: string, lang: string, description: string): StatementBuilder;
+    /**
+     * Add or set an interaction type for interaction activities
+     * @param {string} type interaction type to set
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withInteractionType(type: string): StatementBuilder;
+    /**
+     * Add or set a correct responses pattern for interaction activities
+     * @param {string|string[]} pattern correct responses pattern(s) to add
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withCorrectResponsesPattern(pattern: string | string[]): StatementBuilder;
     /**
      * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
      *

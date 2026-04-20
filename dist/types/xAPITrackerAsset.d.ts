@@ -23,6 +23,8 @@ export default class xAPITrackerAsset {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     settings: {
         batch_mode: boolean;
@@ -37,6 +39,8 @@ export default class xAPITrackerAsset {
         default_uri: string;
         max_retry_delay: any;
         debug: boolean;
+        parent_activity_id: any;
+        parent_activity_type: string;
     };
     /**
      * Authentication token for xAPI requests
@@ -89,6 +93,11 @@ export default class xAPITrackerAsset {
      */
     context: ContextStatement;
     /**
+     * Context statement without parent object
+     * @type {ContextStatement}
+     */
+    context_without_parent: ContextStatement;
+    /**
      * Current retry delay in milliseconds
      * @type {number|null}
      */
@@ -121,7 +130,7 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
+    trace(verbId: string, objectType: string, objectId: string, context?: ContextStatement): StatementBuilder;
     /**
      * Adds a statement to the queue and starts processing if needed
      * @param {Statement} statement - The statement to enqueue
@@ -139,7 +148,7 @@ export default class xAPITrackerAsset {
     }): Promise<void>;
     #private;
 }
-import XAPI from "@XAPI/XAPI";
+import XAPI from "@xapi/xapi";
 import Statement from "./HighLevel/Statement/Statement.js";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";

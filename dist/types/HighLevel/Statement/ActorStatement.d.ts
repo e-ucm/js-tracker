@@ -1,32 +1,33 @@
 /**
- * Actor Class of a Statement
+ * Actor Class of a Statement (xAPI Agent or Group)
  */
 export default class ActorStatement {
     /**
-     * Actor constructor
-     * @param {string} accountName account name
-     * @param {string} homepage account homepage
+     * Create an Agent or Group
+     * @param {Object} options
+     *  - objectType: "Agent" | "Group" (default: "Agent")
+     *  - name: string (optional)
+     *  - mbox: string (optional, mailto:...)
+     *  - mbox_sha1sum: string (optional)
+     *  - openid: string (optional)
+     *  - account: { homePage: string, name: string } (optional)
+     *  - member: ActorStatement[] (for Group)
      */
-    constructor(accountName: string, homepage: string);
+    constructor(options?: any);
+    objectType: any;
+    name: any;
+    mbox: any;
+    mbox_sha1sum: any;
+    openid: any;
+    account: any;
+    member: any;
     /**
-     * Account name
-     * @type {string}
-     */
-    accountName: string;
-    /**
-     * Account homePage
-     * @type {string}
-     */
-    homepage: string;
-    /**
-     * convert to XAPI
-     *
+     * Convert to xAPI Agent or Group object
      * @returns {Object}
      */
     toXAPI(): any;
     /**
-     * convert to CSV
-     *
+     * Convert to CSV (uses name or account name)
      * @returns {String}
      */
     toCSV(): string;

@@ -6,9 +6,10 @@ export class ScormTracker {
      * Constructor of Scorm Tracker
      * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the Scorm object
-     * @param {number} type the type of the Scorm object
+     * @param {string} type the type of the Scorm object
+     * @param {ContextStatement} context the context statement of the Scorm object
      */
-    constructor(tracker: xAPITrackerAsset, id: string, type?: number);
+    constructor(tracker: xAPITrackerAsset, id: string, type?: string, context?: ContextStatement);
     /**
      * the id of the Scorm object
      * @type {string}
@@ -16,14 +17,15 @@ export class ScormTracker {
     ScormId: string;
     /**
      * the type of the Scorm object
-     * @type {number}
+     * @type {string}
      */
-    Type: number;
+    Type: string;
     /**
      * the Tracker of the Scorm object
      * @type {xAPITrackerAsset}
      */
     Tracker: xAPITrackerAsset;
+    Context: ContextStatement;
     /**
      * is initialized
      * @type {boolean}
@@ -31,9 +33,9 @@ export class ScormTracker {
     IsInitialized: boolean;
     /**
      * the list of types possible for the Scorm object
-     * @type {Array}
+     * @type {Map<string, string>}
      */
-    ScormType: any[];
+    ScormType: Map<string, string>;
     /**
      * Initialized Time
      * @type {Date}
@@ -84,17 +86,6 @@ export class ScormTracker {
      */
     completed(success: boolean, completion: boolean, score: number): StatementBuilder;
 }
-/**
- * the list of types possible for the scorm object
- */
-export const SCORMTYPE: Readonly<{
-    SCO: 0;
-    COURSE: 1;
-    MODULE: 2;
-    ASSESSMENT: 3;
-    INTERACTION: 4;
-    OBJECTIVE: 5;
-    ATTEMPT: 6;
-}>;
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
+import ContextStatement from "./Statement/ContextStatement.js";
 import StatementBuilder from "./StatementBuilder.js";

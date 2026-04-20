@@ -1,4 +1,4 @@
-import XAPI from "@XAPI/XAPI";
+import XAPI from "@xapi/xapi";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
@@ -35,6 +35,8 @@ export default class xAPITrackerAsset {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string|null} parent_activity_id
+    * @property {string} parent_activity_type
      */
     settings={
         batch_mode:true,
@@ -48,7 +50,9 @@ export default class xAPITrackerAsset {
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
         max_retry_delay:msFn("2min"),
-        debug:false
+        debug:false,
+        parent_activity_id:null,
+        parent_activity_type:"SCO"
     };
 
     /**
@@ -114,6 +118,12 @@ export default class xAPITrackerAsset {
      * @type {ContextStatement}
      */
     context;
+    
+    /**
+     * Context statement without parent object
+     * @type {ContextStatement}
+     */
+    context_without_parent;
 
     // BATCH AND RETRY PARAMETERS
     /**
@@ -154,8 +164,12 @@ export default class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement(this.settings.actor_name, this.settings.actor_homePage);
-        this.context = new ContextStatement();
+        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage);
+        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration, null);
+        if(this.settings.parent_activity_id) {
+            this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
+        }
         if(this.connected) {
             this.xapi = new XAPI({
                 endpoint: this.settings.batch_endpoint,
@@ -290,8 +304,8 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId) {
-        const statement = new Statement(this.actor, verbId, objectId, objectType, this.context, this.settings.default_uri);
+    trace(verbId, objectType, objectId, context = this.context) {
+        const statement = new Statement(this.actor, verbId, objectId, objectType, context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
     }
 
