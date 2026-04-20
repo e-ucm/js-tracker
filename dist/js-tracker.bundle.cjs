@@ -838,7 +838,11 @@ class ResultStatement {
     toCSV() {
         var success = (this.Success !== null) ? ',success,' + this.Success.toString() : '';
         var completion = (this.Completion !== null) ? ',completion,' + this.Completion.toString() : '';
-        var response = (this.Response) ? ',response,' + this.Response.replaceAll(',', '\\,') : '';
+        var response = '';
+        if (this.Response) {
+            let respStr = (typeof this.Response === 'string') ? this.Response : String(this.Response);
+            response = ',response,' + respStr.replaceAll(',', '\,');
+        }
         var score = '';
 
         if (exists(this.Score)) {
