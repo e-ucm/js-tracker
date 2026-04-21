@@ -3,6 +3,12 @@
  */
 export default class ActorStatement {
     /**
+     * Create an ActorStatement from xAPI Agent or Group object
+     * @param {Object} xapiObj
+     * @returns {ActorStatement}
+     */
+    static fromXAPI(xapiObj: any): ActorStatement;
+    /**
      * Create an Agent or Group
      * @param {Object} options
      *  - objectType: "Agent" | "Group" (default: "Agent")

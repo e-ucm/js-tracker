@@ -3,6 +3,13 @@
  */
 export default class ContextStatement {
     /**
+     * Create a ContextStatement from xAPI context object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ContextStatement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): ContextStatement;
+    /**
      * Constructor of the ContextStatement class
      *
      * @param {string} base default URI for the context construction

@@ -3,6 +3,13 @@
  */
 export default class ObjectStatement {
     /**
+     * Create an ObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ObjectStatement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): ObjectStatement;
+    /**
      * The constructor of the ObjectStatement class
      *
      * @param {string} id the id of the object

@@ -1,7 +1,7 @@
 /**
  * The Result Class of a Statement
  */
-export default class ResultStatement {
+declare class ResultStatement {
     /**
      * Constructor of the ResultStatement class
      *
@@ -160,3 +160,13 @@ export default class ResultStatement {
      */
     toCSV(): string;
 }
+declare namespace ResultStatement {
+    /**
+     * Create a ResultStatement from xAPI result object
+     * @param {Object} xapiObj
+     * @param {string} baseURI
+     * @returns {ResultStatement}
+     */
+    function fromXAPI(xapiObj: any, baseURI: string): ResultStatement;
+}
+export default ResultStatement;

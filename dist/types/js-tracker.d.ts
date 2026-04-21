@@ -101,6 +101,20 @@ export class JSTracker {
      * Generates an xAPI tracker instance from URL parameters
      */
     generateXAPITrackerFromURLParams(): void;
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement: any): StatementBuilder;
 }
 /**
  * SCORM-specific tracker extending JSTracker
@@ -117,27 +131,11 @@ export class JSScormTracker extends JSTracker {
      * @returns {ScormTracker} New SCORM tracker instance
      */
     scorm(id: string, type?: string): ScormTracker;
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
 }
 /**
  * SCORM-specific tracker extending JSTracker
  */
 export class MyTracker extends JSTracker {
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId: string, objectType: string, objectId: string): StatementBuilder;
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -230,13 +228,6 @@ export class SeriousGameTracker extends JSTracker {
      */
     trace(verbId: string, objectType: string, objectId: string, context?: import("./HighLevel/Statement/ContextStatement.js").default): StatementBuilder;
     /**
-     * Creates an accessible tracker instance
-     * @param {string} id - Activity ID
-     * @param {number} type - Accessible type
-     * @returns {AccessibleTracker} New AccessibleTracker instance
-     */
-    accessible(id: string, type?: number): AccessibleTracker;
-    /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
      * @param {number} type - Game object type
@@ -261,9 +252,8 @@ export class SeriousGameTracker extends JSTracker {
 import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
 import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAsset from './xAPITrackerAsset.js';
-import { ScormTracker } from './HighLevel/SCORM.js';
 import StatementBuilder from './HighLevel/StatementBuilder.js';
-import { AccessibleTracker } from './HighLevel/Accessible.js';
+import { ScormTracker } from './HighLevel/SCORM.js';
 import { GameObjectTracker } from './HighLevel/GameObject.js';
 import { CompletableTracker } from './HighLevel/Completable.js';
 import { AlternativeTracker } from './HighLevel/Alternative.js';

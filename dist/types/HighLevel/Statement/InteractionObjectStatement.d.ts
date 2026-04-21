@@ -2,6 +2,13 @@
  * The Object Class of a Statement
  */
 export default class InteractionObjectStatement extends ObjectStatement {
+    /**
+     * Create an InteractionObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {InteractionObjectStatement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): InteractionObjectStatement;
     constructor(objectId: any, objectType: any, defaultURI: any);
     /**
      * Set the interactionType for interaction activities

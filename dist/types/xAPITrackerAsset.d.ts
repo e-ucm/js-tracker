@@ -132,6 +132,11 @@ export default class xAPITrackerAsset {
      */
     trace(verbId: string, objectType: string, objectId: string, context?: ContextStatement): StatementBuilder;
     /**
+     * Creates a StatementBuilder from an existing xAPI statement object
+     * @param {Object} statement - The statement to send
+     */
+    fromXAPI(statement: any): StatementBuilder;
+    /**
      * Adds a statement to the queue and starts processing if needed
      * @param {Statement} statement - The statement to enqueue
      * @returns {Promise<void>}

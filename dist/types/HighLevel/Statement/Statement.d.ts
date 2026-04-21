@@ -3,6 +3,19 @@
 */
 export default class Statement {
     /**
+     * Create a Statement from a plain object (copy-constructor)
+     * @param {Object} statementObj
+     * @returns {Statement}
+     */
+    static fromObject(statementObj: any): Statement;
+    /**
+     * Create a Statement from an xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI default URI for the statement construction (optional)
+     * @returns {Statement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): Statement;
+    /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
      * @param {string} verbId verb id of the statement

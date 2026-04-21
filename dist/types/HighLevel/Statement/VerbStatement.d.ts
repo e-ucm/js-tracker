@@ -3,21 +3,28 @@
  */
 export default class VerbStatement {
     /**
+     * Create a VerbStatement from xAPI verb object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {VerbStatement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): VerbStatement;
+    /**
      * Constructor of VerbStatement class
      *
-     * @param {string} verbId The verb id of the statement
+     * @param {string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
-    constructor(verbId: string, baseURI: string);
+    constructor(id: string, baseURI: string);
     /**
      * The Verb Id
      * @type {string}
      */
-    verbId: string;
+    id: string;
     /**
      * The Verb Ids array
      */
-    verbIds: {
+    ids: {
         initialized: string;
         progressed: string;
         completed: string;
@@ -39,7 +46,7 @@ export default class VerbStatement {
      * The Verb display
      * @type {Map<string, string>}
      */
-    verbDisplay: Map<string, string>;
+    display: Map<string, string>;
     /**
      * Add or set a verb display
      * @param {string} lang

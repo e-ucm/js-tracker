@@ -29,6 +29,24 @@ class ActorStatement {
     }
 
     /**
+     * Create an ActorStatement from xAPI Agent or Group object
+     * @param {Object} xapiObj
+     * @returns {ActorStatement}
+     */
+    static fromXAPI(xapiObj) {
+        if (!xapiObj) return null;
+        const options = {
+            name: xapiObj.name,
+            mbox: xapiObj.mbox,
+            mbox_sha1sum: xapiObj.mbox_sha1sum,
+            openid: xapiObj.openid,
+            account: xapiObj.account,
+            member: Array.isArray(xapiObj.member) ? xapiObj.member.map(m => ActorStatement.fromXAPI(m)) : undefined
+        };
+        return new ActorStatement(options);
+    }
+
+    /**
      * Convert to xAPI Agent or Group object
      * @returns {Object}
      */
@@ -263,6 +281,26 @@ class ObjectStatement {
     toCSV() {
         return this.definitionType + ',' + this.id.replaceAll(',', '\\,');
     }
+
+    /**
+     * Create an ObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ObjectStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
+        const obj = new ObjectStatement(id, type, baseURI);
+        for (const [lang, name] of Object.entries(xapiObj.definition?.name || {})) {
+            obj.setObjectDefinitionName(lang, name);
+        }
+        for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
+            obj.setObjectDefinitionDescription(lang, desc);
+        }
+        return obj;
+    }
 }
 
 /**
@@ -416,6 +454,23 @@ class ContextStatement {
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;
     }
+
+    /**
+     * Create a ContextStatement from xAPI context object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ContextStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const base = baseURI;
+        const platform = xapiObj.platform;
+        const registrationId = xapiObj.registration;
+        const ctx = new ContextStatement(base, platform, registrationId);
+        if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
+        if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
+        return ctx;
+    }
 }
 
 /**
@@ -425,18 +480,18 @@ class VerbStatement {
     /**
      * Constructor of VerbStatement class
      * 
-     * @param {string} verbId The verb id of the statement
+     * @param {string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
-    constructor(verbId, baseURI) {
-        if(isUri(verbId)) {
-            this.verbId = verbId;
+    constructor(id, baseURI) {
+        if(isUri(id)) {
+            this.id = id;
         } else {
-            if(verbId in this.verbIds) {
-                this.verbId = this.verbIds[verbId];
-                this.verbDisplay.set('en', verbId);
+            if(id in this.ids) {
+                this.id = this.ids[id];
+                this.display.set('en', id);
             } else {
-                this.verbId = setAsUri(verbId, baseURI);
+                this.id = setAsUri(id, baseURI);
             }
         }
     }
@@ -444,7 +499,7 @@ class VerbStatement {
     /**
      * The Verb Ids array
      */
-    verbIds = {
+    ids = {
         //Completable Verbs
         initialized: 'http://adlnet.gov/expapi/verbs/initialized',
         progressed: 'http://adlnet.gov/expapi/verbs/progressed',
@@ -472,13 +527,13 @@ class VerbStatement {
      * The Verb Id 
      * @type {string}
      */
-    verbId;
+    id;
 
     /**
      * The Verb display 
      * @type {Map<string, string>}
      */
-    verbDisplay = new Map();
+    display = new Map();
 
     /**
      * Add or set a verb display
@@ -486,7 +541,7 @@ class VerbStatement {
      * @param {string} display
      */
     addDisplay(lang, display) {
-        this.verbDisplay.set(lang, display);
+        this.display.set(lang, display);
     }
 
     /**
@@ -496,12 +551,12 @@ class VerbStatement {
      */
     toXAPI() {
         var verb = {};
-        if(this.verbId) {
-            verb.id = this.verbId;
+        if(this.id) {
+            verb.id = this.id;
         }
         
-        if(this.verbDisplay) {
-            verb.display = this.verbDisplay;
+        if(this.display) {
+            verb.display = this.display;
         }
         return verb;
     }
@@ -512,7 +567,26 @@ class VerbStatement {
      * @returns {String}
      */
     toCSV() {
-        return this.verbId;
+        return this.id;
+    }
+
+    /**
+     * Create a VerbStatement from xAPI verb object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {VerbStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const display = xapiObj.display;
+        const verb = new VerbStatement(id, baseURI);
+        if (display) {
+            for (const [lang, text] of Object.entries(display)) {
+                verb.addDisplay(lang, text);
+            }
+        }
+        return verb;
     }
 }
 
@@ -916,6 +990,24 @@ var exists = function(value) {
 };
 
 /**
+ * Create a ResultStatement from xAPI result object
+ * @param {Object} xapiObj
+ * @param {string} baseURI
+ * @returns {ResultStatement}
+ */
+ResultStatement.fromXAPI = function(xapiObj, baseURI) {
+    if (!xapiObj) return new ResultStatement(baseURI);
+    const result = new ResultStatement(baseURI);
+    if ('score' in xapiObj) result.Score = xapiObj.score;
+    if ('success' in xapiObj) result.Success = xapiObj.success;
+    if ('completion' in xapiObj) result.Completion = xapiObj.completion;
+    if ('response' in xapiObj) result.Response = xapiObj.response;
+    if ('duration' in xapiObj) result.Duration = xapiObj.duration;
+    if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
+    return result;
+};
+
+/**
  * The Object Class of a Statement
  */
 class InteractionObjectStatement extends ObjectStatement {
@@ -1026,6 +1118,27 @@ class InteractionObjectStatement extends ObjectStatement {
         });
         return csv;
     }
+
+    /**
+     * Create an InteractionObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {InteractionObjectStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
+        const obj = new InteractionObjectStatement(id, type, baseURI);
+        if (xapiObj.definition) {
+            if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
+            if (xapiObj.definition.correctResponsesPattern) obj.correctResponsesPattern = xapiObj.definition.correctResponsesPattern;
+            ["choices", "scale", "source", "target", "steps"].forEach(key => {
+                if (xapiObj.definition[key]) obj[key] = xapiObj.definition[key];
+            });
+        }
+        return obj;
+    }
 }
 
 /**
@@ -1046,15 +1159,26 @@ class Statement {
         this.actor = actor;
         this.verb = new VerbStatement(verbId, defaultURI);
         this.defaultURI = defaultURI;
-        if(!isUri(objectType) && objectType === 'interaction' || objectType === 'cmi.interaction') {
+        if((!isUri(objectType) && (objectType === 'interaction' || objectType === 'cmi.interaction'))) {
             this.object = new InteractionObjectStatement(objectId, objectType, this.defaultURI);
         } else {
             this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
-        }   
+        }
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
+    }
+
+    /**
+     * Create a Statement from a plain object (copy-constructor)
+     * @param {Object} statementObj
+     * @returns {Statement}
+     */
+    static fromObject(statementObj) {
+        const stmt = Object.create(Statement.prototype);
+        Object.assign(stmt, statementObj);
+        return stmt;
     }
     /**
      * Id of the statement
@@ -1135,6 +1259,42 @@ class Statement {
         return xapiTrace;
     }
 
+    /**
+     * Create a Statement from an xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI default URI for the statement construction (optional)
+     * @returns {Statement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        // Actor
+        const actor = ActorStatement.fromXAPI(xapiObj.actor);
+        // Verb
+        const verb = VerbStatement.fromXAPI(xapiObj.verb, baseURI);
+        // Object
+        let object;
+        if (xapiObj.object && xapiObj.object.definition && xapiObj.object.definition.interactionType) {
+            object = InteractionObjectStatement.fromXAPI(xapiObj.object, baseURI);
+        } else {
+            object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
+        }
+        // Context
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : null;
+        // Result
+        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : null;
+
+        // Create Statement instance (bypass constructor)
+        const stmt = Object.create(Statement.prototype);
+        stmt.id = xapiObj.id || v4();
+        stmt.actor = actor;
+        stmt.verb = verb;
+        stmt.object = object;
+        stmt.context = context;
+        stmt.result = result;
+        stmt.timestamp = xapiObj.timestamp ? new Date(xapiObj.timestamp) : new Date();
+        stmt.version = xapiObj.version || "1.0.3";
+        stmt.defaultURI = baseURI;
+        return stmt;
+    }
     /**
      * Convert to CSV format
      * 
@@ -1769,6 +1929,15 @@ class xAPITrackerAsset {
     trace(verbId, objectType, objectId, context = this.context) {
         const statement = new Statement(this.actor, verbId, objectId, objectType, context, this.settings.default_uri);
         return new StatementBuilder(this, statement);
+    }
+
+    /**
+     * Creates a StatementBuilder from an existing xAPI statement object
+     * @param {Object} statement - The statement to send
+     */
+    fromXAPI(statement) {
+        const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+        return new StatementBuilder(this, stmt);
     }
 
     /**
@@ -2430,59 +2599,6 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         await this.oauth2.logout();
         // logout
         super.logout();
-    }
-}
-
-/**
- * Accessible Tracker
- */
-class AccessibleTracker {
-    /**
-     * Constructor of accessible tracker
-     * @param {xAPITrackerAsset} tracker the tracker
-     * @param {string} id the id of the accessible object
-     * @param {number} type the type of the accessible object
-     */
-    constructor(tracker, id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        this.AccessibleId=id;
-        this.Type=type;
-        this.Tracker = tracker;
-    }
-    /**
-     * the id of the accessible object
-     * @type {string}
-     */
-    AccessibleId;
-    /**
-     * the type of the accessible object
-     * @type {number}
-     */
-    Type;
-    /**
-     * the tracker of the accessible object
-     * @type {xAPITrackerAsset}
-     */
-    Tracker;
-    /**
-     * the list of types possible for the accessible object
-     * @type {Array}
-     */
-    AccessibleType = ['screen', 'area', 'zone', 'cutscene', 'accessible']
-
-    /**
-     * Send Accessed statement
-     * @returns {StatementBuilder}
-     */
-    accessed() {
-        return this.Tracker.trace('accessed',this.AccessibleType[this.Type],this.AccessibleId);
-    }
-
-    /**
-     * Send Skipped statement
-     * @returns {StatementBuilder}
-     */
-    skipped() {
-        return this.Tracker.trace('skipped',this.AccessibleType[this.Type],this.AccessibleId);
     }
 }
 
@@ -3254,6 +3370,32 @@ class JSTracker {
         this.trackerSettings.batch_timeout=batchTimeout;
         this.trackerSettings.max_retry_delay=maxRetryDelay;
     }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
+    }
+
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before sending statements.");
+        }
+        return this.tracker.fromXAPI(statement);
+    }
 }
 
 /**
@@ -3306,20 +3448,6 @@ class JSScormTracker extends JSTracker {
         }
         return scorm;
     }
-
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId, objectType, objectId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before trace().");
-        }
-        return this.tracker.trace(verbId, objectType, objectId);
-    }
 }
 
 /**
@@ -3339,20 +3467,6 @@ class MyTracker extends JSTracker {
 
     logout() {
         super.logout();
-    }
-
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId, objectType, objectId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before trace().");
-        }
-        return this.tracker.trace(verbId, objectType, objectId);
     }
 }
 
@@ -3473,26 +3587,6 @@ class SeriousGameTracker extends JSTracker {
             throw new Error("Tracker not initialized. Call login() and start() before trace().");
         }
         return this.tracker.trace(verbId, objectType, objectId, context);
-    }
-    
-    /**
-     * Creates an accessible tracker instance
-     * @param {string} id - Activity ID
-     * @param {number} type - Accessible type
-     * @returns {AccessibleTracker} New AccessibleTracker instance
-     */
-    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        var accessible;
-        if(!this.instances["accessible"][type]) {
-            this.instances["accessible"][type]={};
-        }
-        if(!this.instances["accessible"][type][id]) {
-            accessible =new AccessibleTracker(this.tracker, id, type);
-            this.instances["accessible"][type][id]=accessible;
-        } else {
-            accessible=this.instances["accessible"][type][id];
-        }
-        return accessible;
     }
 
     /**
