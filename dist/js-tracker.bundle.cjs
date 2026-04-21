@@ -3469,6 +3469,26 @@ class JSScormTracker extends JSTracker {
         }
         return scorm;
     }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @return {StatementBuilder} A new StatementBuilder instance
+     *  */
+    trace(verbId, objectType, objectId) {
+        return super.trace(verbId, objectType, objectId);
+    }
+
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement) {
+        return super.fromXAPI(statement);
+    }
 }
 
 /**
@@ -3488,6 +3508,25 @@ class MyTracker extends JSTracker {
 
     logout() {
         super.logout();
+    }
+        /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @return {StatementBuilder} A new StatementBuilder instance
+     *  */
+    trace(verbId, objectType, objectId) {
+        return super.trace(verbId, objectType, objectId);
+    }
+
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement) {
+        return super.fromXAPI(statement);
     }
 }
 
@@ -3601,15 +3640,21 @@ class SeriousGameTracker extends JSTracker {
      * @param {string} verbId - The verb ID for the statement
      * @param {string} objectType - The type of the object
      * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId, objectType, objectId, context = this.tracker.context) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before trace().");
-        }
-        return this.tracker.trace(verbId, objectType, objectId, context);
+     * @return {StatementBuilder} A new StatementBuilder instance
+     *  */
+    trace(verbId, objectType, objectId) {
+        return super.trace(verbId, objectType, objectId);
     }
 
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement) {
+        return super.fromXAPI(statement);
+    }
+    
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID

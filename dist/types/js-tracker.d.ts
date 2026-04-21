@@ -220,14 +220,6 @@ export class SeriousGameTracker extends JSTracker {
      */
     terminated(): StatementBuilder;
     /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId: string, objectType: string, objectId: string, context?: import("./HighLevel/Statement/ContextStatement.js").default): StatementBuilder;
-    /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
      * @param {number} type - Game object type
