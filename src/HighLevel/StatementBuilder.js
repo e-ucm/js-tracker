@@ -3,6 +3,7 @@
 
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
 import InteractionObjectStatement from "./Statement/InteractionObjectStatement.js";
+import LRSStatement from "./Statement/LRSStatement.js";
 import Statement from "./Statement/Statement.js";
 
 // ------------------------------------------------------------------
@@ -305,15 +306,23 @@ export default class StatementBuilder {
     }
     return this;
   }
-
+  
   /**
-   * Add or set an Actor to the statement
-   * @param {String} type - Type of the Actor
-   * @param {Object|Array|String} actorData - Data for the Actor (e.g., name, mbox, etc.)
+   * Add or set an actor to the statement
+   * @param {string} type - The type of the actor
+   * @param {object} actor - The actor object
    * @return {StatementBuilder} Returns the current instance for chaining
    */
-  withActor(type, actorData) {
-    this.statement.actor.setActor(type, actorData);
+  withActor(type, actor) {
+    if(this.statement instanceof LRSStatement) {
+      this.statement.actor.setActor(type, actor);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set actor on a non-LRS statement");
+      } else {
+        console.warn("Trying to set actor on a non-LRS statement");
+      }
+    }
     return this;
   }
 

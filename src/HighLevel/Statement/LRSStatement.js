@@ -1,0 +1,66 @@
+import VerbStatement from "./VerbStatement.js";
+import ObjectStatement from "./ObjectStatement.js";
+import ResultStatement from "./ResultStatement.js";
+import ActorStatement from "./ActorStatement.js";
+import ContextStatement from "./ContextStatement.js";
+import InteractionObjectStatement from "./InteractionObjectStatement.js";
+import Statement from "./Statement.js";
+
+
+/**
+* Statement class
+*/
+export default class LRSStatement extends Statement {
+    /**
+     * Constructor of the Statement class
+     * @param {ActorStatement} actor actor of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
+     * @param {string} objectType object Type of the statement
+     * @param {ContextStatement} context context of the statement
+     * @param {string} defaultURI default URI for the statement construction
+     */
+    constructor(actor, verbId, objectId, objectType, context, defaultURI) {
+        super(actor, verbId, objectId, objectType, context, defaultURI);
+        this.authority=new ActorStatement({ name: 'unknown' });
+        this.stored = new Date();
+    }
+
+    /**
+     * @param {Date} stored
+     */
+    stored;
+
+    /**
+     * @param {ActorStatement} authority
+     **/
+    authority;
+    
+        
+    /**
+     * Convert to xAPI format
+     * @returns {Object} xAPI statement object
+     */
+    toXAPI() {
+        return super.toXAPI();
+    }
+
+    /**
+     * Create a Statement from an xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI default URI for the statement construction (optional)
+     * @returns {Statement} A new Statement instance created from the xAPI object
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        return super.fromXAPI(xapiObj, baseURI);
+    }
+
+    /**
+     * Convert to CSV format
+     * 
+     * @returns {String}
+     */
+    toCSV() {
+        return super.toCSV();
+    }
+}

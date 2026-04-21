@@ -135,7 +135,13 @@ export class JSScormTracker extends JSTracker {
 /**
  * SCORM-specific tracker extending JSTracker
  */
-export class MyTracker extends JSTracker {
+export class LRSTracker extends JSTracker {
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {LRSStatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement: any): LRSStatementBuilder;
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality
@@ -253,6 +259,7 @@ import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAsset from './xAPITrackerAsset.js';
 import StatementBuilder from './HighLevel/StatementBuilder.js';
 import { ScormTracker } from './HighLevel/SCORM.js';
+import LRSStatementBuilder from './HighLevel/LRSStatementBuilder.js';
 import { GameObjectTracker } from './HighLevel/GameObject.js';
 import { CompletableTracker } from './HighLevel/Completable.js';
 import { AlternativeTracker } from './HighLevel/Alternative.js';

@@ -130,12 +130,22 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId: string, objectType: string, objectId: string, context?: ContextStatement): StatementBuilder;
+    trace(verbId: string, objectType: string, objectId: string, context?: ContextStatement, lrs?: boolean): StatementBuilder;
     /**
      * Creates a StatementBuilder from an existing xAPI statement object
+     * @overload
      * @param {Object} statement - The statement to send
+     * @param {true} lrs - Whether to create an LRSStatementBuilder
+     * @return {LRSStatementBuilder} A new LRSStatementBuilder instance
      */
-    fromXAPI(statement: any): StatementBuilder;
+    fromXAPI(statement: any, lrs: true): LRSStatementBuilder;
+    /**
+     * @overload
+     * @param {Object} statement - The statement to send
+     * @param {false} [lrs] - Whether to create a regular StatementBuilder
+     * @return {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement: any, lrs?: false): StatementBuilder;
     /**
      * Adds a statement to the queue and starts processing if needed
      * @param {Statement} statement - The statement to enqueue
@@ -158,3 +168,4 @@ import Statement from "./HighLevel/Statement/Statement.js";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import StatementBuilder from "./HighLevel/StatementBuilder.js";
+import LRSStatementBuilder from "./HighLevel/LRSStatementBuilder.js";

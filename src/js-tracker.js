@@ -8,6 +8,7 @@ import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
 import { ScormTracker } from './HighLevel/SCORM.js';
 import StatementBuilder from './HighLevel/StatementBuilder.js';
 import * as ms from "ms";
+import LRSStatementBuilder from './HighLevel/LRSStatementBuilder.js';
 const msFn = ms.default || ms;
 
 /**
@@ -393,7 +394,7 @@ export class JSScormTracker extends JSTracker {
 /**
  * SCORM-specific tracker extending JSTracker
  */
-export class MyTracker extends JSTracker {
+export class LRSTracker extends JSTracker {
     /**
      * Creates a new MyTracker instance
      */
@@ -416,16 +417,19 @@ export class MyTracker extends JSTracker {
      * @return {StatementBuilder} A new StatementBuilder instance
      *  */
     trace(verbId, objectType, objectId) {
-        return super.trace(verbId, objectType, objectId);
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId, this.tracker.context, true);
     }
 
     /**
      * Creates a new statement builder from an xAPI statement
      * @param {Object} statement - The xAPI statement to create the builder from
-     * @returns {StatementBuilder} A new StatementBuilder instance
+     * @returns {LRSStatementBuilder} A new StatementBuilder instance
      */
     fromXAPI(statement) {
-        return super.fromXAPI(statement);
+        return this.tracker.fromXAPI(statement, true);
     }
 }
 

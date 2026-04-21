@@ -5,6 +5,8 @@ import Statement from "./HighLevel/Statement/Statement.js";
 import StatementBuilder from "./HighLevel/StatementBuilder.js";
 import axios from 'axios';
 import * as ms from "ms";
+import LRSStatementBuilder from "./HighLevel/LRSStatementBuilder.js";
+import LRSStatement from "./HighLevel/Statement/LRSStatement.js";
 const msFn = ms.default || ms;
 
 /**
@@ -304,18 +306,41 @@ export default class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId, context = this.context) {
+    trace(verbId, objectType, objectId, context = this.context, lrs = false) {
         const statement = new Statement(this.actor, verbId, objectId, objectType, context, this.settings.default_uri);
-        return new StatementBuilder(this, statement);
+        if(lrs) {
+            return new LRSStatementBuilder(this, statement);
+        } else {
+            return new StatementBuilder(this, statement);
+        }
     }
 
     /**
      * Creates a StatementBuilder from an existing xAPI statement object
+     * @overload
      * @param {Object} statement - The statement to send
+     * @param {true} lrs - Whether to create an LRSStatementBuilder
+     * @return {LRSStatementBuilder} A new LRSStatementBuilder instance
      */
-    fromXAPI(statement) {
-        const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
-        return new StatementBuilder(this, stmt);
+    /**
+     * @overload
+     * @param {Object} statement - The statement to send
+     * @param {false} [lrs] - Whether to create a regular StatementBuilder
+     * @return {StatementBuilder} A new StatementBuilder instance
+     */
+    /**
+     * @param {Object} statement
+     * @param {boolean} [lrs]
+     * @return {StatementBuilder|LRSStatementBuilder}
+     */
+    fromXAPI(statement, lrs = false) {
+        if(lrs) {   
+            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri);
+            return new LRSStatementBuilder(this, stmt);
+        } else {
+            const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+            return new StatementBuilder(this, stmt);
+        }
     }
 
     /**

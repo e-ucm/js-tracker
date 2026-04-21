@@ -1300,6 +1300,7 @@ class Statement {
      * @type {ResultStatement}
      */
     result;
+
     
     /**
      * Convert to xAPI format
@@ -1385,6 +1386,64 @@ class Statement {
             result=this.result.toCSV();
         }
         return `${csv.join(",")}${result}`;
+    }
+}
+
+/**
+* Statement class
+*/
+class LRSStatement extends Statement {
+    /**
+     * Constructor of the Statement class
+     * @param {ActorStatement} actor actor of the statement
+     * @param {string} verbId verb id of the statement
+     * @param {string} objectId object id of the statement
+     * @param {string} objectType object Type of the statement
+     * @param {ContextStatement} context context of the statement
+     * @param {string} defaultURI default URI for the statement construction
+     */
+    constructor(actor, verbId, objectId, objectType, context, defaultURI) {
+        super(actor, verbId, objectId, objectType, context, defaultURI);
+        this.authority=new ActorStatement({ name: 'unknown' });
+        this.stored = new Date();
+    }
+
+    /**
+     * @param {Date} stored
+     */
+    stored;
+
+    /**
+     * @param {ActorStatement} authority
+     **/
+    authority;
+    
+        
+    /**
+     * Convert to xAPI format
+     * @returns {Object} xAPI statement object
+     */
+    toXAPI() {
+        return super.toXAPI();
+    }
+
+    /**
+     * Create a Statement from an xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI default URI for the statement construction (optional)
+     * @returns {Statement} A new Statement instance created from the xAPI object
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        return super.fromXAPI(xapiObj, baseURI);
+    }
+
+    /**
+     * Convert to CSV format
+     * 
+     * @returns {String}
+     */
+    toCSV() {
+        return super.toCSV();
     }
 }
 
@@ -1692,15 +1751,23 @@ class StatementBuilder {
     }
     return this;
   }
-
+  
   /**
-   * Add or set an Actor to the statement
-   * @param {String} type - Type of the Actor
-   * @param {Object|Array|String} actorData - Data for the Actor (e.g., name, mbox, etc.)
+   * Add or set an actor to the statement
+   * @param {string} type - The type of the actor
+   * @param {object} actor - The actor object
    * @return {StatementBuilder} Returns the current instance for chaining
    */
-  withActor(type, actorData) {
-    this.statement.actor.setActor(type, actorData);
+  withActor(type, actor) {
+    if(this.statement instanceof LRSStatement) {
+      this.statement.actor.setActor(type, actor);
+    } else {
+      if (this.client.settings.debug) {
+        throw new Error("Trying to set actor on a non-LRS statement");
+      } else {
+        console.warn("Trying to set actor on a non-LRS statement");
+      }
+    }
     return this;
   }
 
@@ -1716,6 +1783,74 @@ class StatementBuilder {
     }
     return this._sendPromise;
   }
+}
+
+class LRSStatementBuilder extends StatementBuilder {
+    /**
+     * Constructor of LRSStatementBuilder
+     * @param {xAPITrackerAsset} xapiClient the Tracker
+     * @param {object} initial the initial statement
+     */
+    constructor(xapiClient, initial) {
+        super(xapiClient, initial);
+    }
+
+    /**
+     * Statement
+     * @type {LRSStatement}
+     */
+    statement;
+
+    withContextActivity(type, id, activityType) {
+        super.withContextActivity(type, id, activityType);
+        return this;
+    }
+
+    withActorAccount(accountName, accountHomePage) {
+        super.withActor('account', { name: accountName, homePage: accountHomePage });
+        return this;
+    }
+
+    withActorMbox(mbox) {
+        super.withActor('mbox', mbox);
+        return this;
+    }
+
+    withActorMboxSha1(mboxSha1) {
+        super.withActor('mbox_sha1sum', mboxSha1);
+        return this;
+    }
+    
+    withActorOpenID(openid) {
+        super.withActor('openid', openid);
+        return this;
+    }
+
+    withAutorityAccount(accountName, accountHomePage) {
+        this.statement.authority.setActor('account', { name: accountName, homePage: accountHomePage });
+        return this;
+    }
+
+    withAutorityMbox(mbox) {
+        this.statement.authority.setActor('mbox', mbox);
+        return this;
+    }
+
+    withAutorityMboxSha1(mboxSha1) {
+        this.statement.authority.setActor('mbox_sha1sum', mboxSha1);
+        return this;
+    }
+    
+    withAutorityOpenID(openid) {
+        this.statement.authority.setActor('openid', openid);
+        return this;
+    }
+
+    async send() {
+        return await super.send();
+    }
+
+
 }
 
 const msFn$1 = ms.default || ms;
@@ -2017,18 +2152,41 @@ class xAPITrackerAsset {
      * @param {string} objectId - The ID of the object
      * @returns {StatementBuilder} A new StatementBuilder instance
      */
-    trace(verbId, objectType, objectId, context = this.context) {
+    trace(verbId, objectType, objectId, context = this.context, lrs = false) {
         const statement = new Statement(this.actor, verbId, objectId, objectType, context, this.settings.default_uri);
-        return new StatementBuilder(this, statement);
+        if(lrs) {
+            return new LRSStatementBuilder(this, statement);
+        } else {
+            return new StatementBuilder(this, statement);
+        }
     }
 
     /**
      * Creates a StatementBuilder from an existing xAPI statement object
+     * @overload
      * @param {Object} statement - The statement to send
+     * @param {true} lrs - Whether to create an LRSStatementBuilder
+     * @return {LRSStatementBuilder} A new LRSStatementBuilder instance
      */
-    fromXAPI(statement) {
-        const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
-        return new StatementBuilder(this, stmt);
+    /**
+     * @overload
+     * @param {Object} statement - The statement to send
+     * @param {false} [lrs] - Whether to create a regular StatementBuilder
+     * @return {StatementBuilder} A new StatementBuilder instance
+     */
+    /**
+     * @param {Object} statement
+     * @param {boolean} [lrs]
+     * @return {StatementBuilder|LRSStatementBuilder}
+     */
+    fromXAPI(statement, lrs = false) {
+        if(lrs) {   
+            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri);
+            return new LRSStatementBuilder(this, stmt);
+        } else {
+            const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+            return new StatementBuilder(this, stmt);
+        }
     }
 
     /**
@@ -3617,7 +3775,7 @@ class JSScormTracker extends JSTracker {
 /**
  * SCORM-specific tracker extending JSTracker
  */
-class MyTracker extends JSTracker {
+class LRSTracker extends JSTracker {
     /**
      * Creates a new MyTracker instance
      */
@@ -3640,16 +3798,19 @@ class MyTracker extends JSTracker {
      * @return {StatementBuilder} A new StatementBuilder instance
      *  */
     trace(verbId, objectType, objectId) {
-        return super.trace(verbId, objectType, objectId);
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId, this.tracker.context, true);
     }
 
     /**
      * Creates a new statement builder from an xAPI statement
      * @param {Object} statement - The xAPI statement to create the builder from
-     * @returns {StatementBuilder} A new StatementBuilder instance
+     * @returns {LRSStatementBuilder} A new StatementBuilder instance
      */
     fromXAPI(statement) {
-        return super.fromXAPI(statement);
+        return this.tracker.fromXAPI(statement, true);
     }
 }
 
@@ -3859,4 +4020,4 @@ class SeriousGameTracker extends JSTracker {
     }
 }
 
-export { JSScormTracker, JSTracker, MyTracker, SeriousGameTracker };
+export { JSScormTracker, JSTracker, LRSTracker, SeriousGameTracker };

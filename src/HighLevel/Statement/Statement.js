@@ -92,6 +92,7 @@ export default class Statement {
      * @type {ResultStatement}
      */
     result;
+
     
     /**
      * Convert to xAPI format
