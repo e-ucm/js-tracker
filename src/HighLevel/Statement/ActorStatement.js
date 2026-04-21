@@ -24,6 +24,24 @@ export default class ActorStatement {
     }
 
     /**
+     * Create an ActorStatement from xAPI Agent or Group object
+     * @param {Object} xapiObj
+     * @returns {ActorStatement}
+     */
+    static fromXAPI(xapiObj) {
+        if (!xapiObj) return null;
+        const options = {
+            name: xapiObj.name,
+            mbox: xapiObj.mbox,
+            mbox_sha1sum: xapiObj.mbox_sha1sum,
+            openid: xapiObj.openid,
+            account: xapiObj.account,
+            member: Array.isArray(xapiObj.member) ? xapiObj.member.map(m => ActorStatement.fromXAPI(m)) : undefined
+        };
+        return new ActorStatement(options);
+    }
+
+    /**
      * Convert to xAPI Agent or Group object
      * @returns {Object}
      */

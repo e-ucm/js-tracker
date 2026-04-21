@@ -152,4 +152,21 @@ export default class ContextStatement {
     toCSV() {
         return this.registration.replaceAll(',', '\\,') ;
     }
+
+    /**
+     * Create a ContextStatement from xAPI context object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ContextStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const base = baseURI;
+        const platform = xapiObj.platform;
+        const registrationId = xapiObj.registration;
+        const ctx = new ContextStatement(base, platform, registrationId);
+        if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
+        if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
+        return ctx;
+    }
 }

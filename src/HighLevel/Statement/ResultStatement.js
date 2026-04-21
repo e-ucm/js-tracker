@@ -398,3 +398,21 @@ var ismap = function(obj) {
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
 };
+
+/**
+ * Create a ResultStatement from xAPI result object
+ * @param {Object} xapiObj
+ * @param {string} baseURI
+ * @returns {ResultStatement}
+ */
+ResultStatement.fromXAPI = function(xapiObj, baseURI) {
+    if (!xapiObj) return new ResultStatement(baseURI);
+    const result = new ResultStatement(baseURI);
+    if ('score' in xapiObj) result.Score = xapiObj.score;
+    if ('success' in xapiObj) result.Success = xapiObj.success;
+    if ('completion' in xapiObj) result.Completion = xapiObj.completion;
+    if ('response' in xapiObj) result.Response = xapiObj.response;
+    if ('duration' in xapiObj) result.Duration = xapiObj.duration;
+    if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
+    return result;
+};

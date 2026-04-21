@@ -112,4 +112,25 @@ export default class InteractionObjectStatement extends ObjectStatement {
         });
         return csv;
     }
+
+    /**
+     * Create an InteractionObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {InteractionObjectStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
+        const obj = new InteractionObjectStatement(id, type, baseURI);
+        if (xapiObj.definition) {
+            if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
+            if (xapiObj.definition.correctResponsesPattern) obj.correctResponsesPattern = xapiObj.definition.correctResponsesPattern;
+            ["choices", "scale", "source", "target", "steps"].forEach(key => {
+                if (xapiObj.definition[key]) obj[key] = xapiObj.definition[key];
+            });
+        }
+        return obj;
+    }
 }

@@ -171,4 +171,24 @@ export default class ObjectStatement {
     toCSV() {
         return this.definitionType + ',' + this.id.replaceAll(',', '\\,');
     }
+
+    /**
+     * Create an ObjectStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {ObjectStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
+        const obj = new ObjectStatement(id, type, baseURI);
+        for (const [lang, name] of Object.entries(xapiObj.definition?.name || {})) {
+            obj.setObjectDefinitionName(lang, name);
+        }
+        for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
+            obj.setObjectDefinitionDescription(lang, desc);
+        }
+        return obj;
+    }
 }

@@ -290,6 +290,32 @@ export class JSTracker {
         this.trackerSettings.batch_timeout=batchTimeout;
         this.trackerSettings.max_retry_delay=maxRetryDelay;
     }
+
+    /**
+     * Creates a new statement builder
+     * @param {string} verbId - The verb ID for the statement
+     * @param {string} objectType - The type of the object
+     * @param {string} objectId - The ID of the object
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    trace(verbId, objectType, objectId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before trace().");
+        }
+        return this.tracker.trace(verbId, objectType, objectId);
+    }
+
+    /**
+     * Creates a new statement builder from an xAPI statement
+     * @param {Object} statement - The xAPI statement to create the builder from
+     * @returns {StatementBuilder} A new StatementBuilder instance
+     */
+    fromXAPI(statement) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before sending statements.");
+        }
+        return this.tracker.fromXAPI(statement);
+    }
 }
 
 /**
@@ -342,20 +368,6 @@ export class JSScormTracker extends JSTracker {
         }
         return scorm;
     }
-
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId, objectType, objectId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before trace().");
-        }
-        return this.tracker.trace(verbId, objectType, objectId);
-    }
 }
 
 /**
@@ -375,20 +387,6 @@ export class MyTracker extends JSTracker {
 
     logout() {
         super.logout();
-    }
-
-    /**
-     * Creates a new statement builder
-     * @param {string} verbId - The verb ID for the statement
-     * @param {string} objectType - The type of the object
-     * @param {string} objectId - The ID of the object
-     * @returns {StatementBuilder} A new StatementBuilder instance
-     */
-    trace(verbId, objectType, objectId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before trace().");
-        }
-        return this.tracker.trace(verbId, objectType, objectId);
     }
 }
 
@@ -509,26 +507,6 @@ export class SeriousGameTracker extends JSTracker {
             throw new Error("Tracker not initialized. Call login() and start() before trace().");
         }
         return this.tracker.trace(verbId, objectType, objectId, context);
-    }
-    
-    /**
-     * Creates an accessible tracker instance
-     * @param {string} id - Activity ID
-     * @param {number} type - Accessible type
-     * @returns {AccessibleTracker} New AccessibleTracker instance
-     */
-    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
-        var accessible;
-        if(!this.instances["accessible"][type]) {
-            this.instances["accessible"][type]={};
-        }
-        if(!this.instances["accessible"][type][id]) {
-            accessible =new AccessibleTracker(this.tracker, id, type);
-            this.instances["accessible"][type][id]=accessible;
-        } else {
-            accessible=this.instances["accessible"][type][id];
-        }
-        return accessible;
     }
 
     /**

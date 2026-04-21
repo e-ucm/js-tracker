@@ -7,18 +7,18 @@ export default class VerbStatement {
     /**
      * Constructor of VerbStatement class
      * 
-     * @param {string} verbId The verb id of the statement
+     * @param {string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
-    constructor(verbId, baseURI) {
-        if(isUri(verbId)) {
-            this.verbId = verbId;
+    constructor(id, baseURI) {
+        if(isUri(id)) {
+            this.id = id;
         } else {
-            if(verbId in this.verbIds) {
-                this.verbId = this.verbIds[verbId];
-                this.verbDisplay.set('en', verbId);
+            if(id in this.ids) {
+                this.id = this.ids[id];
+                this.display.set('en', id);
             } else {
-                this.verbId = setAsUri(verbId, baseURI);
+                this.id = setAsUri(id, baseURI);
             }
         }
     }
@@ -26,7 +26,7 @@ export default class VerbStatement {
     /**
      * The Verb Ids array
      */
-    verbIds = {
+    ids = {
         //Completable Verbs
         initialized: 'http://adlnet.gov/expapi/verbs/initialized',
         progressed: 'http://adlnet.gov/expapi/verbs/progressed',
@@ -54,13 +54,13 @@ export default class VerbStatement {
      * The Verb Id 
      * @type {string}
      */
-    verbId;
+    id;
 
     /**
      * The Verb display 
      * @type {Map<string, string>}
      */
-    verbDisplay = new Map();
+    display = new Map();
 
     /**
      * Add or set a verb display
@@ -68,7 +68,7 @@ export default class VerbStatement {
      * @param {string} display
      */
     addDisplay(lang, display) {
-        this.verbDisplay.set(lang, display);
+        this.display.set(lang, display);
     }
 
     /**
@@ -78,12 +78,12 @@ export default class VerbStatement {
      */
     toXAPI() {
         var verb = {};
-        if(this.verbId) {
-            verb.id = this.verbId;
+        if(this.id) {
+            verb.id = this.id;
         }
         
-        if(this.verbDisplay) {
-            verb.display = this.verbDisplay;
+        if(this.display) {
+            verb.display = this.display;
         }
         return verb;
     }
@@ -94,6 +94,25 @@ export default class VerbStatement {
      * @returns {String}
      */
     toCSV() {
-        return this.verbId;
+        return this.id;
+    }
+
+    /**
+     * Create a VerbStatement from xAPI verb object
+     * @param {Object} xapiObj
+     * @param {string} baseURI - Optional base URI to resolve relative IDs
+     * @returns {VerbStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return null;
+        const id = xapiObj.id;
+        const display = xapiObj.display;
+        const verb = new VerbStatement(id, baseURI);
+        if (display) {
+            for (const [lang, text] of Object.entries(display)) {
+                verb.addDisplay(lang, text);
+            }
+        }
+        return verb;
     }
 }

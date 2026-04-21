@@ -26,15 +26,26 @@ export default class Statement {
         this.actor = actor;
         this.verb = new VerbStatement(verbId, defaultURI);
         this.defaultURI = defaultURI;
-        if(!isUri(objectType) && objectType === 'interaction' || objectType === 'cmi.interaction') {
+        if((!isUri(objectType) && (objectType === 'interaction' || objectType === 'cmi.interaction'))) {
             this.object = new InteractionObjectStatement(objectId, objectType, this.defaultURI);
         } else {
             this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
-        }   
+        }
         this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
+    }
+
+    /**
+     * Create a Statement from a plain object (copy-constructor)
+     * @param {Object} statementObj
+     * @returns {Statement}
+     */
+    static fromObject(statementObj) {
+        const stmt = Object.create(Statement.prototype);
+        Object.assign(stmt, statementObj);
+        return stmt;
     }
     /**
      * Id of the statement
@@ -115,6 +126,42 @@ export default class Statement {
         return xapiTrace;
     }
 
+    /**
+     * Create a Statement from an xAPI object
+     * @param {Object} xapiObj
+     * @param {string} baseURI default URI for the statement construction (optional)
+     * @returns {Statement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        // Actor
+        const actor = ActorStatement.fromXAPI(xapiObj.actor);
+        // Verb
+        const verb = VerbStatement.fromXAPI(xapiObj.verb, baseURI);
+        // Object
+        let object;
+        if (xapiObj.object && xapiObj.object.definition && xapiObj.object.definition.interactionType) {
+            object = InteractionObjectStatement.fromXAPI(xapiObj.object, baseURI);
+        } else {
+            object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
+        }
+        // Context
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : null;
+        // Result
+        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : null;
+
+        // Create Statement instance (bypass constructor)
+        const stmt = Object.create(Statement.prototype);
+        stmt.id = xapiObj.id || uuidv4();
+        stmt.actor = actor;
+        stmt.verb = verb;
+        stmt.object = object;
+        stmt.context = context;
+        stmt.result = result;
+        stmt.timestamp = xapiObj.timestamp ? new Date(xapiObj.timestamp) : new Date();
+        stmt.version = xapiObj.version || "1.0.3";
+        stmt.defaultURI = baseURI;
+        return stmt;
+    }
     /**
      * Convert to CSV format
      * 

@@ -310,6 +310,15 @@ export default class xAPITrackerAsset {
     }
 
     /**
+     * Creates a StatementBuilder from an existing xAPI statement object
+     * @param {Object} statement - The statement to send
+     */
+    fromXAPI(statement) {
+        const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+        return new StatementBuilder(this, stmt);
+    }
+
+    /**
      * Sends statements to the backup endpoint
      * @returns {Promise<void>}
      */
