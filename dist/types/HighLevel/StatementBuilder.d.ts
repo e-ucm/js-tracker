@@ -115,6 +115,7 @@ export default class StatementBuilder {
        * @return {StatementBuilder} Returns the current instance for chaining
        */
     withContextActivity(type: "parent" | "grouping" | "category" | "other", activityId: string, activityType: string): StatementBuilder;
+    withContextCategory(categoryId: any): this;
     /**
      * Add or set a verb display
      * @param {string} lang

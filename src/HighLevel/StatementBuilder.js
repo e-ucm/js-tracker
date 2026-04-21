@@ -184,6 +184,11 @@ export default class StatementBuilder {
     return this;
   }
 
+  withContextCategory(categoryId) {
+    this.statement.context.addCategory(categoryId);
+    return this;
+  }
+
   /**
    * Add or set a verb display
    * @param {string} lang

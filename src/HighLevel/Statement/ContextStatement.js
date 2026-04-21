@@ -23,15 +23,26 @@ export default class ContextStatement {
         }
         // Initialize contextActivities with category by default
         this.contextActivities = {};
+        this.addCategory(categoryId);
+    }
+
+    /**
+     * Add a category to the context
+     * @param {string} categoryId category Id to add
+     */
+    addCategory(categoryId) {
         if(categoryId && categoryId in this.categoryIDs) {
-            this.contextActivities.category = [
+            if(!this.contextActivities.category) {
+                 this.contextActivities.category = [];
+            }
+            this.contextActivities.category.push(
                 {
                     id: isUri(categoryId) ? categoryId : categoryId in this.categoryIDs ? this.categoryIDs[categoryId] : setAsUri(categoryId, this.defaultURI),
                     definition: {
                         type : "http://adlnet.gov/expapi/activities/profile"
                     }
                 }
-            ]
+            );
         }
     }
 

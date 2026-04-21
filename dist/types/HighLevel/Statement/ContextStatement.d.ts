@@ -41,6 +41,11 @@ export default class ContextStatement {
      */
     contextActivities: any;
     /**
+     * Add a category to the context
+     * @param {string} categoryId category Id to add
+     */
+    addCategory(categoryId: string): void;
+    /**
      * Extensions of the Context
      *
      * @type {Object}
