@@ -21,12 +21,18 @@ export default class ActorStatement {
      */
     constructor(options?: any);
     objectType: any;
-    name: any;
-    mbox: any;
-    mbox_sha1sum: any;
-    openid: any;
+    /**
+     * Set actor properties with validation
+     * @param {String} type - one of name, mbox, mbox_sha1sum, openid, account, member
+     * @param {Object|Array|String} actorData - data for the specified type
+     */
+    setActor(type: string, actorData: any | any[] | string): void;
+    name: string;
+    mbox: string;
+    mbox_sha1sum: string;
+    openid: string;
     account: any;
-    member: any;
+    member: ActorStatement[];
     /**
      * Convert to xAPI Agent or Group object
      * @returns {Object}

@@ -173,6 +173,13 @@ export default class StatementBuilder {
      */
     withCorrectResponsesPattern(pattern: string | string[]): StatementBuilder;
     /**
+     * Add or set an Actor to the statement
+     * @param {String} type - Type of the Actor
+     * @param {Object|Array|String} actorData - Data for the Actor (e.g., name, mbox, etc.)
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withActor(type: string, actorData: any | any[] | string): StatementBuilder;
+    /**
      * Sends a statement to the queue and returns a promise that resolves when the statement is processed.
      *
      * @returns {Promise} The promise sent

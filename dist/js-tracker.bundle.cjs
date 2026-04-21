@@ -41,12 +41,76 @@ class ActorStatement {
      */
     constructor(options = {}) {
         this.objectType = options.objectType || "Agent";
-        this.name = options.name;
-        this.mbox = options.mbox;
-        this.mbox_sha1sum = options.mbox_sha1sum;
-        this.openid = options.openid;
-        this.account = options.account;
-        this.member = options.member;
+        for (const key of ["name", "mbox", "mbox_sha1sum", "openid", "account", "member"]) {
+            this.setActor(key, options[key]);
+        }
+    }
+
+    /**
+     * Set actor properties with validation
+     * @param {String} type - one of name, mbox, mbox_sha1sum, openid, account, member
+     * @param {Object|Array|String} actorData - data for the specified type
+     */
+    setActor(type, actorData) {
+        switch (type) {
+            case "name":
+                if (this.objectType === "Agent") {
+                    throw new Error("Agent cannot have a name, only mbox, mbox_sha1sum, openid, or account");
+                }
+                if (typeof actorData !== "string") {
+                    throw new Error("Group name must be a string");
+                }
+                this.name = actorData;
+                break;
+            case "mbox":
+                if (this.objectType === "Group") {
+                    throw new Error("Group cannot have mbox, mbox_sha1sum, openid, or account, only a name");
+                }
+                if (typeof actorData !== "string") {
+                    throw new Error("Agent mbox must be a string");
+                }
+
+                this.mbox = actorData;
+                break;
+            case "mbox_sha1sum":
+                if (this.objectType === "Group") {
+                    throw new Error("Group cannot have mbox_sha1sum");
+                }
+                if (typeof actorData !== "string") {
+                    throw new Error("Agent mbox_sha1sum must be a string");
+                }
+                this.mbox_sha1sum = actorData;
+                break;
+            case "openid":
+                if (this.objectType === "Group") {
+                    throw new Error("Group cannot have openid");
+                }
+                if (typeof actorData !== "string") {
+                    throw new Error("Agent openid must be a string");
+                }
+                this.openid = actorData;
+                break;
+            case "account":
+                if  (this.objectType === "Group") {
+                    throw new Error("Group cannot have account");
+                }
+                if (typeof actorData !== "object" || typeof actorData.homePage !== "string" || typeof actorData.name !== "string") {
+                    throw new Error("Agent account must be an object with homePage and name strings");
+                }
+                this.account = actorData;
+                break;
+            case "member":
+                if (this.objectType !== "Group") {
+                    throw new Error("Only Group can have members");
+                }
+                if (!Array.isArray(actorData)) {
+                    throw new Error("Group members must be an array");
+                }
+                this.member = actorData.map(m => m instanceof ActorStatement ? m : new ActorStatement(m));
+                break;
+            default:
+                throw new Error(`Unsupported actor type: ${type}`);
+        }
     }
 
     /**
@@ -1647,6 +1711,17 @@ class StatementBuilder {
         return this;
       }
     }
+    return this;
+  }
+
+  /**
+   * Add or set an Actor to the statement
+   * @param {String} type - Type of the Actor
+   * @param {Object|Array|String} actorData - Data for the Actor (e.g., name, mbox, etc.)
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withActor(type, actorData) {
+    this.statement.actor.setActor(type, actorData);
     return this;
   }
 
