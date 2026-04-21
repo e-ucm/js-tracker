@@ -613,4 +613,24 @@ export class SeriousGameTracker extends JSTracker {
         }
         return alternative;
     }
+
+    /**
+     * Creates an accessible tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Accessible type
+     * @returns {AccessibleTracker} New AccessibleTracker instance
+     */
+    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+        var accessible;
+        if(!this.instances["accessible"][type]) {
+            this.instances["accessible"][type]={};
+        }
+        if(!this.instances["accessible"][type][id]) {
+            accessible =new AccessibleTracker(this.tracker, id, type);
+            this.instances["accessible"][type][id]=accessible;
+        } else {
+            accessible=this.instances["accessible"][type][id];
+        }
+        return accessible;
+    }
 }
