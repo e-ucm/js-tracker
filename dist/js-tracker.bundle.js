@@ -1673,7 +1673,7 @@ class xAPITrackerAsset {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
-     * @property {string|null} parent_activity_id
+     * @property {string} parent_activity_id
     * @property {string} parent_activity_type
      */
     settings={
@@ -1689,7 +1689,7 @@ class xAPITrackerAsset {
         default_uri:"mydefaulturi",
         max_retry_delay:msFn$1("2min"),
         debug:false,
-        parent_activity_id:null,
+        parent_activity_id:'',
         parent_activity_type:"SCO"
     };
 
@@ -2619,6 +2619,59 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 }
 
 /**
+ * Accessible Tracker
+ */
+class AccessibleTracker {
+    /**
+     * Constructor of accessible tracker
+     * @param {xAPITrackerAsset} tracker the tracker
+     * @param {string} id the id of the accessible object
+     * @param {number} type the type of the accessible object
+     */
+    constructor(tracker, id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+        this.AccessibleId=id;
+        this.Type=type;
+        this.Tracker = tracker;
+    }
+    /**
+     * the id of the accessible object
+     * @type {string}
+     */
+    AccessibleId;
+    /**
+     * the type of the accessible object
+     * @type {number}
+     */
+    Type;
+    /**
+     * the tracker of the accessible object
+     * @type {xAPITrackerAsset}
+     */
+    Tracker;
+    /**
+     * the list of types possible for the accessible object
+     * @type {Array}
+     */
+    AccessibleType = ['screen', 'area', 'zone', 'cutscene', 'accessible']
+
+    /**
+     * Send Accessed statement
+     * @returns {StatementBuilder}
+     */
+    accessed() {
+        return this.Tracker.trace('accessed',this.AccessibleType[this.Type],this.AccessibleId);
+    }
+
+    /**
+     * Send Skipped statement
+     * @returns {StatementBuilder}
+     */
+    skipped() {
+        return this.Tracker.trace('skipped',this.AccessibleType[this.Type],this.AccessibleId);
+    }
+}
+
+/**
  * the list of types possible for the accessible object
  */
 const ACCESSIBLETYPE = Object.freeze({
@@ -3134,7 +3187,7 @@ class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
-     * @property {string|null} parent_activity_id
+     * @property {string} parent_activity_id
     * @property {string} parent_activity_type
      */
     trackerSettings={
@@ -3152,7 +3205,7 @@ class JSTracker {
         default_uri:"mydefaulturi",
         max_retry_delay:msFn("2min"),
         debug:false,
-        parent_activity_id:null,
+        parent_activity_id:'',
         parent_activity_type:'COURSE'
     };
     /**
@@ -3708,6 +3761,26 @@ class SeriousGameTracker extends JSTracker {
             alternative=this.instances["alternative"][type][id];
         }
         return alternative;
+    }
+
+    /**
+     * Creates an accessible tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Accessible type
+     * @returns {AccessibleTracker} New AccessibleTracker instance
+     */
+    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+        var accessible;
+        if(!this.instances["accessible"][type]) {
+            this.instances["accessible"][type]={};
+        }
+        if(!this.instances["accessible"][type][id]) {
+            accessible =new AccessibleTracker(this.tracker, id, type);
+            this.instances["accessible"][type][id]=accessible;
+        } else {
+            accessible=this.instances["accessible"][type][id];
+        }
+        return accessible;
     }
 }
 

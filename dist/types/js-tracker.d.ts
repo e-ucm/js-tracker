@@ -25,7 +25,7 @@ export class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
-     * @property {string|null} parent_activity_id
+     * @property {string} parent_activity_id
     * @property {string} parent_activity_type
      */
     trackerSettings: {
@@ -43,7 +43,7 @@ export class JSTracker {
         default_uri: string;
         max_retry_delay: any;
         debug: boolean;
-        parent_activity_id: any;
+        parent_activity_id: string;
         parent_activity_type: string;
     };
     /**
@@ -240,6 +240,13 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
     alternative(id: string, type?: number): AlternativeTracker;
+    /**
+     * Creates an accessible tracker instance
+     * @param {string} id - Activity ID
+     * @param {number} type - Accessible type
+     * @returns {AccessibleTracker} New AccessibleTracker instance
+     */
+    accessible(id: string, type?: number): AccessibleTracker;
 }
 import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
 import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
@@ -249,3 +256,4 @@ import { ScormTracker } from './HighLevel/SCORM.js';
 import { GameObjectTracker } from './HighLevel/GameObject.js';
 import { CompletableTracker } from './HighLevel/Completable.js';
 import { AlternativeTracker } from './HighLevel/Alternative.js';
+import { AccessibleTracker } from './HighLevel/Accessible.js';
