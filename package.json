@@ -5,10 +5,10 @@
   "type": "module",
   "main": "dist/js-tracker.bundle.cjs",
   "module": "dist/js-tracker.bundle.js",
-  "types": "dist/types/js-tracker.bundle.d.ts",
+  "types": "dist/types/js-tracker.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/js-tracker.bundle.d.ts",
+      "types": "./dist/types/js-tracker.d.ts",
       "import": "./dist/js-tracker.bundle.js",
       "require": "./dist/js-tracker.bundle.cjs"
     }

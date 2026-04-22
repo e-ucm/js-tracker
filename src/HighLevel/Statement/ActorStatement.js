@@ -17,12 +17,17 @@ export default class ActorStatement {
      */
     constructor(options = {}) {
         for (const key of [STATEMENT.ACTOR.AGENTTYPE.MBOX, STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM, STATEMENT.ACTOR.AGENTTYPE.OPENID, STATEMENT.ACTOR.AGENTTYPE.ACCOUNT]) {
-            this.objectType = STATEMENT.ACTOR.TYPES.AGENT;
-            this.setActor(key, options[key]);
+            if (options[key]) {
+                this.objectType = STATEMENT.ACTOR.TYPES.AGENT;
+                this.setActor(key, options[key]);
+                break; // Only one of these should be set for an Agent
+            }
         }
         for (const key of [STATEMENT.ACTOR.GROUPTYPE.NAME, STATEMENT.ACTOR.GROUPTYPE.MEMBER]) {
-            this.objectType = STATEMENT.ACTOR.TYPES.GROUP;
-            this.setActor(key, options[key]);
+            if (options[key]) {
+                this.objectType = STATEMENT.ACTOR.TYPES.GROUP;
+                this.setActor(key, options[key]);
+            }
         }
     }
 
