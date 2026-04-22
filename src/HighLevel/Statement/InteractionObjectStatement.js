@@ -5,6 +5,58 @@ import ObjectStatement from "./ObjectStatement.js";
  * The Object Class of a Statement
  */
 export default class InteractionObjectStatement extends ObjectStatement {
+    /**
+        * The correctResponsesPattern property for interaction activities.
+        * Internally it is always handled as an array of strings.
+        * @type {string[]}
+     */
+    correctResponsesPattern;
+
+    /**
+     * The interactionType property for interaction activities (e.g., 'choice', 'fill-in', 'long-fill-in', 'matching', 'performance', 'sequencing', 'likert', 'numeric', 'other')
+     * @type {string}
+     */ 
+    interactionType;
+
+    /**
+     * The choices, scale, source, target, and steps properties for interaction activities, which are arrays of objects with id and description
+     * Each item in choices/scale should be an object with an 'id' and a 'description' that can be a string or an object with language keys
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    choices;
+
+    /**
+     * The scale property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+
+    scale;
+
+    /**
+     * The source property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    source;
+
+    /**
+     * The target property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    target;
+
+    /**
+     * The steps property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    steps;
+
+
+    /**
+     * Constructor for InteractionObjectStatement
+     * @param {string} objectId - The identifier of the object (IRI or UUID)
+     * @param {string} objectType - The type of the object (IRI)
+     * @param {string} defaultURI - The default base URI to resolve relative IDs
+     */
     constructor(objectId, objectType, defaultURI) {
         super(objectId, objectType, defaultURI);
     }
@@ -35,10 +87,18 @@ export default class InteractionObjectStatement extends ObjectStatement {
         if (!this.correctResponsesPattern) {
             this.correctResponsesPattern = [];
         }
-        if (Array.isArray(pattern)) {
-            this.correctResponsesPattern.push(...pattern);
-        } else {
-            this.correctResponsesPattern.push(pattern);
+        const values = Array.isArray(pattern) ? pattern : [pattern];
+        for (const value of values) {
+            if (typeof value !== 'string') {
+                continue;
+            }
+            const normalized = value.trim();
+            if (!normalized) {
+                continue;
+            }
+            if (!this.correctResponsesPattern.includes(normalized)) {
+                this.correctResponsesPattern.push(normalized);
+            }
         }
     }
 
@@ -73,7 +133,11 @@ export default class InteractionObjectStatement extends ObjectStatement {
             object.definition.interactionType = this.interactionType;
         }
         if (this.correctResponsesPattern) {
-            object.definition.correctResponsesPattern = this.correctResponsesPattern;
+            if (this.correctResponsesPattern.length === 1) {
+                object.definition.correctResponsesPattern = this.correctResponsesPattern[0];
+            } else {
+                object.definition.correctResponsesPattern = this.correctResponsesPattern;
+            }
         }
         ["choices", "scale", "source", "target", "steps"].forEach((key) => {
             if (this[key]) {
@@ -126,7 +190,10 @@ export default class InteractionObjectStatement extends ObjectStatement {
         const obj = new InteractionObjectStatement(id, type, baseURI);
         if (xapiObj.definition) {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
-            if (xapiObj.definition.correctResponsesPattern) obj.correctResponsesPattern = xapiObj.definition.correctResponsesPattern;
+            if (xapiObj.definition.correctResponsesPattern) {
+                obj.correctResponsesPattern = [];
+                obj.addCorrectResponsesPattern(xapiObj.definition.correctResponsesPattern);
+            }
             ["choices", "scale", "source", "target", "steps"].forEach(key => {
                 if (xapiObj.definition[key]) obj[key] = xapiObj.definition[key];
             });

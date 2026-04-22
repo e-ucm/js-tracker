@@ -1,5 +1,8 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import StatementBuilder from "./StatementBuilder.js";
+import xAPITrackerAsset from "../../xAPITrackerAsset.js";
+import { SERIOUSGAMEPROFILE } from "../Statement/Ids/Profiles/SeriousGameProfile.js";
+import { SERIOUSGAMESPROFILE } from "../Statement/Ids/Profiles/Generated/SeriousGamesProfile.js";
+import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
+import StatementBuilder from "../StatementBuilder/StatementBuilder.js";
 
 /**
  * Game Object Tracker
@@ -9,9 +12,9 @@ export class GameObjectTracker {
      * Constructor of Game Object tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the Game Object object
-     * @param {number} type the Type of the Game Object object
+     * @param {string} type the Type of the Game Object object
      */
-    constructor(tracker,id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    constructor(tracker,id, type=SERIOUSGAMEPROFILE.ACTIVITIYTYPES.GAMEOBJECT) {
         this.GameobjectId=id;
         this.Type=type;
         this.Tracker= tracker;
@@ -23,7 +26,7 @@ export class GameObjectTracker {
     GameobjectId;
     /**
      * the Type of the Game Object object
-     * @Type {number}
+     * @Type {string}
      */
     Type;
     /**
@@ -31,18 +34,13 @@ export class GameObjectTracker {
      * @Type {xAPITrackerAsset}
      */
     tracker;
-    /**
-     * the list of types possible for the Game Object object
-     * @Type {Array}
-     */
-    GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
     /**
      * Send Interacted statement
      * @returns {StatementBuilder}
      */
     interacted() {
-        return this.Tracker.trace('interacted',this.GameObjectType[this.Type],this.GameobjectId);
+        return this.Tracker.trace(ALL.VERBS.INTERACTED,this.Type,this.GameobjectId);
     }
     
     /**
@@ -50,7 +48,7 @@ export class GameObjectTracker {
      * @returns {StatementBuilder}
      */
     used() {
-        return this.Tracker.trace('used',this.GameObjectType[this.Type],this.GameobjectId);
+        return this.Tracker.trace(ALL.VERBS.USED,this.Type,this.GameobjectId);
     }
 }
 

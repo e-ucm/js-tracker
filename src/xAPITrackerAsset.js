@@ -2,10 +2,10 @@ import XAPI from "@xapi/xapi";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
 import Statement from "./HighLevel/Statement/Statement.js";
-import StatementBuilder from "./HighLevel/StatementBuilder.js";
+import StatementBuilder from "./HighLevel/StatementBuilder/StatementBuilder.js";
 import axios from 'axios';
 import * as ms from "ms";
-import LRSStatementBuilder from "./HighLevel/LRSStatementBuilder.js";
+import LRSStatementBuilder from "./HighLevel/StatementBuilder/LRSStatementBuilder.js";
 import LRSStatement from "./HighLevel/Statement/LRSStatement.js";
 const msFn = ms.default || ms;
 

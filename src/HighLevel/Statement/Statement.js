@@ -5,6 +5,7 @@ import ActorStatement from "./ActorStatement.js";
 import ContextStatement from "./ContextStatement.js";
 import { v4 as uuidv4 } from 'uuid';
 import InteractionObjectStatement from "./InteractionObjectStatement.js";
+import AttachmentStatement from "./AttachementStatement.js";
 import { isUri } from "./helper.js";
 
 
@@ -35,6 +36,7 @@ export default class Statement {
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
+        this.attachments = [];
     }
 
     /**
@@ -93,6 +95,12 @@ export default class Statement {
      */
     result;
 
+    /**
+     * Attachments associated with the statement
+     * @type {AttachmentStatement[]}
+     */
+    attachments;
+
     
     /**
      * Convert to xAPI format
@@ -123,6 +131,11 @@ export default class Statement {
         }
         if(this.version) {
             xapiTrace.version = this.version;
+        }
+        if (Array.isArray(this.attachments) && this.attachments.length > 0) {
+            xapiTrace.attachments = this.attachments.map((attachment) =>
+                attachment && typeof attachment.toXAPI === 'function' ? attachment.toXAPI() : attachment
+            );
         }
         return xapiTrace;
     }
@@ -161,6 +174,9 @@ export default class Statement {
         stmt.timestamp = xapiObj.timestamp ? new Date(xapiObj.timestamp) : new Date();
         stmt.version = xapiObj.version || "1.0.3";
         stmt.defaultURI = baseURI;
+        stmt.attachments = Array.isArray(xapiObj.attachments)
+            ? xapiObj.attachments.map((attachment) => AttachmentStatement.fromXAPI(attachment, baseURI))
+            : [];
         return stmt;
     }
     /**

@@ -1,3 +1,5 @@
+import { STATEMENT } from "./Ids/Statements.js";
+
 /**
  * Actor Class of a Statement (xAPI Agent or Group)
  */
@@ -14,8 +16,12 @@ export default class ActorStatement {
      *  - member: ActorStatement[] (for Group)
      */
     constructor(options = {}) {
-        this.objectType = options.objectType || "Agent";
-        for (const key of ["name", "mbox", "mbox_sha1sum", "openid", "account", "member"]) {
+        for (const key of [STATEMENT.ACTOR.AGENTTYPE.MBOX, STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM, STATEMENT.ACTOR.AGENTTYPE.OPENID, STATEMENT.ACTOR.AGENTTYPE.ACCOUNT]) {
+            this.objectType = STATEMENT.ACTOR.TYPES.AGENT;
+            this.setActor(key, options[key]);
+        }
+        for (const key of [STATEMENT.ACTOR.GROUPTYPE.NAME, STATEMENT.ACTOR.GROUPTYPE.MEMBER]) {
+            this.objectType = STATEMENT.ACTOR.TYPES.GROUP;
             this.setActor(key, options[key]);
         }
     }
@@ -27,8 +33,8 @@ export default class ActorStatement {
      */
     setActor(type, actorData) {
         switch (type) {
-            case "name":
-                if (this.objectType === "Agent") {
+            case STATEMENT.ACTOR.GROUPTYPE.NAME:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.AGENT) {
                     throw new Error("Agent cannot have a name, only mbox, mbox_sha1sum, openid, or account");
                 }
                 if (typeof actorData !== "string") {
@@ -36,8 +42,8 @@ export default class ActorStatement {
                 }
                 this.name = actorData;
                 break;
-            case "mbox":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.MBOX:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have mbox, mbox_sha1sum, openid, or account, only a name");
                 }
                 if (typeof actorData !== "string") {
@@ -46,8 +52,8 @@ export default class ActorStatement {
 
                 this.mbox = actorData;
                 break;
-            case "mbox_sha1sum":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have mbox_sha1sum");
                 }
                 if (typeof actorData !== "string") {
@@ -55,8 +61,8 @@ export default class ActorStatement {
                 }
                 this.mbox_sha1sum = actorData;
                 break;
-            case "openid":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.OPENID:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have openid");
                 }
                 if (typeof actorData !== "string") {
@@ -64,8 +70,8 @@ export default class ActorStatement {
                 }
                 this.openid = actorData;
                 break;
-            case "account":
-                if  (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.ACCOUNT:
+                if  (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have account");
                 }
                 if (typeof actorData !== "object" || typeof actorData.homePage !== "string" || typeof actorData.name !== "string") {
@@ -73,8 +79,8 @@ export default class ActorStatement {
                 }
                 this.account = actorData;
                 break;
-            case "member":
-                if (this.objectType !== "Group") {
+            case STATEMENT.ACTOR.GROUPTYPE.MEMBER:
+                if (this.objectType !== STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Only Group can have members");
                 }
                 if (!Array.isArray(actorData)) {
@@ -118,7 +124,7 @@ export default class ActorStatement {
         else if (this.openid) obj.openid = this.openid;
         else if (this.account) obj.account = this.account;
         // Group: add member if present
-        if (this.objectType === "Group" && Array.isArray(this.member)) {
+        if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP && Array.isArray(this.member)) {
             obj.member = this.member.map(m => (typeof m.toXAPI === 'function' ? m.toXAPI() : m));
         }
         return obj;

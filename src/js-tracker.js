@@ -1,20 +1,26 @@
 import xAPITrackerAsset from './xAPITrackerAsset.js';
 import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
-import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/Accessible.js';
-import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Completable.js';
-import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/Alternative.js';
-import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/GameObject.js';
-import { ScormTracker } from './HighLevel/SCORM.js';
-import StatementBuilder from './HighLevel/StatementBuilder.js';
+import { AccessibleTracker } from './HighLevel/SeriousGames/Accessible.js';
+import { CompletableTracker } from './HighLevel/Scorm/Completable.js';
+import { AlternativeTracker } from './HighLevel/SeriousGames/Alternative.js';
+import { GameObjectTracker } from './HighLevel/SeriousGames/GameObject.js';
+import { ScormTracker } from './HighLevel/Scorm/SCORM.js';
+import StatementBuilder from './HighLevel/StatementBuilder/StatementBuilder.js';
 import * as ms from "ms";
-import LRSStatementBuilder from './HighLevel/LRSStatementBuilder.js';
+import LRSStatementBuilder from './HighLevel/StatementBuilder/LRSStatementBuilder.js';
+import { ALL } from './HighLevel/Statement/Ids/Profiles/Generated/All.js';
+import { SERIOUSGAMESPROFILE } from './HighLevel/Statement/Ids/Profiles/Generated/SeriousGamesProfile.js';
+import { SCORMPROFILE } from './HighLevel/Statement/Ids/Profiles/Generated/ScormProfile.js';
+import { STATEMENT } from './HighLevel/Statement/Ids/Statements.js';
 const msFn = ms.default || ms;
 
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
  */
 export class JSTracker {
+    ALL = ALL;
+    STATEMENT_BUILDER_IDS = STATEMENT;
     /**
      * The underlying tracker instance
      * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
@@ -323,6 +329,9 @@ export class JSTracker {
  * SCORM-specific tracker extending JSTracker
  */
 export class JSScormTracker extends JSTracker {
+    SCORMPROFILE = SCORMPROFILE;
+    STATEMENT_BUILDER_IDS = STATEMENT;
+    ALL = ALL;
     /**
      * list of scorm instances
      */
@@ -356,7 +365,7 @@ export class JSScormTracker extends JSTracker {
      * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type="SCO") {
+    scorm(id, type=SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
@@ -395,6 +404,8 @@ export class JSScormTracker extends JSTracker {
  * SCORM-specific tracker extending JSTracker
  */
 export class LRSTracker extends JSTracker {
+    ALL = ALL;    
+    STATEMENT_BUILDER_IDS = STATEMENT;
     /**
      * Creates a new MyTracker instance
      */
@@ -441,22 +452,9 @@ export class SeriousGameTracker extends JSTracker {
     /**
      * Accessible type constants
      */
-    ACCESSIBLETYPE = ACCESSIBLETYPE;
-
-    /**
-     * Completable type constants
-     */
-    COMPLETABLETYPE = COMPLETABLETYPE;
-
-    /**
-     * Alternative type constants
-     */
-    ALTERNATIVETYPE = ALTERNATIVETYPE;
-
-    /**
-     * Game object type constants
-     */
-    GAMEOBJECTTYPE = GAMEOBJECTTYPE;
+    SERIOUSGAMEPROFILE = SERIOUSGAMESPROFILE;
+    STATEMENT_BUILDER_IDS = STATEMENT;
+    ALL = ALL;
 
     /**
      * SCORM tracker instance
@@ -561,10 +559,10 @@ export class SeriousGameTracker extends JSTracker {
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
-     * @param {number} type - Game object type
+     * @param {string} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    gameObject(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.ITEM) {
         var gameObject;
         if(!this.instances["gameObject"][type]) {
             this.instances["gameObject"][type]={};
@@ -581,10 +579,10 @@ export class SeriousGameTracker extends JSTracker {
     /**
      * Creates a completable tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Completable type
+     * @param {string} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
+    completable(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.SERIOUS_GAME) {
         var completable;
         if(!this.instances["completable"][type]) {
             this.instances["completable"][type]={};
@@ -601,10 +599,10 @@ export class SeriousGameTracker extends JSTracker {
     /**
      * Creates an alternative tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Alternative type
+     * @param {string} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    alternative(id, type=ALL.ACTIVITIYTYPES.ASSESSMENT) {
         var alternative;
         if(!this.instances["alternative"][type]) {
             this.instances["alternative"][type]={};
@@ -621,10 +619,10 @@ export class SeriousGameTracker extends JSTracker {
     /**
      * Creates an accessible tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Accessible type
+     * @param {string} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    accessible(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.AREA) {
         var accessible;
         if(!this.instances["accessible"][type]) {
             this.instances["accessible"][type]={};

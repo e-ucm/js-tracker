@@ -1,5 +1,6 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import StatementBuilder from "./StatementBuilder.js";
+import xAPITrackerAsset from "../../xAPITrackerAsset.js";
+import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
+import StatementBuilder from "../StatementBuilder/StatementBuilder.js";
 /**
  * Completable Tracker
  */
@@ -8,9 +9,9 @@ export class CompletableTracker {
      * Constructor of completable Tracker
      * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the completable object
-     * @param {number} type the Type of the completable object
+     * @param {string} type the Type of the completable object
      */
-    constructor(tracker, id, type=COMPLETABLETYPE.COMPLETABLE) {
+    constructor(tracker, id, type) {
         this.CompletableId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -25,7 +26,7 @@ export class CompletableTracker {
 
     /**
      * the Type of the completable object
-     * @Type {number}
+     * @Type {string}
      */
     Type;
 
@@ -34,12 +35,6 @@ export class CompletableTracker {
      * @Type {xAPITrackerAsset}
      */
     Tracker;
-
-    /**
-     * the list of Types possible for the completable object
-     * @Type {Array}
-     */
-    CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
     /**
      * is initialized
@@ -69,10 +64,10 @@ export class CompletableTracker {
             }
         }
         if (addInitializedTime) {
-            this.initializedTime = new Date();
+            this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        return this.Tracker.trace('initialized',this.CompletableType[this.Type],this.CompletableId);
+        return this.Tracker.trace(ALL.VERBS.INITIALIZED,this.Type,this.CompletableId);
     }
 
     /**
@@ -81,7 +76,7 @@ export class CompletableTracker {
      * @returns {StatementBuilder}
      */
     progressed(progress) {
-        return this.Tracker.trace('progressed',this.CompletableType[this.Type],this.CompletableId)
+        return this.Tracker.trace(ALL.VERBS.PROGRESSED,this.Type,this.CompletableId)
             .withProgress(progress);
     }
 
@@ -108,25 +103,10 @@ export class CompletableTracker {
         let actualDate=new Date();
         this.IsInitialized=false;
 
-        return this.Tracker.trace('completed',this.CompletableType[this.Type],this.CompletableId)
+        return this.Tracker.trace(ALL.VERBS.COMPLETED,this.Type,this.CompletableId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
-            .withDuration(this.initializedTime, actualDate);
+            .withDuration(this.InitializedTime, actualDate);
     }
 }
-
-/**
- * the list of Types possible for the completable object
- */
-export const COMPLETABLETYPE = Object.freeze({
-    GAME: 0,
-    SESSION: 1,
-    LEVEL: 2,
-    QUEST: 3,
-    STAGE: 4,
-    COMBAT: 5,
-    STORYNODE: 6,
-    RACE: 7,
-    COMPLETABLE: 8
-});

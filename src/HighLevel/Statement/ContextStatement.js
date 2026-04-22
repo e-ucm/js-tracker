@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { isUri, setAsUri } from './helper.js';
 import ObjectStatement from './ObjectStatement.js';
+import { STATEMENT } from './Ids/Statements.js';
+import { ALL } from './Ids/Profiles/Generated/index.js';
+
 /**
  * The Context Class of a Statement
  */
@@ -31,15 +34,15 @@ export default class ContextStatement {
      * @param {string} categoryId category Id to add
      */
     addCategory(categoryId) {
-        if(categoryId && categoryId in this.categoryIDs) {
+        if(categoryId) {
             if(!this.contextActivities.category) {
                  this.contextActivities.category = [];
             }
             this.contextActivities.category.push(
                 {
-                    id: isUri(categoryId) ? categoryId : categoryId in this.categoryIDs ? this.categoryIDs[categoryId] : setAsUri(categoryId, this.defaultURI),
+                    id: setAsUri(categoryId, this.defaultURI),
                     definition: {
-                        type : "http://adlnet.gov/expapi/activities/profile"
+                        type : ALL.ACTIVITYTYPES.PROFILE
                     }
                 }
             );
@@ -80,16 +83,6 @@ export default class ContextStatement {
      */
     contextActivities;
 
-    
-
-    /**
-     * The category IDs list
-     */
-    categoryIDs = {
-        seriousgame : 'https://w3id.org/xapi/seriousgame',
-        scorm: 'https://w3id.org/xapi/scorm/v/2'
-    };
-
     /**
      * Add or set a context activity
      * @param {"parent"|"grouping"|"category"|"other"} type
@@ -100,7 +93,7 @@ export default class ContextStatement {
         if (typeof activity === 'string') {
               activity = new ObjectStatement(activity, activityType, this.defaultURI);
         }
-        if (["parent", "grouping", "category", "other"].includes(type)) {
+        if ([STATEMENT.CONTEXT.ACTIVITIES.PARENT, STATEMENT.CONTEXT.ACTIVITIES.GROUPING, STATEMENT.CONTEXT.ACTIVITIES.CATEGORY, STATEMENT.CONTEXT.ACTIVITIES.OTHER].includes(type)) {
             // Accept single object or array
             if (!this.contextActivities[type]) {
                 this.contextActivities[type] = [];
@@ -144,10 +137,19 @@ export default class ContextStatement {
         };
     }
 
+    /**
+     * Set the extensions of the Context
+     * @param {Object} ext extensions object
+     */
     setExtensions(ext) {
         this.extensions = ext;
     }
 
+    /**
+     * Add or set a single extension key-value pair
+     * @param {string} key extension key
+     * @param {any} value extension value
+     */
     setExtension(key, value) {
         if(!this.extensions) {
             this.extensions = {};

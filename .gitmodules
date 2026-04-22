@@ -1,0 +1,3 @@
+[submodule "xapi-authored-profiles"]
+	path = xapi-authored-profiles
+	url = https://github.com/adlnet/xapi-authored-profiles

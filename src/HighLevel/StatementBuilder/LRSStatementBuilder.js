@@ -1,5 +1,5 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import LRSStatement from "./Statement/LRSStatement.js";
+import xAPITrackerAsset from "../../xAPITrackerAsset.js";
+import LRSStatement from "../Statement/LRSStatement.js";
 import StatementBuilder from "./StatementBuilder.js";
 
 export default class LRSStatementBuilder extends StatementBuilder {
@@ -20,13 +20,13 @@ export default class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Adds a context activity to the statement
-     * @param {string} type - The context activity type (e.g. 'parent', 'grouping', 'category', 'other')
+     * @param {"parent"|"grouping"|"category"|"other"} type - The context activity type (e.g. 'parent', 'grouping', 'category', 'other')
      * @param {string} id - The IRI identifier of the context activity
      * @param {string} activityType - The activity type IRI
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withContextActivity(type, id, activityType) {
-        super.withContextActivity(type, id, activityType);
+        this.statement.context.addContextActivity(type, id, activityType);
         return this;
     }
 
@@ -37,7 +37,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withActorAccount(accountName, accountHomePage) {
-        super.withActor('account', { name: accountName, homePage: accountHomePage });
+        this.statement.actor.setActor('account', { name: accountName, homePage: accountHomePage });
         return this;
     }
 
@@ -47,7 +47,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withActorMbox(mbox) {
-        super.withActor('mbox', mbox);
+        this.statement.actor.setActor('mbox', mbox);
         return this;
     }
 
@@ -57,7 +57,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withActorMboxSha1(mboxSha1) {
-        super.withActor('mbox_sha1sum', mboxSha1);
+        this.statement.actor.setActor('mbox_sha1sum', mboxSha1);
         return this;
     }
 
@@ -67,7 +67,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withActorOpenID(openid) {
-        super.withActor('openid', openid);
+        this.statement.actor.setActor('openid', openid);
         return this;
     }
 
@@ -109,6 +109,57 @@ export default class LRSStatementBuilder extends StatementBuilder {
      */
     withAutorityOpenID(openid) {
         this.statement.authority.setActor('openid', openid);
+        return this;
+    }
+
+    /**
+     * Add or set the stored timestamp of the statement
+     * @param {Date|string} stored - The stored timestamp to set (can be a Date object or an ISO 8601 string)
+     * @return {LRSStatementBuilder} This builder instance for chaining
+     * */
+    withStored(stored) {
+        this.statement.stored = stored ? (stored instanceof Date ? stored : new Date(stored)) : undefined;
+        return this;
+    }
+
+    /**
+   * Add or set an actor to the statement
+   * @param {string} type - The type of the actor
+   * @param {object} actor - The actor object
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withActor(type, actor) {
+    this.statement.actor.setActor(type, actor);
+    return this;
+  }
+
+ /**
+     * Sets the ID of the statement
+     * @param {string} id - The UUID to set as the statement ID
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withId(id) {
+        this.statement.id = id;
+        return this;
+    }
+
+     /**
+     * Sets the version of the statement
+     * @param {string} version - The version to set
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withVersion(version) {
+        this.statement.version = version;
+        return this;
+    }
+
+    /**
+     * Sets the timestamp of the statement
+     * @param {Date|string} timestamp - The timestamp to set (can be a Date object or an ISO 8601 string)
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withTimestamp(timestamp) {
+        this.statement.timestamp = timestamp instanceof Date ? timestamp : new Date(timestamp);
         return this;
     }
 

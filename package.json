@@ -17,6 +17,7 @@
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
   "scripts": {
+    "generate:profiles": "node scripts/generateProfiles.js",
     "build:types": "npx tsc --project tsconfig.json",
     "build:webpack": "webpack && rollup -c",
     "build": "npm run build:webpack && npm run build:types",

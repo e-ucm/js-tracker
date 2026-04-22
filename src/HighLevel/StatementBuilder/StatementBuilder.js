@@ -1,10 +1,11 @@
 // ------------------------------------------------------------------
 // 1) THE BUILDER
 
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import InteractionObjectStatement from "./Statement/InteractionObjectStatement.js";
-import LRSStatement from "./Statement/LRSStatement.js";
-import Statement from "./Statement/Statement.js";
+import xAPITrackerAsset from "../../xAPITrackerAsset.js";
+import InteractionObjectStatement from "../Statement/InteractionObjectStatement.js";
+import LRSStatement from "../Statement/LRSStatement.js";
+import Statement from "../Statement/Statement.js";
+import AttachmentStatement from "../Statement/AttachementStatement.js";
 
 // ------------------------------------------------------------------
 /**
@@ -306,24 +307,42 @@ export default class StatementBuilder {
     }
     return this;
   }
-  
+
   /**
-   * Add or set an actor to the statement
-   * @param {string} type - The type of the actor
-   * @param {object} actor - The actor object
-   * @return {StatementBuilder} Returns the current instance for chaining
+   * Add one xAPI attachment to the statement
+   * @param {AttachmentStatement|Object} attachment - Attachment instance or plain attachment object
+   * @returns {StatementBuilder} Returns the current instance for chaining
    */
-  withActor(type, actor) {
-    if(this.statement instanceof LRSStatement) {
-      this.statement.actor.setActor(type, actor);
+  withAttachment(attachment) {
+    if (!Array.isArray(this.statement.attachments)) {
+      this.statement.attachments = [];
+    }
+    if (attachment instanceof AttachmentStatement) {
+      this.statement.attachments.push(attachment);
     } else {
-      if (this.client.settings.debug) {
-        throw new Error("Trying to set actor on a non-LRS statement");
-      } else {
-        console.warn("Trying to set actor on a non-LRS statement");
-      }
+      this.statement.attachments.push(AttachmentStatement.fromXAPI(attachment, this.statement.defaultURI));
     }
     return this;
+  }
+
+  /**
+   * Add multiple xAPI attachments to the statement
+   * @param {Array<AttachmentStatement|Object>} attachments - List of attachments
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withAttachments(attachments = []) {
+    for (const attachment of attachments) {
+      this.withAttachment(attachment);
+    }
+    return this;
+  }
+
+  /**
+   * Convert the built statement to xAPI format
+   * @returns {Object} The xAPI statement object
+   */
+  toXAPI() {
+    return this.statement.toXAPI();
   }
 
   /**

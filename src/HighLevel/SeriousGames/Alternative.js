@@ -1,5 +1,8 @@
-import xAPITrackerAsset from "../xAPITrackerAsset.js";
-import StatementBuilder from "./StatementBuilder.js";
+import xAPITrackerAsset from "../../xAPITrackerAsset.js";
+import { SERIOUSGAMEPROFILE } from "../Statement/Ids/Profiles/SeriousGameProfile.js";
+import { SERIOUSGAMESPROFILE } from "../Statement/Ids/Profiles/Generated/SeriousGamesProfile.js";
+import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
+import StatementBuilder from "../StatementBuilder/StatementBuilder.js";
 /**
  * Accessible Tracker
  */
@@ -8,9 +11,9 @@ export class AlternativeTracker {
      * Constructor of accessible tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the accessible object
-     * @param {number} type the type of the accessible object
+     * @param {string} type the type of the accessible object
      */
-    constructor(tracker, id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    constructor(tracker, id, type=SERIOUSGAMEPROFILE.ACTIVITIYTYPES.ALTERNATIVE) {
         this.AlternativeId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -22,7 +25,7 @@ export class AlternativeTracker {
     AlternativeId;
     /**
      * the type of the alternative object
-     * @type {number}
+     * @type {string}
      */
     Type;
     /**
@@ -30,11 +33,6 @@ export class AlternativeTracker {
      * @type {xAPITrackerAsset}
      */
     Tracker;
-    /**
-     * the list of types possible for the alternative object
-     * @type {Array}
-     */
-    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative'];
 
     /**
      * Send selected statement
@@ -42,7 +40,7 @@ export class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     selected(optionId) {        
-        return this.Tracker.trace('selected',this.AlternativeType[this.Type],this.AlternativeId)
+        return this.Tracker.trace(ALL.VERBS.SELECTED,this.Type,this.AlternativeId)
             .withResponse(optionId);
     }
 
@@ -52,7 +50,7 @@ export class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     unlocked(optionId) {
-        return this.Tracker.trace('unlocked',this.AlternativeType[this.Type],this.AlternativeId)
+        return this.Tracker.trace(SERIOUSGAMESPROFILE.VERBS.UNLOCKED,this.Type,this.AlternativeId)
                 .withResponse(optionId);
     }
 }
