@@ -27,7 +27,7 @@ export default class Statement {
         this.actor = actor;
         this.verb = new VerbStatement(verbId, defaultURI);
         this.defaultURI = defaultURI;
-        if((!isUri(objectType) && (objectType === 'interaction' || objectType === 'cmi.interaction'))) {
+        if(objectType === ALL.ACTIVITYTYPES.CMI_INTERACTION) {
             this.object = new InteractionObjectStatement(objectId, objectType, this.defaultURI);
         } else {
             this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
