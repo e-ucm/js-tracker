@@ -13,12 +13,13 @@ export default class ObjectStatement {
      * The constructor of the ObjectStatement class
      *
      * @param {string} id the id of the object
-     * @param {string} type the type of the object
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} type the type of the object
      * @param {string} baseURI the base URI for the object construction
+     * @param {string} language the language for the name and description (default: "en")
      * @param {string} name the name of the object
      * @param {string} description the description of the object
      */
-    constructor(id: string, type: string, baseURI: string, language?: string, name?: string, description?: string);
+    constructor(id: string, type: (typeof ALL.ACTIVITYTYPES)[keyof typeof ALL.ACTIVITYTYPES] | string, baseURI: string, language?: string, name?: string, description?: string);
     /**
      * The ID of the Object
      *
@@ -37,50 +38,6 @@ export default class ObjectStatement {
      * */
     defaultURI: string;
     /**
-     * The Type IDs list for Objects
-     */
-    typeIds: {
-        game: string;
-        session: string;
-        level: string;
-        quest: string;
-        stage: string;
-        combat: string;
-        storynode: string;
-        race: string;
-        completable: string;
-        screen: string;
-        area: string;
-        zone: string;
-        cutscene: string;
-        accessible: string;
-        question: string;
-        menu: string;
-        dialog: string;
-        path: string;
-        arena: string;
-        alternative: string;
-        enemy: string;
-        npc: string;
-        item: string;
-        gameobject: string;
-        course: string;
-        module: string;
-        SCO: string;
-        assessment: string;
-        interaction: string;
-        cmi_interaction: string;
-        objective: string;
-        attempt: string;
-        profile: string;
-    };
-    /**
-     * The Extensions IDs for Objects
-     */
-    ExtensionIDs: {
-        extended_interaction_type: string;
-    };
-    /**
      * The name of the Object
      *
      * @type {Map<string, string>}
@@ -92,6 +49,12 @@ export default class ObjectStatement {
      * @type {Map<string, string>}
      */
     definitionDescription: Map<string, string>;
+    /**
+     * The extensions of the Object definition
+     *
+     * @type {Object}
+     */
+    definitionExtensions: any;
     /**
      * Set the name of the Object definition
      * @param {string} lang - The language code
@@ -105,6 +68,17 @@ export default class ObjectStatement {
      */
     setObjectDefinitionDescription(lang: string, description: string): void;
     /**
+     * Set the extensions of the Object definition
+     * @param {Object} ext extensions object
+     */
+    setExtensions(ext: any): void;
+    /**
+     * Add or set a single extension key-value pair in the Object definition
+     * @param {typeof ALL.ACTIVITYEXTENSION[keyof typeof ALL.ACTIVITYEXTENSION]|string} key extension key
+     * @param {any} value extension value
+     */
+    setExtension(key: (typeof ALL.ACTIVITYEXTENSION)[keyof typeof ALL.ACTIVITYEXTENSION] | string, value: any): void;
+    /**
      * Convert to xAPI object, including interaction activities if set
      * @returns {Object}
      */
@@ -116,3 +90,4 @@ export default class ObjectStatement {
      */
     toCSV(): string;
 }
+import { ALL } from "./Ids/Profiles/Generated/index.js";

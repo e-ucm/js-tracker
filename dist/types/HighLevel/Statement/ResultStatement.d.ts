@@ -1,7 +1,14 @@
 /**
  * The Result Class of a Statement
  */
-declare class ResultStatement {
+export default class ResultStatement {
+    /**
+     * Create a ResultStatement from xAPI result object
+     * @param {Object} xapiObj
+     * @param {string} baseURI
+     * @returns {ResultStatement}
+     */
+    static fromXAPI(xapiObj: any, baseURI: string): ResultStatement;
     /**
      * Constructor of the ResultStatement class
      *
@@ -56,31 +63,16 @@ declare class ResultStatement {
      */
     isEmpty(): boolean;
     /**
-     * The possible extensions of a result statement
-     */
-    ExtensionIDs: {
-        health: string;
-        position: string;
-        progress: string;
-        interactionID: string;
-        response_explanation: string;
-        response_type: string;
-    };
-    /**
-     * The Score Keys for the result
-     */
-    ScoreKey: string[];
-    /**
      * Set extensions from list
      * @param {Object} extensions extension list
      */
     setExtensions(extensions: any): void;
     /**
      * Set result extension for key value
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {*} value the value of the extension
      */
-    setExtension(key: string, value: any): void;
+    setExtension(key: (typeof ALL.RESULTEXTENSION)[keyof typeof ALL.RESULTEXTENSION] | string, value: any): void;
     /**
      * Set the score of the statement
      * @param {string} key the key for the score
@@ -143,10 +135,10 @@ declare class ResultStatement {
     setProgress(value: number): void;
     /**
      * Set result extension for key of the statement
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {string} value the value of the extension
      */
-    setVar(key: string, value: string): void;
+    setVar(key: (typeof ALL.RESULTEXTENSION)[keyof typeof ALL.RESULTEXTENSION] | string, value: string): void;
     /**
      * convert to XAPI
      *
@@ -160,13 +152,4 @@ declare class ResultStatement {
      */
     toCSV(): string;
 }
-declare namespace ResultStatement {
-    /**
-     * Create a ResultStatement from xAPI result object
-     * @param {Object} xapiObj
-     * @param {string} baseURI
-     * @returns {ResultStatement}
-     */
-    function fromXAPI(xapiObj: any, baseURI: string): ResultStatement;
-}
-export default ResultStatement;
+import { ALL } from "./Ids/Profiles/Generated/All.js";

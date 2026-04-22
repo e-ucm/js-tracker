@@ -20,13 +20,13 @@ export default class ActorStatement {
      *  - member: ActorStatement[] (for Group)
      */
     constructor(options?: any);
-    objectType: any;
+    objectType: string;
     /**
      * Set actor properties with validation
-     * @param {String} type - one of name, mbox, mbox_sha1sum, openid, account, member
+     * @param {typeof STATEMENT.ACTOR.AGENTTYPE[keyof typeof STATEMENT.ACTOR.AGENTTYPE]|typeof STATEMENT.ACTOR.GROUPTYPE[keyof typeof STATEMENT.ACTOR.GROUPTYPE]} type - one of name, mbox, mbox_sha1sum, openid, account, member
      * @param {Object|Array|String} actorData - data for the specified type
      */
-    setActor(type: string, actorData: any | any[] | string): void;
+    setActor(type: (typeof STATEMENT.ACTOR.AGENTTYPE)[keyof typeof STATEMENT.ACTOR.AGENTTYPE] | (typeof STATEMENT.ACTOR.GROUPTYPE)[keyof typeof STATEMENT.ACTOR.GROUPTYPE], actorData: any | any[] | string): void;
     name: string;
     mbox: string;
     mbox_sha1sum: string;
@@ -44,3 +44,4 @@ export default class ActorStatement {
      */
     toCSV(): string;
 }
+import { STATEMENT } from "./Ids/Statements.js";

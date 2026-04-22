@@ -3,6 +3,69 @@ import { v4 } from 'uuid';
 import axios from 'axios';
 import * as ms from 'ms';
 
+const STATEMENT = Object.freeze({
+    ACTOR: {
+        TYPES :{
+            AGENT: 'Agent',
+            GROUP: 'Group'
+        },
+        AGENTTYPE :{
+            MBOX: "mbox",
+            MBOX_SHA1SUM: "mbox_sha1sum",
+            OPENID: "openid",
+            ACCOUNT: "account"
+        },    
+        GROUPTYPE :{
+            NAME: "name",
+            MEMBER: "member"
+        }
+    },
+
+    CONTEXT: {
+        ACTIVITIES: {
+            PARENT: "parent",
+            GROUPING: "grouping",
+            CATEGORY: "category",
+            OTHER: "other"
+        }
+    },
+
+    RESULT: {
+        SCORE: {
+            RAW: "raw",
+            MIN: "min",
+            MAX: "max",
+            SCALED: "scaled"
+        },
+        SUCCESS: "success",
+        COMPLETION: "completion",
+        RESPONSE: "response",
+        DURATION: "duration",
+        PROGRESS: "progress"
+    },
+    INTERACTIONOBJECT: {
+        INTERACTIONTYPES: {
+            TRUE_FALSE: "true-false",
+            CHOICE: "choice",
+            FILL_IN: "fill-in",
+            LONG_FILL_IN: "long-fill-in",
+            MATCHING: "matching",
+            PERFORMANCE: "performance",
+            SEQUENCING: "sequencing",
+            LIKERT: "likert",
+            NUMERIC: "numeric",
+            OTHER: "other"
+        },
+        INTERACTIONCOMPONENTS: {
+            CHOICE: ["choices"],
+            SEQUENCING: ["choices"],
+            LIKERT: ["scale"],
+            MATCHING: ["source", "target"],
+            PERFORMANCE: ["steps"]
+        }
+    }
+});
+
 /**
  * Actor Class of a Statement (xAPI Agent or Group)
  */
@@ -19,21 +82,30 @@ class ActorStatement {
      *  - member: ActorStatement[] (for Group)
      */
     constructor(options = {}) {
-        this.objectType = options.objectType || "Agent";
-        for (const key of ["name", "mbox", "mbox_sha1sum", "openid", "account", "member"]) {
-            this.setActor(key, options[key]);
+        for (const key of [STATEMENT.ACTOR.AGENTTYPE.MBOX, STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM, STATEMENT.ACTOR.AGENTTYPE.OPENID, STATEMENT.ACTOR.AGENTTYPE.ACCOUNT]) {
+            if (options[key]) {
+                this.objectType = STATEMENT.ACTOR.TYPES.AGENT;
+                this.setActor(key, options[key]);
+                break; // Only one of these should be set for an Agent
+            }
+        }
+        for (const key of [STATEMENT.ACTOR.GROUPTYPE.NAME, STATEMENT.ACTOR.GROUPTYPE.MEMBER]) {
+            if (options[key]) {
+                this.objectType = STATEMENT.ACTOR.TYPES.GROUP;
+                this.setActor(key, options[key]);
+            }
         }
     }
 
     /**
      * Set actor properties with validation
-     * @param {String} type - one of name, mbox, mbox_sha1sum, openid, account, member
+     * @param {typeof STATEMENT.ACTOR.AGENTTYPE[keyof typeof STATEMENT.ACTOR.AGENTTYPE]|typeof STATEMENT.ACTOR.GROUPTYPE[keyof typeof STATEMENT.ACTOR.GROUPTYPE]} type - one of name, mbox, mbox_sha1sum, openid, account, member
      * @param {Object|Array|String} actorData - data for the specified type
      */
     setActor(type, actorData) {
         switch (type) {
-            case "name":
-                if (this.objectType === "Agent") {
+            case STATEMENT.ACTOR.GROUPTYPE.NAME:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.AGENT) {
                     throw new Error("Agent cannot have a name, only mbox, mbox_sha1sum, openid, or account");
                 }
                 if (typeof actorData !== "string") {
@@ -41,8 +113,8 @@ class ActorStatement {
                 }
                 this.name = actorData;
                 break;
-            case "mbox":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.MBOX:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have mbox, mbox_sha1sum, openid, or account, only a name");
                 }
                 if (typeof actorData !== "string") {
@@ -51,8 +123,8 @@ class ActorStatement {
 
                 this.mbox = actorData;
                 break;
-            case "mbox_sha1sum":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have mbox_sha1sum");
                 }
                 if (typeof actorData !== "string") {
@@ -60,8 +132,8 @@ class ActorStatement {
                 }
                 this.mbox_sha1sum = actorData;
                 break;
-            case "openid":
-                if (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.OPENID:
+                if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have openid");
                 }
                 if (typeof actorData !== "string") {
@@ -69,8 +141,8 @@ class ActorStatement {
                 }
                 this.openid = actorData;
                 break;
-            case "account":
-                if  (this.objectType === "Group") {
+            case STATEMENT.ACTOR.AGENTTYPE.ACCOUNT:
+                if  (this.objectType === STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Group cannot have account");
                 }
                 if (typeof actorData !== "object" || typeof actorData.homePage !== "string" || typeof actorData.name !== "string") {
@@ -78,8 +150,8 @@ class ActorStatement {
                 }
                 this.account = actorData;
                 break;
-            case "member":
-                if (this.objectType !== "Group") {
+            case STATEMENT.ACTOR.GROUPTYPE.MEMBER:
+                if (this.objectType !== STATEMENT.ACTOR.TYPES.GROUP) {
                     throw new Error("Only Group can have members");
                 }
                 if (!Array.isArray(actorData)) {
@@ -123,7 +195,7 @@ class ActorStatement {
         else if (this.openid) obj.openid = this.openid;
         else if (this.account) obj.account = this.account;
         // Group: add member if present
-        if (this.objectType === "Group" && Array.isArray(this.member)) {
+        if (this.objectType === STATEMENT.ACTOR.TYPES.GROUP && Array.isArray(this.member)) {
             obj.member = this.member.map(m => (typeof m.toXAPI === 'function' ? m.toXAPI() : m));
         }
         return obj;
@@ -174,6 +246,2074 @@ function isUri(id) {
     return pattern.test(id);
 }
 
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ACADEMICASSESSMENTPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/academic-assessment/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ACROSSXPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/acrossx/v/2',
+    VERBS: {
+        ANNOTATED: 'https://w3id.org/xapi/acrossx/verbs/annotated',
+        DESIGNED: 'https://w3id.org/xapi/acrossx/verbs/designed',
+        DISLIKED: 'https://w3id.org/xapi/acrossx/verbs/disliked',
+        EDITED: 'https://w3id.org/xapi/acrossx/verbs/edited',
+        EVALUATED: 'https://w3id.org/xapi/acrossx/verbs/evaluated',
+        LIKED: 'https://w3id.org/xapi/acrossx/verbs/liked',
+        POSTED: 'https://w3id.org/xapi/acrossx/verbs/posted',
+        REPORTED: 'https://w3id.org/xapi/acrossx/verbs/reported',
+        REVEALED: 'https://w3id.org/xapi/acrossx/verbs/revealed',
+        SEARCHED: 'https://w3id.org/xapi/acrossx/verbs/searched',
+        WAS_ASSIGNED: 'https://w3id.org/xapi/acrossx/verbs/was-assigned',
+        WATCHED: 'https://w3id.org/xapi/acrossx/verbs/watched',
+    },
+    ACTIVITYTYPES: {
+        COLLABORATION: 'https://w3id.org/xapi/acrossx/activities/collaboration',
+        E_BOOK: 'https://w3id.org/xapi/acrossx/activities/e-book',
+        FACE_TO_FACE_DISCUSSION: 'https://w3id.org/xapi/acrossx/activities/face-to-face-discussion',
+        INSTANT_RESPONSE_SYSTEM: 'https://w3id.org/xapi/acrossx/activities/instant-response-system',
+        LEARNING_PLAN: 'https://w3id.org/xapi/acrossx/activities/learning-plan',
+        MESSAGE: 'https://w3id.org/xapi/acrossx/activities/message',
+        NOTE: 'https://w3id.org/xapi/acrossx/activities/note',
+        ONLINE_DISCUSSION: 'https://w3id.org/xapi/acrossx/activities/online-discussion',
+        PAGE: 'https://w3id.org/xapi/acrossx/activities/page',
+        PRINTED_ASSESSMENT: 'https://w3id.org/xapi/acrossx/activities/printed-assessment',
+        PRINTED_BOOK: 'https://w3id.org/xapi/acrossx/activities/printed-book',
+        PRINTED_WORKSHEET: 'https://w3id.org/xapi/acrossx/activities/printed-worksheet',
+        SEARCH_ENGINE: 'https://w3id.org/xapi/acrossx/activities/search-engine',
+        VIDEO: 'https://w3id.org/xapi/acrossx/activities/video',
+        WEBPAGE: 'https://w3id.org/xapi/acrossx/activities/webpage',
+    },
+    ACTIVITYEXTENSION: {
+        ALIGNMENT: 'https://w3id.org/xapi/acrossx/extensions/alignment',
+        ANCHOR_TEXT: 'https://w3id.org/xapi/acrossx/extensions/anchor-text',
+        BLOOMS_LEVEL: 'https://w3id.org/xapi/acrossx/extensions/blooms-level',
+        BY_WHOM: 'https://w3id.org/xapi/acrossx/extensions/by-whom',
+        CHAPTER: 'https://w3id.org/xapi/acrossx/extensions/chapter',
+        COLUMN: 'https://w3id.org/xapi/acrossx/extensions/column',
+        FEEDBACK: 'https://w3id.org/xapi/acrossx/extensions/feedback',
+        HIGHLIGHTEDSTRING: 'https://w3id.org/xapi/acrossx/extensions/highlightedString',
+        PASS_SCORE: 'https://w3id.org/xapi/acrossx/extensions/pass-score',
+        ROW: 'https://w3id.org/xapi/acrossx/extensions/row',
+        SECTION: 'https://w3id.org/xapi/acrossx/extensions/section',
+        SUPPLEMENTAL_INFO: 'https://w3id.org/xapi/acrossx/extensions/supplemental-info',
+        TIME_LIMIT: 'https://w3id.org/xapi/acrossx/extensions/time-limit',
+        TOTAL_ITEMS: 'https://w3id.org/xapi/acrossx/extensions/total-items',
+        TOTAL_PAGES: 'https://w3id.org/xapi/acrossx/extensions/total-pages',
+        TOTAL_SCORE: 'https://w3id.org/xapi/acrossx/extensions/total-score',
+        TYPE: 'https://w3id.org/xapi/acrossx/extensions/type',
+    },
+    CONTEXTEXTENSION: {
+        MENTIONEDAGENT: 'https://w3id.org/xapi/acrossx/extensions/mentionedagent',
+        SCHOOL: 'https://w3id.org/xapi/acrossx/extensions/school',
+    },
+    RESULTEXTENSION: {
+        RUBRICS: 'https://w3id.org/xapi/acrossx/extensions/rubrics',
+        STARTING_POINT: 'https://w3id.org/xapi/acrossx/extensions/starting-point',
+        TIME: 'https://w3id.org/xapi/acrossx/extensions/time',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ACTIONABLEDATABOOKADBPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/adb/v/2',
+    VERBS: {
+        ANNOTATED: 'https://w3id.org/xapi/adb/verbs/annotated',
+        ARRIVED: 'https://w3id.org/xapi/adb/verbs/arrived',
+        ATTENDED: 'https://w3id.org/xapi/adb/verbs/attended',
+        BOOKMARKED: 'https://w3id.org/xapi/adb/verbs/bookmarked',
+        COACHED: 'https://w3id.org/xapi/adb/verbs/coached',
+        DEMANDED: 'https://w3id.org/xapi/adb/verbs/demanded',
+        DESCRIBED: 'https://w3id.org/xapi/adb/verbs/described',
+        HIGHLIGHTED: 'https://w3id.org/xapi/adb/verbs/highlighted',
+        INITIATED: 'https://w3id.org/xapi/adb/verbs/initiated',
+        NOTED: 'https://w3id.org/xapi/adb/verbs/noted',
+        READ: 'https://w3id.org/xapi/adb/verbs/read',
+        REFERENCED: 'https://w3id.org/xapi/adb/verbs/referenced',
+        REQUESTED: 'https://w3id.org/xapi/adb/verbs/requested',
+        SELECTED: 'https://w3id.org/xapi/adb/verbs/selected',
+        WATCHED: 'https://w3id.org/xapi/adb/verbs/watched',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ACTIVITYSTREAMSVOCABULARYPROFILE = Object.freeze({
+    CATEGORYID: 'http://activitystrea.ms/schema',
+    VERBS: {
+        ACCEPTED: 'http://activitystrea.ms/accept',
+        ACCESSED: 'http://activitystrea.ms/access',
+        ACKNOWLEDGED: 'http://activitystrea.ms/acknowledge',
+        ADDED: 'http://activitystrea.ms/add',
+        AGREED: 'http://activitystrea.ms/agree',
+        APPENDED: 'http://activitystrea.ms/append',
+        APPROVED: 'http://activitystrea.ms/approve',
+        ARCHIVED: 'http://activitystrea.ms/archive',
+        ASSIGNED: 'http://activitystrea.ms/assign',
+        ATTACHED: 'http://activitystrea.ms/attach',
+        ATTENDED: 'http://activitystrea.ms/attend',
+        AUTHORED: 'http://activitystrea.ms/author',
+        AUTHORIZED: 'http://activitystrea.ms/authorize',
+        BORROWED: 'http://activitystrea.ms/borrow',
+        BUILT: 'http://activitystrea.ms/build',
+        CANCELED: 'http://activitystrea.ms/cancel',
+        CHECKEDIN: 'http://activitystrea.ms/checkin',
+        CLOSED: 'http://activitystrea.ms/close',
+        COMPLETED: 'http://activitystrea.ms/complete',
+        CONFIRMED: 'http://activitystrea.ms/confirm',
+        CONSUMED: 'http://activitystrea.ms/consume',
+        CREATED: 'http://activitystrea.ms/create',
+        DELETED: 'http://activitystrea.ms/delete',
+        DELIVERED: 'http://activitystrea.ms/deliver',
+        DENIED: 'http://activitystrea.ms/deny',
+        DISAGREED: 'http://activitystrea.ms/disagree',
+        DISLIKED: 'http://activitystrea.ms/dislike',
+        EXPERIENCED: 'http://activitystrea.ms/experience',
+        FAVORITED: 'http://activitystrea.ms/favorite',
+        FLAGGED_AS_INAPPROPRIATE: 'http://activitystrea.ms/flag-as-inappropriate',
+        FOLLOWED: 'http://activitystrea.ms/follow',
+        FOUND: 'http://activitystrea.ms/find',
+        GAVE: 'http://activitystrea.ms/give',
+        HOSTED: 'http://activitystrea.ms/host',
+        IGNORED: 'http://activitystrea.ms/ignore',
+        INSERTED: 'http://activitystrea.ms/insert',
+        INSTALLED: 'http://activitystrea.ms/install',
+        INTERACTED: 'http://activitystrea.ms/interact',
+        INVITED: 'http://activitystrea.ms/invite',
+        JOINED: 'http://activitystrea.ms/join',
+        LEFT: 'http://activitystrea.ms/leave',
+        LIKED: 'http://activitystrea.ms/like',
+        LISTENED: 'http://activitystrea.ms/listen',
+        LOST: 'http://activitystrea.ms/lose',
+        MADEFRIEND: 'http://activitystrea.ms/make-friend',
+        OPENED: 'http://activitystrea.ms/open',
+        PLAYED: 'http://activitystrea.ms/play',
+        PRESENTED: 'http://activitystrea.ms/present',
+        PURCHASED: 'http://activitystrea.ms/purchase',
+        QUALIFIED: 'http://activitystrea.ms/qualify',
+        READ: 'http://activitystrea.ms/read',
+        RECEIVED: 'http://activitystrea.ms/receive',
+        REJECTED: 'http://activitystrea.ms/reject',
+        REMOVED: 'http://activitystrea.ms/remove',
+        REMOVED_FRIEND: 'http://activitystrea.ms/remove-friend',
+        REPLACED: 'http://activitystrea.ms/replace',
+        REQUESTED: 'http://activitystrea.ms/request',
+        REQUESTED_FRIEND: 'http://activitystrea.ms/request-friend',
+        RESOLVED: 'http://activitystrea.ms/resolve',
+        RETRACTED: 'http://activitystrea.ms/retract',
+        RETURNED: 'http://activitystrea.ms/return',
+        RSVP_MAYBE: 'http://activitystrea.ms/rsvp-maybe',
+        RSVP_NO: 'http://activitystrea.ms/rsvp-no',
+        RSVP_YES: 'http://activitystrea.ms/rsvp-yes',
+        SATISFIED: 'http://activitystrea.ms/satisfy',
+        SAVED: 'http://activitystrea.ms/save',
+        SCHEDULED: 'http://activitystrea.ms/schedule',
+        SEARCHED: 'http://activitystrea.ms/search',
+        SENT: 'http://activitystrea.ms/send',
+        SHARED: 'http://activitystrea.ms/share',
+        SOLD: 'http://activitystrea.ms/sell',
+        SPONSORED: 'http://activitystrea.ms/sponsor',
+        STARTED: 'http://activitystrea.ms/start',
+        STOPPED_FOLLOWING: 'http://activitystrea.ms/stop-following',
+        SUBMITTED: 'http://activitystrea.ms/submit',
+        TAGGED: 'http://activitystrea.ms/tag',
+        TERMINATED: 'http://activitystrea.ms/terminate',
+        TIED: 'http://activitystrea.ms/tie',
+        UNFAVORITED: 'http://activitystrea.ms/unfavorite',
+        UNLIKED: 'http://activitystrea.ms/unlike',
+        UNSATISFIED: 'http://activitystrea.ms/unsatisfy',
+        UNSAVED: 'http://activitystrea.ms/unsave',
+        UNSHARED: 'http://activitystrea.ms/unshare',
+        UPDATED: 'http://activitystrea.ms/update',
+        USED: 'http://activitystrea.ms/use',
+        WAS_AT: 'http://activitystrea.ms/at',
+        WATCHED: 'http://activitystrea.ms/watch',
+        WON: 'http://activitystrea.ms/win',
+    },
+    ACTIVITYTYPES: {
+        ALERT: 'http://activitystrea.ms/alert',
+        APPLICATION: 'http://activitystrea.ms/application',
+        ARTICLE: 'http://activitystrea.ms/article',
+        AUDIO: 'http://activitystrea.ms/audio',
+        BADGE: 'http://activitystrea.ms/badge',
+        BINARY: 'http://activitystrea.ms/binary',
+        BOOKMARK: 'http://activitystrea.ms/bookmark',
+        COLLECTION: 'http://activitystrea.ms/collection',
+        COMMENT: 'http://activitystrea.ms/comment',
+        DEVICE: 'http://activitystrea.ms/device',
+        EVENT: 'http://activitystrea.ms/event',
+        FILE: 'http://activitystrea.ms/file',
+        GAME: 'http://activitystrea.ms/game',
+        GROUP: 'http://activitystrea.ms/group',
+        IMAGE: 'http://activitystrea.ms/image',
+        ISSUE: 'http://activitystrea.ms/issue',
+        JOB: 'http://activitystrea.ms/job',
+        NOTE: 'http://activitystrea.ms/note',
+        OFFER: 'http://activitystrea.ms/offer',
+        ORGANIZATION: 'http://activitystrea.ms/organization',
+        PAGE: 'http://activitystrea.ms/page',
+        PERSON: 'http://activitystrea.ms/person',
+        PLACE: 'http://activitystrea.ms/place',
+        PROCESS: 'http://activitystrea.ms/process',
+        PRODUCT: 'http://activitystrea.ms/product',
+        QUESTION: 'http://activitystrea.ms/question',
+        REVIEW: 'http://activitystrea.ms/review',
+        SERVICE: 'http://activitystrea.ms/service',
+        TASK: 'http://activitystrea.ms/task',
+        VIDEO: 'http://activitystrea.ms/video',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ADLVOCABULARYPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/adl/v/2',
+    VERBS: {
+        ANSWERED: 'http://adlnet.gov/expapi/verbs/answered',
+        ASKED: 'http://adlnet.gov/expapi/verbs/asked',
+        ATTEMPTED: 'http://adlnet.gov/expapi/verbs/attempted',
+        ATTENDED: 'http://adlnet.gov/expapi/verbs/attended',
+        COMMENTED: 'http://adlnet.gov/expapi/verbs/commented',
+        EXITED: 'http://adlnet.gov/expapi/verbs/exited',
+        EXPERIENCED: 'http://adlnet.gov/expapi/verbs/experienced',
+        IMPORTED: 'http://adlnet.gov/expapi/verbs/imported',
+        INTERACTED: 'http://adlnet.gov/expapi/verbs/interacted',
+        LAUNCHED: 'http://adlnet.gov/expapi/verbs/launched',
+        LOGGED_IN: 'https://w3id.org/xapi/adl/verbs/logged-in',
+        LOGGED_OUT: 'https://w3id.org/xapi/adl/verbs/logged-out',
+        MASTERED: 'http://adlnet.gov/expapi/verbs/mastered',
+        PREFERRED: 'http://adlnet.gov/expapi/verbs/preferred',
+        PROGRESSED: 'http://adlnet.gov/expapi/verbs/progressed',
+        REGISTERED: 'http://adlnet.gov/expapi/verbs/registered',
+        SHARED: 'http://adlnet.gov/expapi/verbs/shared',
+        VOIDED: 'http://adlnet.gov/expapi/verbs/voided',
+    },
+    ACTIVITYTYPES: {
+        FILE: 'http://adlnet.gov/expapi/activities/file',
+        LINK: 'http://adlnet.gov/expapi/activities/link',
+        MEDIA: 'http://adlnet.gov/expapi/activities/media',
+        MEETING: 'http://adlnet.gov/expapi/activities/meeting',
+        PERFORMANCE: 'http://adlnet.gov/expapi/activities/performance',
+        QUESTION: 'http://adlnet.gov/expapi/activities/question',
+        SIMULATION: 'http://adlnet.gov/expapi/activities/simulation',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const AUDIOPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/audio/v1.0',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        AUDIO: 'https://w3id.org/xapi/audio/activity-type/audio',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const BOLLPROFILE = Object.freeze({
+    CATEGORYID: 'https://ed3chain.com/xapi/boll/v/1',
+    VERBS: {
+        APPLIED: 'https://ed3chain.com/xapi/boll/verbs#applied',
+        DECLINED: 'https://ed3chain.com/xapi/boll/verbs#declined',
+        FAILED: 'https://ed3chain.com/xapi/boll/verbs#failed',
+        PASSED: 'https://ed3chain.com/xapi/boll/verbs#passed',
+        SCHOOLED: 'https://ed3chain.com/xapi/boll/verb#schooled',
+        SCORED: 'https://ed3chain.com/xapi/boll#scored',
+    },
+    ACTIVITYTYPES: {
+        CREDENTIAL: 'https://ed3chain.com/xapi/boll/activity#credential',
+        LMS_COURSE: 'http://id.tincanapi.com/activitytype/lms/course',
+        PRINTED_ASSESSMENT: 'https://ed3chain.com/xapi/boll/activity#printed-assessment',
+        PROGRAM: 'https://ed3chain.com/xapi/boll/activities#program',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        LEARNER: 'https://ed3chain.com/xapi/boll/extensions#learner',
+        LOCATION: 'https://ed3chain.com/xapi/boll/extensions#location',
+        SCHOOL: 'https://ed3chain.com/xapi/boll/extensions#school',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const CMI5PROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/cmi5/context/categories/cmi5/v/7',
+    VERBS: {
+        ABANDONED: 'https://w3id.org/xapi/adl/verbs/abandoned',
+        SATISFIED: 'https://w3id.org/xapi/adl/verbs/satisfied',
+        WAIVED: 'https://w3id.org/xapi/adl/verbs/waived',
+    },
+    ACTIVITYTYPES: {
+        BLOCK: 'https://w3id.org/xapi/cmi5/activitytype/block',
+        COURSE: 'https://w3id.org/xapi/cmi5/activitytype/course',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        LAUNCH_MODE: 'https://w3id.org/xapi/cmi5/context/extensions/launchmode',
+        LAUNCH_PARAMETERS: 'https://w3id.org/xapi/cmi5/context/extensions/launchparameters',
+        LAUNCH_URL: 'https://w3id.org/xapi/cmi5/context/extensions/launchurl',
+        MASTERY_SCORE: 'https://w3id.org/xapi/cmi5/context/extensions/masteryscore',
+        MOVE_ON: 'https://w3id.org/xapi/cmi5/context/extensions/moveon',
+        SESSION_ID: 'https://w3id.org/xapi/cmi5/context/extensions/sessionid',
+    },
+    RESULTEXTENSION: {
+        PROGRESS: 'https://w3id.org/xapi/cmi5/result/extensions/progress',
+        REASON: 'https://w3id.org/xapi/cmi5/result/extensions/reason',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const CONTENTREPOSITORYPROFILE = Object.freeze({
+    CATEGORYID: 'https://xapi.org.au/contentprofile/v/2',
+    VERBS: {
+        ADDED: 'https://xapi.org.au/contentprofile/verb/added',
+        COMMENCED: 'https://xapi.org.au/contentprofile/verb/commenced',
+        WITHDREW: 'https://xapi.org.au/contentprofile/verb/withdrew',
+    },
+    ACTIVITYTYPES: {
+        JOURNAL_ARTICLE: 'http://xapi.org.au/contentprofile/activitytype/journal_article',
+        SURVEY: 'https://xapi.org.au/contentprofile/activitytype/survey',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        ACADEMIC_TERM: 'http://xapi.org.au/contentprofile/extension/academic_term',
+        ACADEMIC_YEAR: 'http://xapi.org.au/contentprofile/extension/academic_year',
+        CITATION_INFO: 'http://xapi.org.au/contentprofile/extension/citation_info',
+        COUNT: 'https://xapi.org.au/contentprofile/extension/count',
+        COURSE_CODE: 'http://xapi.org.au/contentprofile/extension/course_code',
+        DOI: 'http://xapi.org.au/contentprofile/extension/doi',
+        ISSN: 'http://xapi.org.au/contentprofile/extension/issn',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const COREPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/core/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const DATASECURITYMODULEPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/71d1605b-b078-4494-b7b8-7f3a2b442f36/v/2',
+    VERBS: {
+        CHAPTER_INTRODUCTION_FINISHED: 'https://profiles.adlnet.gov/xapi/71d1605b-b078-4494-b7b8-7f3a2b442f36/verb/chapter_introduction',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const DODISDPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/dod-isd/v1.0',
+    VERBS: {
+        ABLED: 'https://w3id.org/xapi/dod-isd/verbs/abled',
+        ACCESSED: 'https://w3id.org/xapi/dod-isd/verbs/accessed',
+        ACCLIMATIZED: 'https://w3id.org/xapi/dod-isd/verbs/acclimatized',
+        ACCOMMODATED: 'https://w3id.org/xapi/dod-isd/verbs/accommodated',
+        ACCOMPLISHED: 'https://w3id.org/xapi/dod-isd/verbs/accomplished',
+        ACHIEVED: 'https://w3id.org/xapi/dod-isd/verbs/achieved',
+        ACKNOWLEDGED: 'https://w3id.org/xapi/dod-isd/verbs/acknowledged',
+        ACTIVATED: 'https://w3id.org/xapi/dod-isd/verbs/activated',
+        ACTUATED: 'https://w3id.org/xapi/dod-isd/verbs/actuated',
+        ADAPTED: 'https://w3id.org/xapi/dod-isd/verbs/adapted',
+        ADJUSTED: 'https://w3id.org/xapi/dod-isd/verbs/adjusted',
+        ADMINISTERED: 'https://w3id.org/xapi/dod-isd/verbs/administered',
+        ADVANCED: 'https://w3id.org/xapi/dod-isd/verbs/advanced',
+        ADVISED: 'https://w3id.org/xapi/dod-isd/verbs/advised',
+        ALERTED: 'https://w3id.org/xapi/dod-isd/verbs/alerted',
+        ALIGNED: 'https://w3id.org/xapi/dod-isd/verbs/aligned',
+        ALLOCATED: 'https://w3id.org/xapi/dod-isd/verbs/allocated',
+        ALLOWED: 'https://w3id.org/xapi/dod-isd/verbs/allowed',
+        ALTERED: 'https://w3id.org/xapi/dod-isd/verbs/altered',
+        AMBUSHED: 'https://w3id.org/xapi/dod-isd/verbs/ambushed',
+        ANALYZED: 'https://w3id.org/xapi/dod-isd/verbs/analyzed',
+        ANNOTATED: 'https://w3id.org/xapi/dod-isd/verbs/annotated',
+        ANNOUNCED: 'https://w3id.org/xapi/dod-isd/verbs/announced',
+        ANSWERED: 'https://w3id.org/xapi/dod-isd/verbs/answered',
+        APPLIED: 'https://w3id.org/xapi/dod-isd/verbs/applied',
+        APPRAISED: 'https://w3id.org/xapi/dod-isd/verbs/appraised',
+        APPRECIATED: 'https://w3id.org/xapi/dod-isd/verbs/appreciated',
+        APPROVED: 'https://w3id.org/xapi/dod-isd/verbs/approved',
+        ARCHIVED: 'https://w3id.org/xapi/dod-isd/verbs/archived',
+        ARMED: 'https://w3id.org/xapi/dod-isd/verbs/armed',
+        ARRANGED: 'https://w3id.org/xapi/dod-isd/verbs/arranged',
+        ASKED: 'https://w3id.org/xapi/dod-isd/verbs/asked',
+        ASSAULTED: 'https://w3id.org/xapi/dod-isd/verbs/assaulted',
+        ASSEMBLED: 'https://w3id.org/xapi/dod-isd/verbs/assembled',
+        ASSESSED: 'https://w3id.org/xapi/dod-isd/verbs/assessed',
+        ASSIGNED: 'https://w3id.org/xapi/dod-isd/verbs/assigned',
+        ASSISTED: 'https://w3id.org/xapi/dod-isd/verbs/assisted',
+        ASSUMED: 'https://w3id.org/xapi/dod-isd/verbs/assumed',
+        ATTACHED: 'https://w3id.org/xapi/dod-isd/verbs/attached',
+        ATTACKED: 'https://w3id.org/xapi/dod-isd/verbs/attacked',
+        ATTENDED_CLOSELY: 'https://w3id.org/xapi/dod-isd/verbs/attended-closely',
+        AUTHENTICATED: 'https://w3id.org/xapi/dod-isd/verbs/authenticated',
+        BALANCED: 'https://w3id.org/xapi/dod-isd/verbs/balanced',
+        BELIEVED: 'https://w3id.org/xapi/dod-isd/verbs/believed',
+        BREACHED: 'https://w3id.org/xapi/dod-isd/verbs/breached',
+        BRIEFED: 'https://w3id.org/xapi/dod-isd/verbs/briefed',
+        BYPASSED: 'https://w3id.org/xapi/dod-isd/verbs/bypassed',
+        CALCULATED: 'https://w3id.org/xapi/dod-isd/verbs/calculated',
+        CALIBRATED: 'https://w3id.org/xapi/dod-isd/verbs/calibrated',
+        CAMOUFLAGED: 'https://w3id.org/xapi/dod-isd/verbs/camouflaged',
+        CANCELED: 'https://w3id.org/xapi/dod-isd/verbs/canceled',
+        CARRIED: 'https://w3id.org/xapi/dod-isd/verbs/carried',
+        CATEGORIZED: 'https://w3id.org/xapi/dod-isd/verbs/categorized',
+        CAUSED: 'https://w3id.org/xapi/dod-isd/verbs/caused',
+        CENTERED: 'https://w3id.org/xapi/dod-isd/verbs/centered',
+        CHALLENGED: 'https://w3id.org/xapi/dod-isd/verbs/challenged',
+        CHANGED: 'https://w3id.org/xapi/dod-isd/verbs/changed',
+        CHARGED: 'https://w3id.org/xapi/dod-isd/verbs/charged',
+        CHECKED: 'https://w3id.org/xapi/dod-isd/verbs/checked',
+        CHOSE: 'https://w3id.org/xapi/dod-isd/verbs/chose',
+        CLASSIFIED: 'https://w3id.org/xapi/dod-isd/verbs/classified',
+        CLEANED: 'https://w3id.org/xapi/dod-isd/verbs/cleaned',
+        CLEARED: 'https://w3id.org/xapi/dod-isd/verbs/cleared',
+        CLOSED: 'https://w3id.org/xapi/dod-isd/verbs/closed',
+        COLLATED: 'https://w3id.org/xapi/dod-isd/verbs/collated',
+        COLLECTED: 'https://w3id.org/xapi/dod-isd/verbs/collected',
+        COMBINED: 'https://w3id.org/xapi/dod-isd/verbs/combined',
+        COMMANDED: 'https://w3id.org/xapi/dod-isd/verbs/commanded',
+        COMMUNICATED: 'https://w3id.org/xapi/dod-isd/verbs/communicated',
+        COMPARED: 'https://w3id.org/xapi/dod-isd/verbs/compared',
+        COMPILED: 'https://w3id.org/xapi/dod-isd/verbs/compiled',
+        COMPLETED: 'https://w3id.org/xapi/dod-isd/verbs/completed',
+        COMPLETED_ASSIGNMENT: 'https://w3id.org/xapi/dod-isd/verbs/completed-assignment',
+        COMPLIED: 'https://w3id.org/xapi/dod-isd/verbs/complied',
+        COMPOSED: 'https://w3id.org/xapi/dod-isd/verbs/composed',
+        COMPUTED: 'https://w3id.org/xapi/dod-isd/verbs/computed',
+        CONCEIVED: 'https://w3id.org/xapi/dod-isd/verbs/conceived',
+        CONCLUDED: 'https://w3id.org/xapi/dod-isd/verbs/concluded',
+        CONDENSED: 'https://w3id.org/xapi/dod-isd/verbs/condensed',
+        CONDUCTED: 'https://w3id.org/xapi/dod-isd/verbs/conducted',
+        CONFIRMED: 'https://w3id.org/xapi/dod-isd/verbs/confirmed',
+        CONJECTURED: 'https://w3id.org/xapi/dod-isd/verbs/conjectured',
+        CONNECTED: 'https://w3id.org/xapi/dod-isd/verbs/connected',
+        CONSOLIDATED: 'https://w3id.org/xapi/dod-isd/verbs/consolidated',
+        CONSTRUCTED: 'https://w3id.org/xapi/dod-isd/verbs/constructed',
+        CONTRASTED: 'https://w3id.org/xapi/dod-isd/verbs/contrasted',
+        CONTRIVED: 'https://w3id.org/xapi/dod-isd/verbs/contrived',
+        CONTROLLED: 'https://w3id.org/xapi/dod-isd/verbs/controlled',
+        CONVERTED: 'https://w3id.org/xapi/dod-isd/verbs/converted',
+        COORDINATED: 'https://w3id.org/xapi/dod-isd/verbs/coordinated',
+        CORRECTED: 'https://w3id.org/xapi/dod-isd/verbs/corrected',
+        CORRELATED: 'https://w3id.org/xapi/dod-isd/verbs/correlated',
+        COVERED: 'https://w3id.org/xapi/dod-isd/verbs/covered',
+        CREATED: 'https://w3id.org/xapi/dod-isd/verbs/created',
+        CREPT: 'https://w3id.org/xapi/dod-isd/verbs/crept',
+        CRITICIZED: 'https://w3id.org/xapi/dod-isd/verbs/criticized',
+        CROSS_CHECKED: 'https://w3id.org/xapi/dod-isd/verbs/cross-checked',
+        CROSSED: 'https://w3id.org/xapi/dod-isd/verbs/crossed',
+        DEBRIEFED: 'https://w3id.org/xapi/dod-isd/verbs/debriefed',
+        DEBUGGED: 'https://w3id.org/xapi/dod-isd/verbs/debugged',
+        DECIDED: 'https://w3id.org/xapi/dod-isd/verbs/decided',
+        DECONTAMINATED: 'https://w3id.org/xapi/dod-isd/verbs/decontaminated',
+        DEFENDED: 'https://w3id.org/xapi/dod-isd/verbs/defended',
+        DEFINED: 'https://w3id.org/xapi/dod-isd/verbs/defined',
+        DELAYED: 'https://w3id.org/xapi/dod-isd/verbs/delayed',
+        DELETED: 'https://w3id.org/xapi/dod-isd/verbs/deleted',
+        DELIVERED: 'https://w3id.org/xapi/dod-isd/verbs/delivered',
+        DEMONSTRATED: 'https://w3id.org/xapi/dod-isd/verbs/demonstrated',
+        DEPARTED: 'https://w3id.org/xapi/dod-isd/verbs/departed',
+        DEPLOYED: 'https://w3id.org/xapi/dod-isd/verbs/deployed',
+        DERIVED: 'https://w3id.org/xapi/dod-isd/verbs/derived',
+        DESCRIBED: 'https://w3id.org/xapi/dod-isd/verbs/described',
+        DESIGNATED: 'https://w3id.org/xapi/dod-isd/verbs/designated',
+        DESIGNED: 'https://w3id.org/xapi/dod-isd/verbs/designed',
+        DESTROYED: 'https://w3id.org/xapi/dod-isd/verbs/destroyed',
+        DETECTED: 'https://w3id.org/xapi/dod-isd/verbs/detected',
+        DETERMINED: 'https://w3id.org/xapi/dod-isd/verbs/determined',
+        DEVELOPED: 'https://w3id.org/xapi/dod-isd/verbs/developed',
+        DEVISED: 'https://w3id.org/xapi/dod-isd/verbs/devised',
+        DIAGNOSED: 'https://w3id.org/xapi/dod-isd/verbs/diagnosed',
+        DIAGRAMMED: 'https://w3id.org/xapi/dod-isd/verbs/diagrammed',
+        DIFFERENTIATED: 'https://w3id.org/xapi/dod-isd/verbs/differentiated',
+        DIRECTED: 'https://w3id.org/xapi/dod-isd/verbs/directed',
+        DISASSEMBLED: 'https://w3id.org/xapi/dod-isd/verbs/disassembled',
+        DISCONNECTED: 'https://w3id.org/xapi/dod-isd/verbs/disconnected',
+        DISCOVERED: 'https://w3id.org/xapi/dod-isd/verbs/discovered',
+        DISCRIMINATED: 'https://w3id.org/xapi/dod-isd/verbs/discriminated',
+        DISENGAGED: 'https://w3id.org/xapi/dod-isd/verbs/disengaged',
+        DISMANTLED: 'https://w3id.org/xapi/dod-isd/verbs/dismantled',
+        DISPATCHED: 'https://w3id.org/xapi/dod-isd/verbs/dispatched',
+        DISPLACED: 'https://w3id.org/xapi/dod-isd/verbs/displaced',
+        DISPLAYED: 'https://w3id.org/xapi/dod-isd/verbs/displayed',
+        DISPOSED: 'https://w3id.org/xapi/dod-isd/verbs/disposed',
+        DISSEMINATED: 'https://w3id.org/xapi/dod-isd/verbs/disseminated',
+        DISTINGUISHED: 'https://w3id.org/xapi/dod-isd/verbs/distinguished',
+        DISTRIBUTED: 'https://w3id.org/xapi/dod-isd/verbs/distributed',
+        DIVIDED: 'https://w3id.org/xapi/dod-isd/verbs/divided',
+        DRAFTED: 'https://w3id.org/xapi/dod-isd/verbs/drafted',
+        DREW: 'https://w3id.org/xapi/dod-isd/verbs/drew',
+        DROVE: 'https://w3id.org/xapi/dod-isd/verbs/drove',
+        DUG: 'https://w3id.org/xapi/dod-isd/verbs/dug',
+        EDITED: 'https://w3id.org/xapi/dod-isd/verbs/edited',
+        EFFECTED: 'https://w3id.org/xapi/dod-isd/verbs/effected',
+        EGRESSED: 'https://w3id.org/xapi/dod-isd/verbs/egressed',
+        ELABORATED: 'https://w3id.org/xapi/dod-isd/verbs/elaborated',
+        ELEVATED: 'https://w3id.org/xapi/dod-isd/verbs/elevated',
+        ELIMINATED: 'https://w3id.org/xapi/dod-isd/verbs/eliminated',
+        EMPLACED: 'https://w3id.org/xapi/dod-isd/verbs/emplaced',
+        EMPLOYED: 'https://w3id.org/xapi/dod-isd/verbs/employed',
+        ENCODED: 'https://w3id.org/xapi/dod-isd/verbs/encoded',
+        ENCRYPTED: 'https://w3id.org/xapi/dod-isd/verbs/encrypted',
+        ENERGIZED: 'https://w3id.org/xapi/dod-isd/verbs/energized',
+        ENFORCED: 'https://w3id.org/xapi/dod-isd/verbs/enforced',
+        ENGAGED: 'https://w3id.org/xapi/dod-isd/verbs/engaged',
+        ENSURED: 'https://w3id.org/xapi/dod-isd/verbs/ensured',
+        ENTERED: 'https://w3id.org/xapi/dod-isd/verbs/entered',
+        ESTABLISHED: 'https://w3id.org/xapi/dod-isd/verbs/established',
+        ESTIMATED: 'https://w3id.org/xapi/dod-isd/verbs/estimated',
+        EVACUATED: 'https://w3id.org/xapi/dod-isd/verbs/evacuated',
+        EVADED: 'https://w3id.org/xapi/dod-isd/verbs/evaded',
+        EVALUATED: 'https://w3id.org/xapi/dod-isd/verbs/evaluated',
+        EXCHANGED: 'https://w3id.org/xapi/dod-isd/verbs/exchanged',
+        EXECUTED: 'https://w3id.org/xapi/dod-isd/verbs/executed',
+        EXPLAINED: 'https://w3id.org/xapi/dod-isd/verbs/explained',
+        EXPRESSED: 'https://w3id.org/xapi/dod-isd/verbs/expressed',
+        EXTENDED: 'https://w3id.org/xapi/dod-isd/verbs/extended',
+        EXTRACTED: 'https://w3id.org/xapi/dod-isd/verbs/extracted',
+        FELL: 'https://w3id.org/xapi/dod-isd/verbs/fell',
+        FELT: 'https://w3id.org/xapi/dod-isd/verbs/felt',
+        FILLED_OUT: 'https://w3id.org/xapi/dod-isd/verbs/filled-out',
+        FINALIZED: 'https://w3id.org/xapi/dod-isd/verbs/finalized',
+        FIRED: 'https://w3id.org/xapi/dod-isd/verbs/fired',
+        FIT: 'https://w3id.org/xapi/dod-isd/verbs/fit',
+        FOLLOWED: 'https://w3id.org/xapi/dod-isd/verbs/followed',
+        FORMATTED: 'https://w3id.org/xapi/dod-isd/verbs/formatted',
+        FORMULATED: 'https://w3id.org/xapi/dod-isd/verbs/formulated',
+        FORWARDED: 'https://w3id.org/xapi/dod-isd/verbs/forwarded',
+        FOUND: 'https://w3id.org/xapi/dod-isd/verbs/found',
+        FUELED: 'https://w3id.org/xapi/dod-isd/verbs/fueled',
+        GAVE: 'https://w3id.org/xapi/dod-isd/verbs/gave',
+        GENERALIZED: 'https://w3id.org/xapi/dod-isd/verbs/generalized',
+        GENERATED: 'https://w3id.org/xapi/dod-isd/verbs/generated',
+        GROUNDED: 'https://w3id.org/xapi/dod-isd/verbs/grounded',
+        GROUPED: 'https://w3id.org/xapi/dod-isd/verbs/grouped',
+        GUARDED: 'https://w3id.org/xapi/dod-isd/verbs/guarded',
+        GUIDED: 'https://w3id.org/xapi/dod-isd/verbs/guided',
+        HARDENED: 'https://w3id.org/xapi/dod-isd/verbs/hardened',
+        HEARD: 'https://w3id.org/xapi/dod-isd/verbs/heard',
+        HELD: 'https://w3id.org/xapi/dod-isd/verbs/held',
+        HOISTED: 'https://w3id.org/xapi/dod-isd/verbs/hoisted',
+        HOVERED: 'https://w3id.org/xapi/dod-isd/verbs/hovered',
+        HYPOTHESIZED: 'https://w3id.org/xapi/dod-isd/verbs/hypothesized',
+        IDENTIFIED: 'https://w3id.org/xapi/dod-isd/verbs/identified',
+        ILLUSTRATED: 'https://w3id.org/xapi/dod-isd/verbs/illustrated',
+        IMAGINED: 'https://w3id.org/xapi/dod-isd/verbs/imagined',
+        IMPLEMENTED: 'https://w3id.org/xapi/dod-isd/verbs/implemented',
+        INDICATED: 'https://w3id.org/xapi/dod-isd/verbs/indicated',
+        INFERRED: 'https://w3id.org/xapi/dod-isd/verbs/inferred',
+        INFILTRATED: 'https://w3id.org/xapi/dod-isd/verbs/infiltrated',
+        INFLUENCED: 'https://w3id.org/xapi/dod-isd/verbs/influenced',
+        INFORMED: 'https://w3id.org/xapi/dod-isd/verbs/informed',
+        INITIALIZED: 'https://w3id.org/xapi/dod-isd/verbs/initialized',
+        INITIATED: 'https://w3id.org/xapi/dod-isd/verbs/initiated',
+        INNOVATED: 'https://w3id.org/xapi/dod-isd/verbs/innovated',
+        INPUT: 'https://w3id.org/xapi/dod-isd/verbs/input',
+        INSERTED: 'https://w3id.org/xapi/dod-isd/verbs/inserted',
+        INSPECTED: 'https://w3id.org/xapi/dod-isd/verbs/inspected',
+        INSTALLED: 'https://w3id.org/xapi/dod-isd/verbs/installed',
+        INSTRUCTED: 'https://w3id.org/xapi/dod-isd/verbs/instructed',
+        INTEGRATED: 'https://w3id.org/xapi/dod-isd/verbs/integrated',
+        INTERCEPTED: 'https://w3id.org/xapi/dod-isd/verbs/intercepted',
+        INTERPRETED: 'https://w3id.org/xapi/dod-isd/verbs/interpreted',
+        INVENTED: 'https://w3id.org/xapi/dod-isd/verbs/invented',
+        INVESTIGATED: 'https://w3id.org/xapi/dod-isd/verbs/investigated',
+        ISOLATED: 'https://w3id.org/xapi/dod-isd/verbs/isolated',
+        ISSUED: 'https://w3id.org/xapi/dod-isd/verbs/issued',
+        JACKED: 'https://w3id.org/xapi/dod-isd/verbs/jacked',
+        JUDGED: 'https://w3id.org/xapi/dod-isd/verbs/judged',
+        JUSTIFIED: 'https://w3id.org/xapi/dod-isd/verbs/justified',
+        LABELED: 'https://w3id.org/xapi/dod-isd/verbs/labeled',
+        LAID: 'https://w3id.org/xapi/dod-isd/verbs/laid',
+        LANDED: 'https://w3id.org/xapi/dod-isd/verbs/landed',
+        LAUNCHED: 'https://w3id.org/xapi/dod-isd/verbs/launched',
+        LED: 'https://w3id.org/xapi/dod-isd/verbs/led',
+        LEVELED: 'https://w3id.org/xapi/dod-isd/verbs/leveled',
+        LIFTED: 'https://w3id.org/xapi/dod-isd/verbs/jumped',
+        LISTED: 'https://w3id.org/xapi/dod-isd/verbs/listed',
+        LISTENED: 'https://w3id.org/xapi/dod-isd/verbs/listened',
+        LISTENED_ATTENTIVELY: 'https://w3id.org/xapi/dod-isd/verbs/listened-attentively',
+        LOADED: 'https://w3id.org/xapi/dod-isd/verbs/loaded',
+        LOCATED: 'https://w3id.org/xapi/dod-isd/verbs/located',
+        LOGGED: 'https://w3id.org/xapi/dod-isd/verbs/logged',
+        LUBRICATED: 'https://w3id.org/xapi/dod-isd/verbs/lubricated',
+        MADE: 'https://w3id.org/xapi/dod-isd/verbs/made',
+        MAINTAINED: 'https://w3id.org/xapi/dod-isd/verbs/maintained',
+        MANAGED: 'https://w3id.org/xapi/dod-isd/verbs/managed',
+        MANEUVERED: 'https://w3id.org/xapi/dod-isd/verbs/maneuvered',
+        MANIPULATED: 'https://w3id.org/xapi/dod-isd/verbs/manipulated',
+        MAPPED: 'https://w3id.org/xapi/dod-isd/verbs/mapped',
+        MATCHED: 'https://w3id.org/xapi/dod-isd/verbs/matched',
+        MEASURED: 'https://w3id.org/xapi/dod-isd/verbs/measured',
+        MODIFIED: 'https://w3id.org/xapi/dod-isd/verbs/modified',
+        MONITORED: 'https://w3id.org/xapi/dod-isd/verbs/monitored',
+        MOUNTED: 'https://w3id.org/xapi/dod-isd/verbs/mounted',
+        MOVED: 'https://w3id.org/xapi/dod-isd/verbs/moved',
+        NAMED: 'https://w3id.org/xapi/dod-isd/verbs/named',
+        NAVIGATED: 'https://w3id.org/xapi/dod-isd/verbs/navigated',
+        NEUTRALIZED: 'https://w3id.org/xapi/dod-isd/verbs/neutralized',
+        NOTIFIED: 'https://w3id.org/xapi/dod-isd/verbs/notified',
+        OBEYED_RULES: 'https://w3id.org/xapi/dod-isd/verbs/obeyed-rules',
+        OBSERVED: 'https://w3id.org/xapi/dod-isd/verbs/observed',
+        OBTAINED: 'https://w3id.org/xapi/dod-isd/verbs/obtained',
+        OCCUPIED: 'https://w3id.org/xapi/dod-isd/verbs/occupied',
+        OPENED: 'https://w3id.org/xapi/dod-isd/verbs/opened',
+        OPERATED: 'https://w3id.org/xapi/dod-isd/verbs/operated',
+        ORDERED: 'https://w3id.org/xapi/dod-isd/verbs/ordered',
+        ORGANIZED: 'https://w3id.org/xapi/dod-isd/verbs/organized',
+        ORIENTED: 'https://w3id.org/xapi/dod-isd/verbs/oriented',
+        ORIGINATED: 'https://w3id.org/xapi/dod-isd/verbs/originated',
+        OUTLINED: 'https://w3id.org/xapi/dod-isd/verbs/outlined',
+        PACKED: 'https://w3id.org/xapi/dod-isd/verbs/packed',
+        PARKED: 'https://w3id.org/xapi/dod-isd/verbs/parked',
+        PATROLLED: 'https://w3id.org/xapi/dod-isd/verbs/patrolled',
+        PAUSED: 'https://w3id.org/xapi/dod-isd/verbs/paused',
+        PERCEIVED: 'https://w3id.org/xapi/dod-isd/verbs/perceived',
+        PERFORMED: 'https://w3id.org/xapi/dod-isd/verbs/performed',
+        PLACED: 'https://w3id.org/xapi/dod-isd/verbs/placed',
+        PLANNED: 'https://w3id.org/xapi/dod-isd/verbs/planned',
+        PLOTTED: 'https://w3id.org/xapi/dod-isd/verbs/plotted',
+        POLICED: 'https://w3id.org/xapi/dod-isd/verbs/policed',
+        POSITIONED: 'https://w3id.org/xapi/dod-isd/verbs/positioned',
+        POSTED: 'https://w3id.org/xapi/dod-isd/verbs/posted',
+        PREDICTED: 'https://w3id.org/xapi/dod-isd/verbs/predicted',
+        PREPARED: 'https://w3id.org/xapi/dod-isd/verbs/prepared',
+        PRESCRIBED: 'https://w3id.org/xapi/dod-isd/verbs/prescribed',
+        PRESSED: 'https://w3id.org/xapi/dod-isd/verbs/pressed',
+        PRESSURIZED: 'https://w3id.org/xapi/dod-isd/verbs/pressurized',
+        PREVENTED: 'https://w3id.org/xapi/dod-isd/verbs/prevented',
+        PRIMED: 'https://w3id.org/xapi/dod-isd/verbs/primed',
+        PRIORITIZED: 'https://w3id.org/xapi/dod-isd/verbs/prioritized',
+        PROCESSED: 'https://w3id.org/xapi/dod-isd/verbs/processed',
+        PROCURED: 'https://w3id.org/xapi/dod-isd/verbs/procured',
+        PRODUCED: 'https://w3id.org/xapi/dod-isd/verbs/produced',
+        PROGRAMMED: 'https://w3id.org/xapi/dod-isd/verbs/programmed',
+        PROJECTED: 'https://w3id.org/xapi/dod-isd/verbs/projected',
+        PROPOSED: 'https://w3id.org/xapi/dod-isd/verbs/proposed',
+        PROTECTED: 'https://w3id.org/xapi/dod-isd/verbs/protected',
+        PROVIDED: 'https://w3id.org/xapi/dod-isd/verbs/provided',
+        PUBLISHED: 'https://w3id.org/xapi/dod-isd/verbs/published',
+        PULLED: 'https://w3id.org/xapi/dod-isd/verbs/pulled',
+        QUALIFIED: 'https://w3id.org/xapi/dod-isd/verbs/qualified',
+        QUEUED: 'https://w3id.org/xapi/dod-isd/verbs/queued',
+        RAISED: 'https://w3id.org/xapi/dod-isd/verbs/raised',
+        RAN: 'https://w3id.org/xapi/dod-isd/verbs/ran',
+        RANGED: 'https://w3id.org/xapi/dod-isd/verbs/ranged',
+        RANKED: 'https://w3id.org/xapi/dod-isd/verbs/ranked',
+        REACHED: 'https://w3id.org/xapi/dod-isd/verbs/reached',
+        REACTED: 'https://w3id.org/xapi/dod-isd/verbs/reacted',
+        READ: 'https://w3id.org/xapi/dod-isd/verbs/read',
+        READIED: 'https://w3id.org/xapi/dod-isd/verbs/readied',
+        REALIGNED: 'https://w3id.org/xapi/dod-isd/verbs/realigned',
+        REASSESSED: 'https://w3id.org/xapi/dod-isd/verbs/reassessed',
+        RECALLED: 'https://w3id.org/xapi/dod-isd/verbs/recalled',
+        RECEIVED: 'https://w3id.org/xapi/dod-isd/verbs/received',
+        RECOGNIZED: 'https://w3id.org/xapi/dod-isd/verbs/recognized',
+        RECOMMENDED: 'https://w3id.org/xapi/dod-isd/verbs/recommended',
+        RECONCILED: 'https://w3id.org/xapi/dod-isd/verbs/reconciled',
+        RECONNOITERED: 'https://w3id.org/xapi/dod-isd/verbs/reconnoitered',
+        RECORDED: 'https://w3id.org/xapi/dod-isd/verbs/recorded',
+        RECOUNTED: 'https://w3id.org/xapi/dod-isd/verbs/recounted',
+        RECOVERED: 'https://w3id.org/xapi/dod-isd/verbs/recovered',
+        REDISTRIBUTED: 'https://w3id.org/xapi/dod-isd/verbs/redistributed',
+        REDUCED: 'https://w3id.org/xapi/dod-isd/verbs/reduced',
+        REESTABLISHED: 'https://w3id.org/xapi/dod-isd/verbs/reestablished',
+        REEXAMINED: 'https://w3id.org/xapi/dod-isd/verbs/reexamined',
+        REFUELED: 'https://w3id.org/xapi/dod-isd/verbs/refueled',
+        REGULATED: 'https://w3id.org/xapi/dod-isd/verbs/regulated',
+        RELEASED: 'https://w3id.org/xapi/dod-isd/verbs/released',
+        RELIEVED: 'https://w3id.org/xapi/dod-isd/verbs/relieved',
+        RELOCATED: 'https://w3id.org/xapi/dod-isd/verbs/relocated',
+        REMOVED: 'https://w3id.org/xapi/dod-isd/verbs/removed',
+        REORGANIZED: 'https://w3id.org/xapi/dod-isd/verbs/reorganized',
+        REPAIRED: 'https://w3id.org/xapi/dod-isd/verbs/repaired',
+        REPLACED: 'https://w3id.org/xapi/dod-isd/verbs/replaced',
+        REPLENISHED: 'https://w3id.org/xapi/dod-isd/verbs/replenished',
+        REPORTED: 'https://w3id.org/xapi/dod-isd/verbs/reported',
+        REQUESTED: 'https://w3id.org/xapi/dod-isd/verbs/requested',
+        RESET: 'https://w3id.org/xapi/dod-isd/verbs/reset',
+        RESOLVED: 'https://w3id.org/xapi/dod-isd/verbs/resolved',
+        RESPONDED: 'https://w3id.org/xapi/dod-isd/verbs/responded',
+        RESTATED: 'https://w3id.org/xapi/dod-isd/verbs/restated',
+        RESUMED: 'https://w3id.org/xapi/dod-isd/verbs/resumed',
+        RETRIEVED: 'https://w3id.org/xapi/dod-isd/verbs/retrieved',
+        RETURNED: 'https://w3id.org/xapi/dod-isd/verbs/returned',
+        REVIEWED: 'https://w3id.org/xapi/dod-isd/verbs/reviewed',
+        REVISED: 'https://w3id.org/xapi/dod-isd/verbs/revised',
+        ROTATED: 'https://w3id.org/xapi/dod-isd/verbs/rotated',
+        ROUTED: 'https://w3id.org/xapi/dod-isd/verbs/routed',
+        SAVED: 'https://w3id.org/xapi/dod-isd/verbs/saved',
+        SAW: 'https://w3id.org/xapi/dod-isd/verbs/saw',
+        SCANNED: 'https://w3id.org/xapi/dod-isd/verbs/scanned',
+        SCHEDULED: 'https://w3id.org/xapi/dod-isd/verbs/scheduled',
+        SEARCHED: 'https://w3id.org/xapi/dod-isd/verbs/searched',
+        SECURED: 'https://w3id.org/xapi/dod-isd/verbs/secured',
+        SELECTED: 'https://w3id.org/xapi/dod-isd/verbs/selected',
+        SENT: 'https://w3id.org/xapi/dod-isd/verbs/sent',
+        SEPARATED: 'https://w3id.org/xapi/dod-isd/verbs/separated',
+        SERVED: 'https://w3id.org/xapi/dod-isd/verbs/served',
+        SERVICED: 'https://w3id.org/xapi/dod-isd/verbs/serviced',
+        SET: 'https://w3id.org/xapi/dod-isd/verbs/set',
+        SET_UP: 'https://w3id.org/xapi/dod-isd/verbs/set-up',
+        SHARED: 'https://w3id.org/xapi/dod-isd/verbs/shared',
+        SHOWED: 'https://w3id.org/xapi/dod-isd/verbs/showed',
+        SHOWED_AWARENESS: 'https://w3id.org/xapi/dod-isd/verbs/showed-awareness',
+        SHOWED_SENSITIVITY: 'https://w3id.org/xapi/dod-isd/verbs/showed-sensitivity',
+        SHUT_DOWN: 'https://w3id.org/xapi/dod-isd/verbs/shut-down',
+        SIGHTED: 'https://w3id.org/xapi/dod-isd/verbs/sighted',
+        SIGNALED: 'https://w3id.org/xapi/dod-isd/verbs/signaled',
+        SMELLED: 'https://w3id.org/xapi/dod-isd/verbs/smelled',
+        SOLVED: 'https://w3id.org/xapi/dod-isd/verbs/solved',
+        SORTED: 'https://w3id.org/xapi/dod-isd/verbs/sorted',
+        SPECIFIED: 'https://w3id.org/xapi/dod-isd/verbs/specified',
+        SPLINTED: 'https://w3id.org/xapi/dod-isd/verbs/splinted',
+        SQUEEZED: 'https://w3id.org/xapi/dod-isd/verbs/squeezed',
+        STARTED: 'https://w3id.org/xapi/dod-isd/verbs/started',
+        STATED: 'https://w3id.org/xapi/dod-isd/verbs/stated',
+        STAYED: 'https://w3id.org/xapi/dod-isd/verbs/stayed',
+        STEERED: 'https://w3id.org/xapi/dod-isd/verbs/steered',
+        STOCKPILED: 'https://w3id.org/xapi/dod-isd/verbs/stockpiled',
+        STOOD_TO: 'https://w3id.org/xapi/dod-isd/verbs/stood-to',
+        STOPPED: 'https://w3id.org/xapi/dod-isd/verbs/stopped',
+        STORED: 'https://w3id.org/xapi/dod-isd/verbs/stored',
+        STOWED: 'https://w3id.org/xapi/dod-isd/verbs/stowed',
+        STRUCK: 'https://w3id.org/xapi/dod-isd/verbs/struck',
+        STUDIED: 'https://w3id.org/xapi/dod-isd/verbs/studied',
+        SUBMITTED: 'https://w3id.org/xapi/dod-isd/verbs/submitted',
+        SUMMARIZED: 'https://w3id.org/xapi/dod-isd/verbs/summarized',
+        SUPERVISED: 'https://w3id.org/xapi/dod-isd/verbs/supervised',
+        SUPPORTED: 'https://w3id.org/xapi/dod-isd/verbs/supported',
+        SUPPRESSED: 'https://w3id.org/xapi/dod-isd/verbs/suppressed',
+        SWAM: 'https://w3id.org/xapi/dod-isd/verbs/swam',
+        SWEPT: 'https://w3id.org/xapi/dod-isd/verbs/swept',
+        SYNTHESIZED: 'https://w3id.org/xapi/dod-isd/verbs/synthesized',
+        TAILORED: 'https://w3id.org/xapi/dod-isd/verbs/tailored',
+        TAPPED: 'https://w3id.org/xapi/dod-isd/verbs/tapped',
+        TASKED: 'https://w3id.org/xapi/dod-isd/verbs/tasked',
+        TASTED: 'https://w3id.org/xapi/dod-isd/verbs/tasted',
+        TEMPERED: 'https://w3id.org/xapi/dod-isd/verbs/tempered',
+        TEMPLATED: 'https://w3id.org/xapi/dod-isd/verbs/templated',
+        TESTED: 'https://w3id.org/xapi/dod-isd/verbs/tested',
+        THREW: 'https://w3id.org/xapi/dod-isd/verbs/threw',
+        TIGHTENED: 'https://w3id.org/xapi/dod-isd/verbs/tightened',
+        TOLD: 'https://w3id.org/xapi/dod-isd/verbs/told',
+        TOOK: 'https://w3id.org/xapi/dod-isd/verbs/took',
+        TOOK_CHARGE: 'https://w3id.org/xapi/dod-isd/verbs/took-charge',
+        TOOK_OFF: 'https://w3id.org/xapi/dod-isd/verbs/took-off',
+        TRACED: 'https://w3id.org/xapi/dod-isd/verbs/traced',
+        TRACKED: 'https://w3id.org/xapi/dod-isd/verbs/tracked',
+        TRAINED: 'https://w3id.org/xapi/dod-isd/verbs/trained',
+        TRANSFERRED: 'https://w3id.org/xapi/dod-isd/verbs/transferred',
+        TRANSLATED: 'https://w3id.org/xapi/dod-isd/verbs/translated',
+        TRANSMITTED: 'https://w3id.org/xapi/dod-isd/verbs/transmitted',
+        TRANSPORTED: 'https://w3id.org/xapi/dod-isd/verbs/transported',
+        TRAVERSED: 'https://w3id.org/xapi/dod-isd/verbs/traversed',
+        TREATED: 'https://w3id.org/xapi/dod-isd/verbs/treated',
+        TRIAGED: 'https://w3id.org/xapi/dod-isd/verbs/triaged',
+        TROUBLESHOT: 'https://w3id.org/xapi/dod-isd/verbs/troubleshot',
+        TUNED: 'https://w3id.org/xapi/dod-isd/verbs/tuned',
+        TURNED: 'https://w3id.org/xapi/dod-isd/verbs/turned',
+        TWISTED: 'https://w3id.org/xapi/dod-isd/verbs/twisted',
+        TYPED: 'https://w3id.org/xapi/dod-isd/verbs/typed',
+        UNLOADED: 'https://w3id.org/xapi/dod-isd/verbs/unloaded',
+        UPDATED: 'https://w3id.org/xapi/dod-isd/verbs/updated',
+        USED: 'https://w3id.org/xapi/dod-isd/verbs/used',
+        UTILIZED: 'https://w3id.org/xapi/dod-isd/verbs/utilized',
+        VALIDATED: 'https://w3id.org/xapi/dod-isd/verbs/validated',
+        VERIFIED: 'https://w3id.org/xapi/dod-isd/verbs/verified',
+        VISUALIZED: 'https://w3id.org/xapi/dod-isd/verbs/visualized',
+        WAITED: 'https://w3id.org/xapi/dod-isd/verbs/waited',
+        WAR_GAMED: 'https://w3id.org/xapi/dod-isd/verbs/war-gamed',
+        WORE: 'https://w3id.org/xapi/dod-isd/verbs/wore',
+        WROTE: 'https://w3id.org/xapi/dod-isd/verbs/wrote',
+        ZEROED: 'https://w3id.org/xapi/dod-isd/verbs/zeroed',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        CATEGORY: 'https://w3id.org/xapi/dod-isd/extensions/category',
+        INTERACTIVITY_LEVEL: 'https://w3id.org/xapi/dod-isd/extensions/interactivity-level',
+        KSA: 'https://w3id.org/xapi/dod-isd/extensions/ksa',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const EDACOURSEPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/90feff49-3709-460a-855a-0025d0b12ab7/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const EMOTIONAPIPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/4a1d0786-1de4-4941-9edc-2513b5c83a17/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {
+        AROUSAL: 'https://profiles.adlnet.gov/xapi/4a1d0786-1de4-4941-9edc-2513b5c83a17/extension/arousal',
+        VALENCE: 'https://profiles.adlnet.gov/xapi/4a1d0786-1de4-4941-9edc-2513b5c83a17/extension/valence',
+    },
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const FEEDBACKINTERACTIONPROFILE = Object.freeze({
+    CATEGORYID: 'https://xapi.com.au/profiles/feedback-interaction/v1.0/v/2',
+    VERBS: {
+        COMMENTED: 'https://w3id.org/xapi/adb/verbs/commented',
+        RATED: 'https://w3id.org/xapi/acrossx/verbs/rated',
+    },
+    ACTIVITYTYPES: {
+        FEEDBACK_INTERACTION: 'https://xapi.com.au/activities/feedback',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {
+        COMMENT_TEXT: 'https://xapi.com.au/extensions/comment-text',
+        STAR_RATING: 'https://xapi.com.au/extensions/star-rating',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const FLASHCARDSPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/flashcards/v0.1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        FLASHCARD: 'https://w3id.org/xapi/flashcards/activity-types/flashcard',
+        FLASHCARD_DECK: 'https://w3id.org/xapi/flashcards/activity-types/flashcard-deck',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const FLYINGPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/flying/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        FLIGHT_OPERATION: 'https://pttportal.af.mil/xapi/activity-type/flight-operation',
+        MANEUVER: 'https://pttportal.af.mil/xapi/activity-type/maneuver',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const GBLXAPIK12EDUCATIONAPPSPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/gblxapi/v1.0',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {
+        DIFFICULTY: 'https://w3id.org/xapi.gblxapi/extensions/difficulty',
+    },
+    CONTEXTEXTENSION: {
+        ACTION: 'https://w3id.org/xapi/gblxapi/extensions/action',
+        DOMAIN: 'https://w3id.org/xapi/gblxapi/extensions/domain',
+        FOCUS: 'https://w3id.org/xapi/gblxapi/extensions/focus',
+        GRADE: 'https://w3id.org/xapi/gblxapi/extensions/grade',
+        SKILL: 'https://w3id.org/xapi/gblxapi/extensions/skill',
+        SUBDOMAIN: 'https://w3id.org/xapi/gblxapi/extensions/subdomain',
+        TOPIC: 'https://w3id.org/xapi/gblxapi/extensions/topic',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const GENERALVOCABULARYPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/vocab/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const GEOLOCATIONPROFILE = Object.freeze({
+    CATEGORYID: 'https://xapi.org.au/geolocationprofile/v/1',
+    VERBS: {
+        CHECKED_IN: 'https://xapi.org.au/geolocationprofileprofile/verb/checkedin/',
+        CHECKED_OUT: 'https://xapi.org.au/geolocationprofileprofile/verb/checkedout/',
+        FINISHED: 'https://xapi.org.au/geolocationprofileprofile/verb/finished',
+    },
+    ACTIVITYTYPES: {
+        PLACE: 'https://xapi.org.au/geolocationprofileprofile/activity/place',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const GROUNDTRAININGPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/ground-training/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        GROUND_TRAINING_ASSESSMENT: 'https://pttportal.af.mil/xapi/activity-type/ground-training-assessment',
+        GROUND_TRAINING_LESSON: 'https://pttportal.af.mil/xapi/activity-type/ground-training-lesson',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const HROPENASSESSMENTSPROFILE = Object.freeze({
+    CATEGORYID: 'http://profiles.usalearning.net/xapi/043b24b4-4389-435f-b052-805fd5563166/v/2',
+    VERBS: {
+        CHOOSE: 'https://w3id.org/xapi/hros-asessment/verbs/chooses',
+        DESIGNED: 'https://w3id.org/xapi/hros-asessment/verbs/designed',
+        EMULATED: 'https://w3id.org/xapi/hros-asessment/verbs/emulated',
+        PERFORMED: 'https://w3id.org/xapi/hros-asessment/verbs/performed',
+        RECORDED: 'https://w3id.org/xapi/hros-asessment/verbs/recorded',
+        SELECTED: 'https://w3id.org/xapi/hros-asessment/verbs/selected',
+        SIMULATED: 'https://w3id.org/xapi/hros-asessment/verbs/simulated',
+        SOLVED: 'https://w3id.org/xapi/HROSAsessment/v1.0/verbs/solved',
+        SOLVED_2: 'https://w3id.org/xapi/hros-asessment/verbs/solved',
+        WROTE: 'https://w3id.org/xapi/hros-asessment/verbs/writes',
+    },
+    ACTIVITYTYPES: {
+        AUDIO: 'https://w3id.org/xapi/hros-asessment/activitytypes/audio',
+        CODE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/codeassessment',
+        FIELD_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/fieldassessment',
+        LEADERSHIP_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/leadershipassessment',
+        PERSONALITY_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/personalityassessment',
+        POLICE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/policeassessment',
+        PSYCHOMETRIC_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/psychometricassessment',
+        VIRTUAL_REALITY_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/vrassessment',
+        WORK_SAMPLE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/worksampleassessment',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const HYFLEXCLASSROOMPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/v/2',
+    VERBS: {
+        DRWAING: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/verb/drawing',
+        KICK: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/verb/kick',
+        PROOFREAD: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/verb/proofread',
+        RECORD_VIDEO: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/verb/record',
+        REVISE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/verb/revise',
+    },
+    ACTIVITYTYPES: {
+        CLASS_SECTION: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/class-section',
+        CONCENTRATION: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/concentration',
+        FEEDBACK_ON_CLASS: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/feedback',
+        HIGHLIGHT_VIDEO: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/highlight-video',
+        PHOTO: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/photo',
+        SECOND_DEVICE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/second-device',
+        SPEAK: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/speak',
+        WHISPER: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/activitytype/whisper',
+    },
+    ACTIVITYEXTENSION: {
+        TYPE_OF_QUIZ: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/type-of-quiz',
+    },
+    CONTEXTEXTENSION: {
+        CLASSROOM_SUBJECT: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/classroom-subject',
+        LEARNING_TOOL: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/learning-tool',
+        PARTICIPATION_MODE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/participation-mode',
+    },
+    RESULTEXTENSION: {
+        ACCURACY_RATE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/accuracy-rate',
+        PROGRESS_RATE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/progress-rate',
+        SATISFACTION_SCORE: 'https://profiles.adlnet.gov/xapi/45ffd9b1-dcd2-4cee-87e1-5de83d5159c0/extension/satisfaction-score',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE = Object.freeze({
+    CATEGORYID: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/v/9',
+    VERBS: {
+        RETURNED_LTI: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/verb/returned-lti',
+        USED_LTI: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/verb/lti-used',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        FEDERATED_SESSION_ID: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/extension/federated-session-id',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const INITIALIZEDHHINITPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/b0085953-4e4e-4429-ba4e-afd6746095c4/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const LANGUAGEEXPERIMENTPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/langexperiment/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const LEARNINGMANAGEMENTSYSTEMPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/lms/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        ENDING_DATE: 'https://w3id.org/xapi/lms/extensions/ending-date',
+        ROLE: 'https://w3id.org/xapi/lms/extensions/role',
+        STARTING_DATE: 'https://w3id.org/xapi/lms/extensions/starting-date',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const TLAPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/tla/v/4',
+    VERBS: {
+        APPRAISED: 'https://w3id.org/xapi/tla/verbs/appraised',
+        APPROVED: 'https://w3id.org/xapi/tla/verbs/approved',
+        ASSERTED: 'https://w3id.org/xapi/tla/verbs/asserted',
+        ASSESSED: 'https://w3id.org/xapi/tla/verbs/assessed',
+        ATTENDED: 'https://w3id.org/xapi/tla/verbs/attended',
+        CAPTURED: 'https://w3id.org/xapi/tla/verbs/captured',
+        CERTIFIED: 'https://w3id.org/xapi/tla/verbs/certified',
+        CLARIFIED: 'https://w3id.org/xapi/tla/verbs/clarified',
+        CONFERRED: 'https://w3id.org/xapi/tla/verbs/conferred',
+        CONTEXTUALIZED: 'https://w3id.org/xapi/tla/verbs/contextualized',
+        DESELECTED: 'https://w3id.org/xapi/tla/verbs/deselected',
+        DETAILED: 'https://w3id.org/xapi/tla/verbs/detailed',
+        DIRECTED: 'https://w3id.org/xapi/tla/verbs/directed',
+        EMPLOYED: 'https://w3id.org/xapi/tla/verbs/employed',
+        EVALUATED: 'https://w3id.org/xapi/tla/verbs/evaluated',
+        EXPERIENCED: 'https://w3id.org/xapi/tla/verbs/experienced',
+        EXPLORED: 'https://w3id.org/xapi/tla/verbs/explored',
+        INFERRED: 'https://w3id.org/xapi/tla/verbs/inferred',
+        LOCATED: 'https://w3id.org/xapi/tla/verbs/located',
+        MASTERED: 'https://w3id.org/xapi/tla/verbs/mastered',
+        MOBILIZED: 'https://w3id.org/xapi/tla/verbs/mobilized',
+        ORGANIZED: 'https://w3id.org/xapi/tla/verbs/organized',
+        PLANNED: 'https://w3id.org/xapi/tla/verbs/planned',
+        PRIORITIZED: 'https://w3id.org/xapi/tla/verbs/prioritized',
+        PROJECTED: 'https://w3id.org/xapi/tla/verbs/projected',
+        PROMOTED: 'https://w3id.org/xapi/tla/verbs/promoted',
+        QUALIFIED: 'https://w3id.org/xapi/tla/verbs/qualified',
+        RECOMMENDED: 'https://w3id.org/xapi/tla/verbs/recommended',
+        RECRUITED: 'https://w3id.org/xapi/tla/verbs/recruited',
+        REGISTERED: 'https://w3id.org/xapi/tla/verbs/registered',
+        RELEASED: 'https://w3id.org/xapi/tla/verbs/released',
+        RESTRICTED: 'https://w3id.org/xapi/tla/verbs/restricted',
+        RESUMED: 'https://w3id.org/xapi/tla/verbs/resumed',
+        SCHEDULED: 'https://w3id.org/xapi/tla/verbs/scheduled',
+        SCHOOLED: 'https://w3id.org/xapi/tla/verbs/schooled',
+        SCORED: 'https://w3id.org/xapi/tla/verbs/scored',
+        SCREENED: 'https://w3id.org/xapi/tla/verbs/screened',
+        SELECTED: 'https://w3id.org/xapi/tla/verbs/selected',
+        SOCIALIZED: 'https://w3id.org/xapi/tla/verbs/socialized',
+        SURVEYED: 'https://w3id.org/xapi/tla/verbs/surveyed',
+        SUSPENDED: 'https://w3id.org/xapi/tla/verbs/suspended',
+        TRACKED: 'https://w3id.org/xapi/tla/verbs/tracked',
+        TRANSITIONED: 'https://w3id.org/xapi/tla/verbs/transitioned',
+        VALIDATED: 'https://w3id.org/xapi/tla/verbs/validated',
+        VERIFIED: 'https://w3id.org/xapi/tla/verbs/verified',
+    },
+    ACTIVITYTYPES: {
+        ACTIVITY: 'https://w3id.org/xapi/tla/activity-types/activity',
+        ASSESSMENT: 'https://w3id.org/xapi/tla/activity-types/assessment',
+        BADGE: 'https://w3id.org/xapi/tla/activity-types/badge',
+        CAREER: 'https://w3id.org/xapi/tla/activity-types/career',
+        CAREER_STATE: 'https://w3id.org/xapi/tla/activity-types/career_state',
+        COMPETENCY: 'https://w3id.org/xapi/tla/activity-types/competency',
+        CONTENT_SET: 'https://w3id.org/xapi/tla/activity-types/content_set',
+        CREDENTIAL: 'https://w3id.org/xapi/tla/activity-types/credential',
+        JOB_DUTY_GIG: 'https://w3id.org/xapi/tla/activity-types/job_duty_gig',
+    },
+    ACTIVITYEXTENSION: {
+        INSTANCE: 'https://w3id.org/xapi/tla/extensions/instance',
+    },
+    CONTEXTEXTENSION: {
+        CONFIDENCE: 'https://w3id.org/xapi/tla/extensions/confidence',
+        DEP: 'https://w3id.org/xapi/tla/extensions/DEP',
+        DUE_DATE: 'https://w3id.org/xapi/tla/extensions/due_date',
+        EVIDENCE: 'https://w3id.org/xapi/tla/extensions/evidence',
+        EXPIRATION: 'https://w3id.org/xapi/tla/extensions/expiration',
+        LOCATION: 'https://w3id.org/xapi/tla/extensions/location',
+        PERMANENT_CHANGE_OF_STATION: 'https://w3id.org/xapi/tla/extensions/permanent_change_of_station',
+        REASON: 'https://w3id.org/xapi/tla/extensions/reason',
+        RESTRICTION_REASON: 'https://w3id.org/xapi/tla/extensions/restriction',
+        UNIT_IDENTIFICATION_CODE: 'https://w3id.org/xapi/tla/extensions/unit_identification_code',
+    },
+    RESULTEXTENSION: {
+        RECOMMENDATION_ORDER: 'https://w3id.org/xapi/tla/extensions/recommendation_order',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const NAVYASSESSMENTPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/netc-assessment/v/3',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {
+        EXTENDED_INTERACTION_TYPE: 'https://w3id.org/xapi/netc-assessment/extensions/activity/extended-interaction-type',
+        INTERACTION_ID_NUMBER: 'https://w3id.org/xapi/netc-assessment/extensions/activity/id-number',
+    },
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {
+        RESPONSE_EXPLANATION: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-explanation',
+        RESPONSE_TYPE: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const NAVYCOMMONREFERENCEPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/netc/v/3',
+    VERBS: {
+        ACCESSED: 'https://w3id.org/xapi/netc/verbs/accessed',
+        CLOSED: 'https://w3id.org/xapi/netc/verbs/closed',
+        OPENED: 'https://w3id.org/xapi/netc/verbs/opened',
+        PRINTED: 'https://w3id.org/xapi/netc/verbs/printed',
+        UPLOADED: 'https://w3id.org/xapi/netc/verbs/uploaded',
+    },
+    ACTIVITYTYPES: {
+        MENU: 'https://w3id.org/xapi/netc/activity-types/menu',
+        MENU_ITEM: 'https://w3id.org/xapi/netc/activity-types/menu-item',
+        ORGANIZATION: 'https://w3id.org/xapi/netc/activity-types/organization',
+    },
+    ACTIVITYEXTENSION: {
+        COA_ID: 'https://w3id.org/xapi/netc/extensions/coa-id',
+        RESOURCE_URL: 'https://w3id.org/xapi/netc/extensions/resource-url',
+        TARGET_AUDIENCE: 'https://w3id.org/xapi/netc/extensions/target-audience',
+        TARGET_RATING: 'https://w3id.org/xapi/netc/extensions/target-rating',
+    },
+    CONTEXTEXTENSION: {
+        COURSE_ID_NUMBER: 'https://w3id.org/xapi/netc/extensions/course-id-number',
+        FEEDBACK_TARGET: 'https://w3id.org/xapi/netc/extensions/feedback-target',
+        HULL_APPLICABILITY: 'https://w3id.org/xapi/netc/extensions/hull-applicability',
+        HULL_CONFIGURATION: 'https://w3id.org/xapi/netc/extensions/hull-configuration',
+        LAUNCH_LOCATION: 'https://w3id.org/xapi/netc/extensions/launch-location',
+        LEARNING_OBJECTIVE: 'https://w3id.org/xapi/netc/extensions/learning-objective',
+        NAVY_ENLISTED_CLASSIFICATION: 'https://w3id.org/xapi/netc/extensions/navy-enlisted-classification',
+        REFERRER_LOCATION: 'https://w3id.org/xapi/netc/extensions/referrer-location',
+        SCHOOL_CENTER: 'https://w3id.org/xapi/netc/extensions/school-center',
+        TECH_DOC_ID: 'https://w3id.org/xapi/netc/extensions/tech-doc-id',
+        TECH_DOC_PROCEDURE_ID: 'https://w3id.org/xapi/netc/extensions/tech-doc-procedure-id',
+        TECH_DOC_PROCEDURE_TITLE: 'https://w3id.org/xapi/netc/extensions/tech-doc-procedure-title',
+        USER_AGENT: 'https://w3id.org/xapi/netc/extensions/user-agent',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const NAVYELEARNINGPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/netc-e-learning/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        SECTION: 'https://w3id.org/xapi/netc-e-learning/activity-types/section',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const NELCPROFILE = Object.freeze({
+    CATEGORYID: 'http://profiles.usalearning.net/xapi/NELC/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        INSTRUCTOR: 'http://profiles.usalearning.net/xapi/NELC/extension/instructor',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const OPENEDXPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/openedx/v/5',
+    VERBS: {
+        UNREPORTED: 'https://w3id.org/xapi/openedx/verb/unreported',
+        VOTED: 'https://w3id.org/xapi/openedx/verb/voted',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        SESSION_ID: 'https://w3id.org/xapi/openedx/extension/session-id',
+        TRANSFORMER_VERSION: 'https://w3id.org/xapi/openedx/extension/transformer-version',
+    },
+    RESULTEXTENSION: {
+        SPEED_FROM: 'https://w3id.org/xapi/openedx/extension/speed-from',
+        SPEED_TO: 'https://w3id.org/xapi/openedx/extension/speed-to',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const ORPHANCONTAINERPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.usalearning.net/profiles/OrphanProfile/v/1',
+    VERBS: {
+        CHECK_OUT: 'https://xapi.org.au/geolocationprofile/verb/checkout',
+        CHECKED_IN: 'https://xapi.org.au/geolocationprofile/verb/checkin',
+        LOWERED_HAND: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/lowered-hand',
+        MUTED: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/muted',
+        RAISED_HAND: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/raised-hand',
+        SHARED_SCREEN: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/shared-screen',
+        STARTED_CAMERA: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/started-camera',
+        STOPPED_CAMERA: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/stopped-camera',
+        UNMUTED: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/unmuted',
+        UNSHARED_SCREEN: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/unshared-screen',
+    },
+    ACTIVITYTYPES: {
+        SIMULATION_SESSION: 'https://profiles.adlnet.gov/xapi/917114b6-71b4-4fcd-b6d3-892890594446/activitytype/Preflight',
+        VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activityt-types/virtual-classroom',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const PDFANNOTATORPROFILE = Object.freeze({
+    CATEGORYID: 'http://www.risc-inc.com/annotator/v1.0.',
+    VERBS: {
+        ANNOTATED: 'http://risc-inc.com/annotator/verbs/annotated',
+        MODIFIED_ANNOTATION: 'http://risc-inc.com/annotator/verbs/modified',
+    },
+    ACTIVITYTYPES: {
+        FREETEXT_ANNOTATION: 'http://www.risc-inc.com/annotator/activities/freetext',
+        HIGHLIGHTED_TEXT_ANNOTATION: 'http://risc-inc.com/annotator/activities/highlight',
+        NOTE_ANNOTATION: 'http://risc-inc.com/annotator/activities/note',
+        UNDERLINE_ANNOTATION: 'http://risc-inc.com/annotator/activities/underline',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        HIGHLIGHTED_STRING: 'http://www.risc-inc.com/annotator/extensions/highlightedString',
+        PAGE_INDEX: 'http://www.risc-inc.com/annotator/extensions/page',
+        PDF_ANNOTATION_HIGHLIGHT_COLOUR: 'http://www.risc-inc.com/annotator/extensions/color',
+        PDF_RECTANGLE_MAP: 'http://www.risc-inc.com/annotator/extensions/rects',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const PERFORMANCESUPPORTPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/performance-support/v/6',
+    VERBS: {
+        DESELECTED: 'https://w3id.org/xapi/performance-support/verbs/deselected',
+        SEARCHED: 'https://w3id.org/xapi/performance-support/verb/searched',
+        SEARCHED_2: 'https://w3id.org/xapi/performance-support/performance-support/verbs/searched',
+        SEARCHED_3: 'https://w3id.org/xapi/performance-support/verbs/searched',
+    },
+    ACTIVITYTYPES: {
+        APPLICATION: 'https://w3id.org/xapi/performance-support/performance-support/activity-types/application',
+        APPLICATION_2: 'https://w3id.org/xapi/performance-support/activity-types/application',
+        IMAGE: 'https://w3id.org/xapi/performance-support/activity-types/image',
+        PERFORMANCE_SUPPORT: 'https://w3id.org/xapi/performance-support/performance-support/activity-types/image',
+        PROCEDURE: 'https://w3id.org/xapi/performance-support/performance-support/activity-types/procedure',
+        PROCEDURE_2: 'https://w3id.org/xapi/performance-support/activity-types/procedure',
+        TASK: 'https://w3id.org/xapi/performance-support/activity-types/task',
+    },
+    ACTIVITYEXTENSION: {
+        PROCEDURE_METADATA: 'https://w3id.org/xapi/performance-support/extensions/procedure-metadata',
+        STEP_METADATA: 'https://w3id.org/xapi/performance-support/extensions/step-metadata',
+    },
+    CONTEXTEXTENSION: {
+        LAUNCH_MODE: 'https://w3id.org/xapi/performance-support/extensions/launch-mode',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SCORMPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/scorm/v/2',
+    VERBS: {
+        COMPLETED: 'http://adlnet.gov/expapi/verbs/completed',
+        FAILED: 'http://adlnet.gov/expapi/verbs/failed',
+        INITIALIZED: 'http://adlnet.gov/expapi/verbs/initialized',
+        PASSED: 'http://adlnet.gov/expapi/verbs/passed',
+        RESPONDED: 'http://adlnet.gov/expapi/verbs/responded',
+        RESUMED: 'http://adlnet.gov/expapi/verbs/resumed',
+        SCORED: 'http://adlnet.gov/expapi/verbs/scored',
+        SUSPENDED: 'http://adlnet.gov/expapi/verbs/suspended',
+        TERMINATED: 'http://adlnet.gov/expapi/verbs/terminated',
+    },
+    ACTIVITYTYPES: {
+        ASSESSMENT: 'http://adlnet.gov/expapi/activities/assessment',
+        ATTEMPT: 'http://adlnet.gov/expapi/activities/attempt',
+        CMI_INTERACTION: 'http://adlnet.gov/expapi/activities/cmi.interaction',
+        COURSE: 'http://adlnet.gov/expapi/activities/course',
+        LESSON: 'http://adlnet.gov/expapi/activities/lesson',
+        MODULE: 'http://adlnet.gov/expapi/activities/module',
+        OBJECTIVE: 'http://adlnet.gov/expapi/activities/objective',
+        PROFILE: 'http://adlnet.gov/expapi/activities/profile',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SERIOUSGAMESPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/seriousgames/v1.0',
+    VERBS: {
+        ACCESSED: 'https://w3id.org/xapi/seriousgames/verbs/accessed',
+        PRESSED: 'https://w3id.org/xapi/seriousgames/verbs/pressed',
+        RELEASED: 'https://w3id.org/xapi/seriousgames/verbs/released',
+        UNLOCKED: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
+        USED: 'https://w3id.org/xapi/seriousgames/verbs/used',
+    },
+    ACTIVITYTYPES: {
+        AREA: 'https://w3id.org/xapi/seriousgames/activity-types/area',
+        CONTROLLER: 'https://w3id.org/xapi/seriousgames/activity-types/controller',
+        CUTSCENE: 'https://w3id.org/xapi/seriousgames/activity-types/cutscene',
+        DIALOG_TREE: 'https://w3id.org/xapi/seriousgames/activity-types/dialog-tree',
+        ENEMY: 'https://w3id.org/xapi/seriousgames/activity-types/enemy',
+        ITEM: 'https://w3id.org/xapi/seriousgames/activity-types/item',
+        KEYBOARD: 'https://w3id.org/xapi/seriousgames/activity-types/keyboard',
+        LEVEL: 'https://w3id.org/xapi/seriousgames/activity-types/level',
+        MENU: 'https://w3id.org/xapi/seriousgames/activity-types/menu',
+        MOUSE: 'https://w3id.org/xapi/seriousgames/activity-types/mouse',
+        NON_PLAYER_CHARACTER: 'https://w3id.org/xapi/seriousgames/activity-types/non-player-character',
+        QUEST: 'https://w3id.org/xapi/seriousgames/activity-types/quest',
+        SCREEN: 'https://w3id.org/xapi/seriousgames/activity-types/screen',
+        SERIOUS_GAME: 'https://w3id.org/xapi/seriousgames/activity-types/serious-game',
+        TOUCHSCREEN: 'https://w3id.org/xapi/seriousgames/activity-types/touchscreen',
+        ZONE: 'https://w3id.org/xapi/seriousgames/activity-types/zone',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {
+        HEALTH: 'https://w3id.org/xapi/seriousgames/extensions/health',
+        POSITION: 'https://w3id.org/xapi/seriousgames/extensions/position',
+        PROGRESS: 'https://w3id.org/xapi/seriousgames/extensions/progress',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SIMULATIONBASEPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/simulation/v/3',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        ELEMENT_NOMENCLATURE: 'https://w3id.org/xapi/simulation/extensions/element-nomenclature',
+        ELEMENT_REF_DES: 'https://w3id.org/xapi/simulation/extensions/element-ref-des',
+        S1000D_DMC: 'https://w3id.org/xapi/simulation/extensions/s1000d-dmc',
+        S1000D_SNS: 'https://w3id.org/xapi/simulation/extensions/s1000d-sns',
+        SIMULATION_MODE: 'https://w3id.org/xapi/simulation/extensions/simulation-mode',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SOCIALMEDIAPROFILE = Object.freeze({
+    CATEGORYID: 'https://xapi.org.au/sociallearningprofile/v/2',
+    VERBS: {
+        JOINED: 'https://xapi.org.au/sociallearningprofile/joined',
+        LEFT: 'https://xapi.org.au/sociallearningprofile/left',
+        LOVED: 'https://xapi.org.au/sociallearningprofile/loved',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {
+        EMOTION: 'https://xapi.org.au/sociallearningprofile/emotion',
+    },
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SURVEYPOCPROFILE = Object.freeze({
+    CATEGORYID: 'https://profiles.adlnet.gov/xapi/9109408b-fb88-46c8-b1cd-4bc1e2f37dab/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const SYLLABUSEVENTSPROFILE = Object.freeze({
+    CATEGORYID: 'https://pttportal.af.mil/xapi/profile/syllabus-events/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        SYLLABUS_EVENT: 'https://pttportal.af.mil/xapi/activity-type/syllabus-event',
+        SYLLABUS_PHASE: 'https://pttportal.af.mil/xapi/activity-type/syllabus-phase',
+        SYLLABUS_UNIT: 'https://pttportal.af.mil/xapi/activity-type/syllabus-unit',
+        TRAINING_PROGRAM: 'https://pttportal.af.mil/xapi/activity-type/training-program',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        MEDIA_CATEGORY: 'https://pttportal.af.mil/xapi/extension/media-category',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const TASKTRAINERSIMULATIONPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/task-trainer-simulation/v/2',
+    VERBS: {
+        RECEIVED: 'https://w3id.org/xapi/task-trainer-simulation/verbs/received',
+        RESTARTED: 'https://w3id.org/xapi/task-trainer-simulation/verbs/restarted',
+        USED: 'https://w3id.org/xapi/task-trainer-simulation/verbs/used',
+    },
+    ACTIVITYTYPES: {
+        FEEDBACK_CORRECTIVE: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/feedback-corrective',
+        FEEDBACK_ERROR: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/feedback-error',
+        FEEDBACK_PERFORMANCE: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/feedback-performance',
+        FEEDBACK_SAFETY: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/feedback-safety',
+        TASK_TRAINER_DOCUMENT: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/task-trainer-document',
+        TASK_TRAINER_SCENARIO: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/task-trainer-scenario',
+        TASK_TRAINER_STEP: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/task-trainer-step',
+        TASK_TRAINER_TASK: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/task-trainer-task',
+        TASK_TRAINER_TOOL: 'https://w3id.org/xapi/task-trainer-simulation/activity-types/task-trainer-tool',
+        TEST_TEST: 'https://w3id.org/xapi/simulation/activities/test-test',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const TINCANVOCABULARYPROFILE = Object.freeze({
+    CATEGORYID: 'https://registry.tincanapi.com',
+    VERBS: {
+        ADJOURNED: 'http://id.tincanapi.com/verb/adjourned',
+        APPLAUDED: 'http://id.tincanapi.com/verb/applauded',
+        ARRANGED: 'http://id.tincanapi.com/verb/arranged',
+        BOOKMARKED: 'http://id.tincanapi.com/verb/bookmarked',
+        CALLED: 'http://id.tincanapi.com/verb/called',
+        CLOSED_SALE: 'http://id.tincanapi.com/verb/closed-sale',
+        CREATED_OPPORTUNITY: 'http://id.tincanapi.com/verb/created-opportunity',
+        DEFINED: 'http://id.tincanapi.com/verb/defined',
+        DISABLED: 'http://id.tincanapi.com/verb/disabled',
+        DISCARDED: 'http://id.tincanapi.com/verb/discarded',
+        DOWNLOADED: 'http://id.tincanapi.com/verb/downloaded',
+        EARNED: 'http://id.tincanapi.com/verb/earned',
+        ENABLED: 'http://id.tincanapi.com/verb/enabled',
+        ENTERED_FRAME: 'http://id.tincanapi.com/verb/frame/entered',
+        ESTIMATED_DURATION: 'http://id.tincanapi.com/verb/estimated-duration',
+        EXITED_FRAME: 'http://id.tincanapi.com/verb/frame/exited',
+        EXPECTED: 'http://id.tincanapi.com/verb/expected',
+        EXPIRED: 'http://id.tincanapi.com/verb/expired',
+        FOCUSED: 'http://id.tincanapi.com/verb/focused',
+        HIRED: 'http://id.tincanapi.com/verb/hired',
+        INTERVIEWED: 'http://id.tincanapi.com/verb/interviewed',
+        LAUGHED: 'http://id.tincanapi.com/verb/laughed',
+        MARKED_AS_UNREAD: 'http://id.tincanapi.com/verb/marked-unread',
+        MENTIONED: 'http://id.tincanapi.com/verb/mentioned',
+        MENTORED: 'http://id.tincanapi.com/verb/mentored',
+        PAUSED: 'http://id.tincanapi.com/verb/paused',
+        PERFORMED_OFFLINE: 'http://id.tincanapi.com/verb/performed-offline',
+        PERSONALIZED: 'http://id.tincanapi.com/verb/personalized',
+        PREVIEWED: 'http://id.tincanapi.com/verb/previewed',
+        PROMOTED: 'http://id.tincanapi.com/verb/promoted',
+        RATED: 'http://id.tincanapi.com/verb/rated',
+        REPLIED: 'http://id.tincanapi.com/verb/replied',
+        REPLIED_TO_TWEET: 'http://id.tincanapi.com/verb/replied-to-tweet',
+        REQUESTED_ATTENTION: 'http://id.tincanapi.com/verb/requested-attention',
+        RETWEETED: 'http://id.tincanapi.com/verb/retweeted',
+        REVIEWED: 'http://id.tincanapi.com/verb/reviewed',
+        SECURED: 'http://id.tincanapi.com/verb/secured',
+        SELECTED: 'http://id.tincanapi.com/verb/selected',
+        SKIPPED: 'http://id.tincanapi.com/verb/skipped',
+        TALKEDWITH: 'http://id.tincanapi.com/verb/talked-with',
+        TWEETED: 'http://id.tincanapi.com/verb/tweeted',
+        UNFOCUSED: 'http://id.tincanapi.com/verb/unfocused',
+        UNREGISTERED: 'http://id.tincanapi.com/verb/unregistered',
+        VIEWED: 'http://id.tincanapi.com/verb/viewed',
+        VOTED_DOWN: 'http://id.tincanapi.com/verb/voted-down',
+        VOTED_UP: 'http://id.tincanapi.com/verb/voted-up',
+    },
+    ACTIVITYTYPES: {
+        BLOG: 'http://id.tincanapi.com/activitytype/blog',
+        BOOK: 'http://id.tincanapi.com/activitytype/book',
+        CATEGORY: 'http://id.tincanapi.com/activitytype/category',
+        CERTIFICATE: 'https://www.opigno.org/en/tincan_registry/activity_type/certificate',
+        CHAPTER: 'http://id.tincanapi.com/activitytype/chapter',
+        CHAT_CHANNEL: 'http://id.tincanapi.com/activitytype/chat-channel',
+        CHAT_MESSAGE: 'http://id.tincanapi.com/activitytype/chat-message',
+        CHECKLIST: 'http://id.tincanapi.com/activitytype/checklist',
+        CHECKLIST_ITEM: 'http://id.tincanapi.com/activitytype/checklist-item',
+        CODE_COMMIT: 'http://id.tincanapi.com/activitytype/code-commit',
+        COMMUNITY_SITE: 'http://id.tincanapi.com/activitytype/community-site',
+        CONFERENCE: 'http://id.tincanapi.com/activitytype/conference',
+        CONFERENCE_SESSION: 'http://id.tincanapi.com/activitytype/conference-session',
+        CONFERENCE_TRACK: 'http://id.tincanapi.com/activitytype/conference-track',
+        DISCUSSION: 'http://id.tincanapi.com/activitytype/discussion',
+        DOCUMENT: 'http://id.tincanapi.com/activitytype/document',
+        DOUBT: 'http://id.tincanapi.com/activitytype/doubt',
+        EMAIL: 'http://id.tincanapi.com/activitytype/email',
+        EMBEDDED_STRATEGY: 'http://id.tincanapi.com/activitytype/strategy-embedded',
+        ESSAY: 'http://id.tincanapi.com/activitytype/essay',
+        FORUM_REPLY: 'http://id.tincanapi.com/activitytype/forum-reply',
+        FORUM_TOPIC: 'http://id.tincanapi.com/activitytype/forum-topic',
+        GOAL: 'http://id.tincanapi.com/activitytype/goal',
+        GRADE_CLASSIFICATION: 'http://www.tincanapi.co.uk/activitytypes/grade_classification',
+        LEGACY_LEARNING_STANDARD: 'http://id.tincanapi.com/activitytype/legacy-learning-standard',
+        LMS: 'http://id.tincanapi.com/activitytype/lms',
+        PARAGRAPH: 'http://id.tincanapi.com/activitytype/paragraph',
+        PLAYLIST: 'http://id.tincanapi.com/activitytype/playlist',
+        PROJECT: 'http://id.tincanapi.com/activitytype/project',
+        PROJECT_SITE: 'http://id.tincanapi.com/activitytype/project-site',
+        RESEARCH_REPORT: 'http://id.tincanapi.com/activitytype/research-report',
+        RESOURCE: 'http://id.tincanapi.com/activitytype/resource',
+        REWARD: 'http://id.tincanapi.com/activitytype/reward',
+        SALES_OPPORTUNITY: 'http://id.tincanapi.com/activitytype/sales-opportunity',
+        SCENARIO: 'http://id.tincanapi.com/activitytype/scenario',
+        SCHOOL_ASSIGNMENT: 'http://id.tincanapi.com/activitytype/school-assignment',
+        SECTION: 'http://id.tincanapi.com/activitytype/section',
+        SECURITY_ROLE: 'http://id.tincanapi.com/activitytype/security-role',
+        SIMPLE_COLLECTION: 'http://id.tincanapi.com/activitytype/collection-simple',
+        SLIDE: 'http://id.tincanapi.com/activitytype/slide',
+        SLIDE_DECK: 'http://id.tincanapi.com/activitytype/slide-deck',
+        SOLUTION: 'http://id.tincanapi.com/activitytype/solution',
+        SOURCE: 'http://id.tincanapi.com/activitytype/source',
+        STATUS_UPDATE: 'http://id.tincanapi.com/activitytype/status-update',
+        STEP: 'http://id.tincanapi.com/activitytype/step',
+        STRATEGY: 'http://id.tincanapi.com/activitytype/strategy',
+        SUBCATEGORY: 'http://id.tincanapi.com/activitytype/subcategory',
+        SUGGESTION: 'http://id.tincanapi.com/activitytype/suggestion',
+        TAG: 'http://id.tincanapi.com/activitytype/tag',
+        TEST_DATA_BATCH: 'http://id.tincanapi.com/activitytype/test-data-batch',
+        TUTOR_SESSION: 'http://id.tincanapi.com/activitytype/tutor-session',
+        TWEET: 'http://id.tincanapi.com/activitytype/tweet',
+        UNIT_TEST: 'http://id.tincanapi.com/activitytype/unit-test',
+        UNIT_TEST_SUITE: 'http://id.tincanapi.com/activitytype/unit-test-suite',
+        USER_PROFILE: 'http://id.tincanapi.com/activitytype/user-profile',
+        VOCABULARY_WORD: 'http://id.tincanapi.com/activitytype/vocabulary-word',
+        VOICEMAIL: 'http://id.tincanapi.com/activitytype/voicemail',
+        WEBINAR: 'http://id.tincanapi.com/activitytype/webinar',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        ASSESSMENT_TYPE: 'http://id.tincanapi.com/extension/assessment-type',
+        ATTEMPT_ID: 'http://id.tincanapi.com/extension/attempt-id',
+        BROWSER_INFORMATION: 'http://id.tincanapi.com/extension/browser-info',
+        CMI_INTERACTION_WEIGHTING: 'http://id.tincanapi.com/extension/cmi-interaction-weighting',
+        COLLECTION_TYPE: 'http://id.tincanapi.com/extension/collection-type',
+        COLOR: 'http://id.tincanapi.com/extension/color',
+        CONDITION_TYPE: 'http://id.tincanapi.com/extension/condition-type',
+        CONDITION_VALUE: 'http://id.tincanapi.com/extension/condition-value',
+        DATA_URI: 'http://id.tincanapi.com/extension/data-uri',
+        DATE: 'http://id.tincanapi.com/extension/date',
+        DATETIME: 'http://id.tincanapi.com/extension/datetime',
+        DROP_DOWN: 'http://id.tincanapi.com/extension/drop-down',
+        ENDING_POSITION: 'http://id.tincanapi.com/extension/ending-position',
+        FEEDBACK: 'http://id.tincanapi.com/extension/feedback',
+        GEO_JSON: 'http://id.tincanapi.com/extension/geojson',
+        INVITEE: 'http://id.tincanapi.com/extension/invitee',
+        IP_ADDRESS: 'http://id.tincanapi.com/extension/ip-address',
+        IRL: 'http://id.tincanapi.com/extension/irl',
+        ISBN: 'http://id.tincanapi.com/extension/isbn',
+        JWS_CERTIFICATE_LOCATION: 'http://id.tincanapi.com/extension/jws-certificate-location',
+        LATITUDE: 'http://id.tincanapi.com/extension/latitude',
+        LOCATION: 'http://id.tincanapi.com/extension/location',
+        LONGITUDE: 'http://id.tincanapi.com/extension/longitude',
+        MEASUREMENT: 'http://id.tincanapi.com/extension/measurement',
+        MONETARY_VALUE: 'http://id.tincanapi.com/extension/monetary-value',
+        OBSERVER: 'http://id.tincanapi.com/extension/observer',
+        PLANNED_DURATION: 'http://id.tincanapi.com/extension/planned-duration',
+        PLANNED_START_TIME: 'http://id.tincanapi.com/extension/planned-start-time',
+        POSITION: 'http://id.tincanapi.com/extension/position',
+        POWERED_BY: 'http://id.tincanapi.com/extension/powered-by',
+        PRIVATE_AREA: 'http://id.tincanapi.com/extension/private-area',
+        PUBLISHED: 'http://id.tincanapi.com/extension/published',
+        PURPOSE: 'http://id.tincanapi.com/extension/purpose',
+        REFERRER: 'http://id.tincanapi.com/extension/referrer',
+        REFLECTION: 'http://id.tincanapi.com/extension/reflection',
+        SEVERITY: 'http://id.tincanapi.com/extension/severity',
+        SHARE_MEDIUM: 'http://id.tincanapi.com/extension/share-medium',
+        STARTING_POINT: 'http://id.tincanapi.com/extension/starting-point',
+        STARTING_POSITION: 'http://id.tincanapi.com/extension/starting-position',
+        TAGS: 'http://id.tincanapi.com/extension/tags',
+        TARGET: 'http://id.tincanapi.com/extension/target',
+        TOPIC: 'http://id.tincanapi.com/extension/topic',
+        TRAINING_PROVIDER: 'http://id.tincanapi.com/extension/training-provider',
+        TWEET: 'http://id.tincanapi.com/extension/tweet',
+        UPDATED: 'http://id.tincanapi.com/extension/updated',
+    },
+    RESULTEXTENSION: {
+        ACTIONSPER_MINUTE: 'http://id.tincanapi.com/extension/apm',
+        CLASSIFICATION: 'http://www.tincanapi.co.uk/extensions/result/classification',
+        DURATION: 'http://id.tincanapi.com/extension/duration',
+        ENDING_POINT: 'http://id.tincanapi.com/extension/ending-point',
+        QUALITY_RATING: 'http://id.tincanapi.com/extension/quality-rating',
+        TETRIS_LINES: 'http://id.tincanapi.com/extension/tetris-lines',
+        TIME: 'http://id.tincanapi.com/extension/time',
+        VALID_UNTIL: 'http://id.tincanapi.com/extension/valid-until',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const VIDEOPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/video/v/2',
+    VERBS: {
+        PAUSED: 'https://w3id.org/xapi/video/verbs/paused',
+        PLAYED: 'https://w3id.org/xapi/video/verbs/played',
+        SEEKED: 'https://w3id.org/xapi/video/verbs/seeked',
+    },
+    ACTIVITYTYPES: {
+        VIDEO: 'https://w3id.org/xapi/video/activity-type/video',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        CC_SUBTITLE_ENABLED: 'https://w3id.org/xapi/video/extensions/cc-subtitle-enabled',
+        CC_SUBTITLE_LANG: 'https://w3id.org/xapi/video/extensions/cc-subtitle-lang',
+        COMPLETION_THRESHOLD: 'https://w3id.org/xapi/video/extensions/completion-threshold',
+        FRAME_RATE: 'https://w3id.org/xapi/video/extensions/frame-rate',
+        FULL_SCREEN: 'https://w3id.org/xapi/video/extensions/full-screen',
+        LENGTH: 'https://w3id.org/xapi/video/extensions/length',
+        QUALITY: 'https://w3id.org/xapi/video/extensions/quality',
+        SCREEN_SIZE: 'https://w3id.org/xapi/video/extensions/screen-size',
+        SESSION_ID: 'https://w3id.org/xapi/video/extensions/session-id',
+        SPEED: 'https://w3id.org/xapi/video/extensions/speed',
+        TRACK: 'https://w3id.org/xapi/video/extensions/track',
+        USER_AGENT: 'https://w3id.org/xapi/video/extensions/user-agent',
+        VIDEO_PLAYBACK_SIZE: 'https://w3id.org/xapi/video/extensions/video-playback-size',
+        VOLUME: 'https://w3id.org/xapi/video/extensions/volume',
+    },
+    RESULTEXTENSION: {
+        PLAYED_SEGMENTS: 'https://w3id.org/xapi/video/extensions/played-segments',
+        PROGRESS: 'https://w3id.org/xapi/video/extensions/progress',
+        TIME: 'https://w3id.org/xapi/video/extensions/time',
+        TIME_FROM: 'https://w3id.org/xapi/video/extensions/time-from',
+        TIME_TO: 'https://w3id.org/xapi/video/extensions/time-to',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const VIRTUALCLASSROOMPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/virtual-classroom/v/1',
+    VERBS: {},
+    ACTIVITYTYPES: {
+        VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activity-types/virtual-classroom',
+    },
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        CAMERA_ACTIVATED: 'https://w3id.org/xapi/virtual-classroom/extensions/camera-activated',
+        HAND_RAISED: 'https://w3id.org/xapi/virtual-classroom/extensions/hand-raised',
+        MICRO_ACTIVATED: 'https://w3id.org/xapi/virtual-classroom/extensions/micro-activated',
+        SCREEN_SHARED: 'https://w3id.org/xapi/virtual-classroom/extensions/screen-shared',
+    },
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const VIRTUALPATIENTPROFILE = Object.freeze({
+    CATEGORYID: 'https://w3id.org/xapi/virtual-patient/v1.0',
+    VERBS: {
+        IGNORED: 'https://w3id.org/xapi/medbiq/verbs/ignored',
+        UPDATED: 'https://w3id.org/xapi/medbiq/verbs/updated',
+    },
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {},
+    RESULTEXTENSION: {}
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+const XAPIOPENBADGESPROFILE = Object.freeze({
+    CATEGORYID: 'http://specification.openbadges.org/xapi',
+    VERBS: {},
+    ACTIVITYTYPES: {},
+    ACTIVITYEXTENSION: {},
+    CONTEXTEXTENSION: {
+        OPEN_BADGE_CLASS: 'http://specification.openbadges.org/xapi/extensions/badgeclass',
+    },
+    RESULTEXTENSION: {
+        OPEN_BADGE_ASSERTION: 'http://specification.openbadges.org/xapi/extensions/badgeassertion',
+    }
+});
+
+// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles
+// Do not edit manually. Re-run: npm run generate:profiles
+
+const ALL = Object.freeze({
+    CATEGORYID: Object.freeze({
+        ACADEMICASSESSMENTPROFILE: ACADEMICASSESSMENTPROFILE.CATEGORYID,
+        ACROSSXPROFILE: ACROSSXPROFILE.CATEGORYID,
+        ACTIONABLEDATABOOKADBPROFILE: ACTIONABLEDATABOOKADBPROFILE.CATEGORYID,
+        ACTIVITYSTREAMSVOCABULARYPROFILE: ACTIVITYSTREAMSVOCABULARYPROFILE.CATEGORYID,
+        ADLVOCABULARYPROFILE: ADLVOCABULARYPROFILE.CATEGORYID,
+        AUDIOPROFILE: AUDIOPROFILE.CATEGORYID,
+        BOLLPROFILE: BOLLPROFILE.CATEGORYID,
+        CMI5PROFILE: CMI5PROFILE.CATEGORYID,
+        CONTENTREPOSITORYPROFILE: CONTENTREPOSITORYPROFILE.CATEGORYID,
+        COREPROFILE: COREPROFILE.CATEGORYID,
+        DATASECURITYMODULEPROFILE: DATASECURITYMODULEPROFILE.CATEGORYID,
+        DODISDPROFILE: DODISDPROFILE.CATEGORYID,
+        EDACOURSEPROFILE: EDACOURSEPROFILE.CATEGORYID,
+        EMOTIONAPIPROFILE: EMOTIONAPIPROFILE.CATEGORYID,
+        FEEDBACKINTERACTIONPROFILE: FEEDBACKINTERACTIONPROFILE.CATEGORYID,
+        FLASHCARDSPROFILE: FLASHCARDSPROFILE.CATEGORYID,
+        FLYINGPROFILE: FLYINGPROFILE.CATEGORYID,
+        GBLXAPIK12EDUCATIONAPPSPROFILE: GBLXAPIK12EDUCATIONAPPSPROFILE.CATEGORYID,
+        GENERALVOCABULARYPROFILE: GENERALVOCABULARYPROFILE.CATEGORYID,
+        GEOLOCATIONPROFILE: GEOLOCATIONPROFILE.CATEGORYID,
+        GROUNDTRAININGPROFILE: GROUNDTRAININGPROFILE.CATEGORYID,
+        HROPENASSESSMENTSPROFILE: HROPENASSESSMENTSPROFILE.CATEGORYID,
+        HYFLEXCLASSROOMPROFILE: HYFLEXCLASSROOMPROFILE.CATEGORYID,
+        IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE: IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.CATEGORYID,
+        INITIALIZEDHHINITPROFILE: INITIALIZEDHHINITPROFILE.CATEGORYID,
+        LANGUAGEEXPERIMENTPROFILE: LANGUAGEEXPERIMENTPROFILE.CATEGORYID,
+        LEARNINGMANAGEMENTSYSTEMPROFILE: LEARNINGMANAGEMENTSYSTEMPROFILE.CATEGORYID,
+        TLAPROFILE: TLAPROFILE.CATEGORYID,
+        NAVYASSESSMENTPROFILE: NAVYASSESSMENTPROFILE.CATEGORYID,
+        NAVYCOMMONREFERENCEPROFILE: NAVYCOMMONREFERENCEPROFILE.CATEGORYID,
+        NAVYELEARNINGPROFILE: NAVYELEARNINGPROFILE.CATEGORYID,
+        NELCPROFILE: NELCPROFILE.CATEGORYID,
+        OPENEDXPROFILE: OPENEDXPROFILE.CATEGORYID,
+        ORPHANCONTAINERPROFILE: ORPHANCONTAINERPROFILE.CATEGORYID,
+        PDFANNOTATORPROFILE: PDFANNOTATORPROFILE.CATEGORYID,
+        PERFORMANCESUPPORTPROFILE: PERFORMANCESUPPORTPROFILE.CATEGORYID,
+        SCORMPROFILE: SCORMPROFILE.CATEGORYID,
+        SERIOUSGAMESPROFILE: SERIOUSGAMESPROFILE.CATEGORYID,
+        SIMULATIONBASEPROFILE: SIMULATIONBASEPROFILE.CATEGORYID,
+        SOCIALMEDIAPROFILE: SOCIALMEDIAPROFILE.CATEGORYID,
+        SURVEYPOCPROFILE: SURVEYPOCPROFILE.CATEGORYID,
+        SYLLABUSEVENTSPROFILE: SYLLABUSEVENTSPROFILE.CATEGORYID,
+        TASKTRAINERSIMULATIONPROFILE: TASKTRAINERSIMULATIONPROFILE.CATEGORYID,
+        TINCANVOCABULARYPROFILE: TINCANVOCABULARYPROFILE.CATEGORYID,
+        VIDEOPROFILE: VIDEOPROFILE.CATEGORYID,
+        VIRTUALCLASSROOMPROFILE: VIRTUALCLASSROOMPROFILE.CATEGORYID,
+        VIRTUALPATIENTPROFILE: VIRTUALPATIENTPROFILE.CATEGORYID,
+        XAPIOPENBADGESPROFILE: XAPIOPENBADGESPROFILE.CATEGORYID,
+    }),
+    VERBS: Object.freeze({
+        ...ACADEMICASSESSMENTPROFILE.VERBS,
+        ...ACROSSXPROFILE.VERBS,
+        ...ACTIONABLEDATABOOKADBPROFILE.VERBS,
+        ...ACTIVITYSTREAMSVOCABULARYPROFILE.VERBS,
+        ...ADLVOCABULARYPROFILE.VERBS,
+        ...AUDIOPROFILE.VERBS,
+        ...BOLLPROFILE.VERBS,
+        ...CMI5PROFILE.VERBS,
+        ...CONTENTREPOSITORYPROFILE.VERBS,
+        ...COREPROFILE.VERBS,
+        ...DATASECURITYMODULEPROFILE.VERBS,
+        ...DODISDPROFILE.VERBS,
+        ...EDACOURSEPROFILE.VERBS,
+        ...EMOTIONAPIPROFILE.VERBS,
+        ...FEEDBACKINTERACTIONPROFILE.VERBS,
+        ...FLASHCARDSPROFILE.VERBS,
+        ...FLYINGPROFILE.VERBS,
+        ...GBLXAPIK12EDUCATIONAPPSPROFILE.VERBS,
+        ...GENERALVOCABULARYPROFILE.VERBS,
+        ...GEOLOCATIONPROFILE.VERBS,
+        ...GROUNDTRAININGPROFILE.VERBS,
+        ...HROPENASSESSMENTSPROFILE.VERBS,
+        ...HYFLEXCLASSROOMPROFILE.VERBS,
+        ...IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.VERBS,
+        ...INITIALIZEDHHINITPROFILE.VERBS,
+        ...LANGUAGEEXPERIMENTPROFILE.VERBS,
+        ...LEARNINGMANAGEMENTSYSTEMPROFILE.VERBS,
+        ...TLAPROFILE.VERBS,
+        ...NAVYASSESSMENTPROFILE.VERBS,
+        ...NAVYCOMMONREFERENCEPROFILE.VERBS,
+        ...NAVYELEARNINGPROFILE.VERBS,
+        ...NELCPROFILE.VERBS,
+        ...OPENEDXPROFILE.VERBS,
+        ...ORPHANCONTAINERPROFILE.VERBS,
+        ...PDFANNOTATORPROFILE.VERBS,
+        ...PERFORMANCESUPPORTPROFILE.VERBS,
+        ...SCORMPROFILE.VERBS,
+        ...SERIOUSGAMESPROFILE.VERBS,
+        ...SIMULATIONBASEPROFILE.VERBS,
+        ...SOCIALMEDIAPROFILE.VERBS,
+        ...SURVEYPOCPROFILE.VERBS,
+        ...SYLLABUSEVENTSPROFILE.VERBS,
+        ...TASKTRAINERSIMULATIONPROFILE.VERBS,
+        ...TINCANVOCABULARYPROFILE.VERBS,
+        ...VIDEOPROFILE.VERBS,
+        ...VIRTUALCLASSROOMPROFILE.VERBS,
+        ...VIRTUALPATIENTPROFILE.VERBS,
+        ...XAPIOPENBADGESPROFILE.VERBS,
+    }),
+    ACTIVITYTYPES: Object.freeze({
+        ...ACADEMICASSESSMENTPROFILE.ACTIVITYTYPES,
+        ...ACROSSXPROFILE.ACTIVITYTYPES,
+        ...ACTIONABLEDATABOOKADBPROFILE.ACTIVITYTYPES,
+        ...ACTIVITYSTREAMSVOCABULARYPROFILE.ACTIVITYTYPES,
+        ...ADLVOCABULARYPROFILE.ACTIVITYTYPES,
+        ...AUDIOPROFILE.ACTIVITYTYPES,
+        ...BOLLPROFILE.ACTIVITYTYPES,
+        ...CMI5PROFILE.ACTIVITYTYPES,
+        ...CONTENTREPOSITORYPROFILE.ACTIVITYTYPES,
+        ...COREPROFILE.ACTIVITYTYPES,
+        ...DATASECURITYMODULEPROFILE.ACTIVITYTYPES,
+        ...DODISDPROFILE.ACTIVITYTYPES,
+        ...EDACOURSEPROFILE.ACTIVITYTYPES,
+        ...EMOTIONAPIPROFILE.ACTIVITYTYPES,
+        ...FEEDBACKINTERACTIONPROFILE.ACTIVITYTYPES,
+        ...FLASHCARDSPROFILE.ACTIVITYTYPES,
+        ...FLYINGPROFILE.ACTIVITYTYPES,
+        ...GBLXAPIK12EDUCATIONAPPSPROFILE.ACTIVITYTYPES,
+        ...GENERALVOCABULARYPROFILE.ACTIVITYTYPES,
+        ...GEOLOCATIONPROFILE.ACTIVITYTYPES,
+        ...GROUNDTRAININGPROFILE.ACTIVITYTYPES,
+        ...HROPENASSESSMENTSPROFILE.ACTIVITYTYPES,
+        ...HYFLEXCLASSROOMPROFILE.ACTIVITYTYPES,
+        ...IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.ACTIVITYTYPES,
+        ...INITIALIZEDHHINITPROFILE.ACTIVITYTYPES,
+        ...LANGUAGEEXPERIMENTPROFILE.ACTIVITYTYPES,
+        ...LEARNINGMANAGEMENTSYSTEMPROFILE.ACTIVITYTYPES,
+        ...TLAPROFILE.ACTIVITYTYPES,
+        ...NAVYASSESSMENTPROFILE.ACTIVITYTYPES,
+        ...NAVYCOMMONREFERENCEPROFILE.ACTIVITYTYPES,
+        ...NAVYELEARNINGPROFILE.ACTIVITYTYPES,
+        ...NELCPROFILE.ACTIVITYTYPES,
+        ...OPENEDXPROFILE.ACTIVITYTYPES,
+        ...ORPHANCONTAINERPROFILE.ACTIVITYTYPES,
+        ...PDFANNOTATORPROFILE.ACTIVITYTYPES,
+        ...PERFORMANCESUPPORTPROFILE.ACTIVITYTYPES,
+        ...SCORMPROFILE.ACTIVITYTYPES,
+        ...SERIOUSGAMESPROFILE.ACTIVITYTYPES,
+        ...SIMULATIONBASEPROFILE.ACTIVITYTYPES,
+        ...SOCIALMEDIAPROFILE.ACTIVITYTYPES,
+        ...SURVEYPOCPROFILE.ACTIVITYTYPES,
+        ...SYLLABUSEVENTSPROFILE.ACTIVITYTYPES,
+        ...TASKTRAINERSIMULATIONPROFILE.ACTIVITYTYPES,
+        ...TINCANVOCABULARYPROFILE.ACTIVITYTYPES,
+        ...VIDEOPROFILE.ACTIVITYTYPES,
+        ...VIRTUALCLASSROOMPROFILE.ACTIVITYTYPES,
+        ...VIRTUALPATIENTPROFILE.ACTIVITYTYPES,
+        ...XAPIOPENBADGESPROFILE.ACTIVITYTYPES,
+    }),
+    ACTIVITYEXTENSION: Object.freeze({
+        ...ACADEMICASSESSMENTPROFILE.ACTIVITYEXTENSION,
+        ...ACROSSXPROFILE.ACTIVITYEXTENSION,
+        ...ACTIONABLEDATABOOKADBPROFILE.ACTIVITYEXTENSION,
+        ...ACTIVITYSTREAMSVOCABULARYPROFILE.ACTIVITYEXTENSION,
+        ...ADLVOCABULARYPROFILE.ACTIVITYEXTENSION,
+        ...AUDIOPROFILE.ACTIVITYEXTENSION,
+        ...BOLLPROFILE.ACTIVITYEXTENSION,
+        ...CMI5PROFILE.ACTIVITYEXTENSION,
+        ...CONTENTREPOSITORYPROFILE.ACTIVITYEXTENSION,
+        ...COREPROFILE.ACTIVITYEXTENSION,
+        ...DATASECURITYMODULEPROFILE.ACTIVITYEXTENSION,
+        ...DODISDPROFILE.ACTIVITYEXTENSION,
+        ...EDACOURSEPROFILE.ACTIVITYEXTENSION,
+        ...EMOTIONAPIPROFILE.ACTIVITYEXTENSION,
+        ...FEEDBACKINTERACTIONPROFILE.ACTIVITYEXTENSION,
+        ...FLASHCARDSPROFILE.ACTIVITYEXTENSION,
+        ...FLYINGPROFILE.ACTIVITYEXTENSION,
+        ...GBLXAPIK12EDUCATIONAPPSPROFILE.ACTIVITYEXTENSION,
+        ...GENERALVOCABULARYPROFILE.ACTIVITYEXTENSION,
+        ...GEOLOCATIONPROFILE.ACTIVITYEXTENSION,
+        ...GROUNDTRAININGPROFILE.ACTIVITYEXTENSION,
+        ...HROPENASSESSMENTSPROFILE.ACTIVITYEXTENSION,
+        ...HYFLEXCLASSROOMPROFILE.ACTIVITYEXTENSION,
+        ...IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.ACTIVITYEXTENSION,
+        ...INITIALIZEDHHINITPROFILE.ACTIVITYEXTENSION,
+        ...LANGUAGEEXPERIMENTPROFILE.ACTIVITYEXTENSION,
+        ...LEARNINGMANAGEMENTSYSTEMPROFILE.ACTIVITYEXTENSION,
+        ...TLAPROFILE.ACTIVITYEXTENSION,
+        ...NAVYASSESSMENTPROFILE.ACTIVITYEXTENSION,
+        ...NAVYCOMMONREFERENCEPROFILE.ACTIVITYEXTENSION,
+        ...NAVYELEARNINGPROFILE.ACTIVITYEXTENSION,
+        ...NELCPROFILE.ACTIVITYEXTENSION,
+        ...OPENEDXPROFILE.ACTIVITYEXTENSION,
+        ...ORPHANCONTAINERPROFILE.ACTIVITYEXTENSION,
+        ...PDFANNOTATORPROFILE.ACTIVITYEXTENSION,
+        ...PERFORMANCESUPPORTPROFILE.ACTIVITYEXTENSION,
+        ...SCORMPROFILE.ACTIVITYEXTENSION,
+        ...SERIOUSGAMESPROFILE.ACTIVITYEXTENSION,
+        ...SIMULATIONBASEPROFILE.ACTIVITYEXTENSION,
+        ...SOCIALMEDIAPROFILE.ACTIVITYEXTENSION,
+        ...SURVEYPOCPROFILE.ACTIVITYEXTENSION,
+        ...SYLLABUSEVENTSPROFILE.ACTIVITYEXTENSION,
+        ...TASKTRAINERSIMULATIONPROFILE.ACTIVITYEXTENSION,
+        ...TINCANVOCABULARYPROFILE.ACTIVITYEXTENSION,
+        ...VIDEOPROFILE.ACTIVITYEXTENSION,
+        ...VIRTUALCLASSROOMPROFILE.ACTIVITYEXTENSION,
+        ...VIRTUALPATIENTPROFILE.ACTIVITYEXTENSION,
+        ...XAPIOPENBADGESPROFILE.ACTIVITYEXTENSION,
+    }),
+    CONTEXTEXTENSION: Object.freeze({
+        ...ACADEMICASSESSMENTPROFILE.CONTEXTEXTENSION,
+        ...ACROSSXPROFILE.CONTEXTEXTENSION,
+        ...ACTIONABLEDATABOOKADBPROFILE.CONTEXTEXTENSION,
+        ...ACTIVITYSTREAMSVOCABULARYPROFILE.CONTEXTEXTENSION,
+        ...ADLVOCABULARYPROFILE.CONTEXTEXTENSION,
+        ...AUDIOPROFILE.CONTEXTEXTENSION,
+        ...BOLLPROFILE.CONTEXTEXTENSION,
+        ...CMI5PROFILE.CONTEXTEXTENSION,
+        ...CONTENTREPOSITORYPROFILE.CONTEXTEXTENSION,
+        ...COREPROFILE.CONTEXTEXTENSION,
+        ...DATASECURITYMODULEPROFILE.CONTEXTEXTENSION,
+        ...DODISDPROFILE.CONTEXTEXTENSION,
+        ...EDACOURSEPROFILE.CONTEXTEXTENSION,
+        ...EMOTIONAPIPROFILE.CONTEXTEXTENSION,
+        ...FEEDBACKINTERACTIONPROFILE.CONTEXTEXTENSION,
+        ...FLASHCARDSPROFILE.CONTEXTEXTENSION,
+        ...FLYINGPROFILE.CONTEXTEXTENSION,
+        ...GBLXAPIK12EDUCATIONAPPSPROFILE.CONTEXTEXTENSION,
+        ...GENERALVOCABULARYPROFILE.CONTEXTEXTENSION,
+        ...GEOLOCATIONPROFILE.CONTEXTEXTENSION,
+        ...GROUNDTRAININGPROFILE.CONTEXTEXTENSION,
+        ...HROPENASSESSMENTSPROFILE.CONTEXTEXTENSION,
+        ...HYFLEXCLASSROOMPROFILE.CONTEXTEXTENSION,
+        ...IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.CONTEXTEXTENSION,
+        ...INITIALIZEDHHINITPROFILE.CONTEXTEXTENSION,
+        ...LANGUAGEEXPERIMENTPROFILE.CONTEXTEXTENSION,
+        ...LEARNINGMANAGEMENTSYSTEMPROFILE.CONTEXTEXTENSION,
+        ...TLAPROFILE.CONTEXTEXTENSION,
+        ...NAVYASSESSMENTPROFILE.CONTEXTEXTENSION,
+        ...NAVYCOMMONREFERENCEPROFILE.CONTEXTEXTENSION,
+        ...NAVYELEARNINGPROFILE.CONTEXTEXTENSION,
+        ...NELCPROFILE.CONTEXTEXTENSION,
+        ...OPENEDXPROFILE.CONTEXTEXTENSION,
+        ...ORPHANCONTAINERPROFILE.CONTEXTEXTENSION,
+        ...PDFANNOTATORPROFILE.CONTEXTEXTENSION,
+        ...PERFORMANCESUPPORTPROFILE.CONTEXTEXTENSION,
+        ...SCORMPROFILE.CONTEXTEXTENSION,
+        ...SERIOUSGAMESPROFILE.CONTEXTEXTENSION,
+        ...SIMULATIONBASEPROFILE.CONTEXTEXTENSION,
+        ...SOCIALMEDIAPROFILE.CONTEXTEXTENSION,
+        ...SURVEYPOCPROFILE.CONTEXTEXTENSION,
+        ...SYLLABUSEVENTSPROFILE.CONTEXTEXTENSION,
+        ...TASKTRAINERSIMULATIONPROFILE.CONTEXTEXTENSION,
+        ...TINCANVOCABULARYPROFILE.CONTEXTEXTENSION,
+        ...VIDEOPROFILE.CONTEXTEXTENSION,
+        ...VIRTUALCLASSROOMPROFILE.CONTEXTEXTENSION,
+        ...VIRTUALPATIENTPROFILE.CONTEXTEXTENSION,
+        ...XAPIOPENBADGESPROFILE.CONTEXTEXTENSION,
+    }),
+    RESULTEXTENSION: Object.freeze({
+        ...ACADEMICASSESSMENTPROFILE.RESULTEXTENSION,
+        ...ACROSSXPROFILE.RESULTEXTENSION,
+        ...ACTIONABLEDATABOOKADBPROFILE.RESULTEXTENSION,
+        ...ACTIVITYSTREAMSVOCABULARYPROFILE.RESULTEXTENSION,
+        ...ADLVOCABULARYPROFILE.RESULTEXTENSION,
+        ...AUDIOPROFILE.RESULTEXTENSION,
+        ...BOLLPROFILE.RESULTEXTENSION,
+        ...CMI5PROFILE.RESULTEXTENSION,
+        ...CONTENTREPOSITORYPROFILE.RESULTEXTENSION,
+        ...COREPROFILE.RESULTEXTENSION,
+        ...DATASECURITYMODULEPROFILE.RESULTEXTENSION,
+        ...DODISDPROFILE.RESULTEXTENSION,
+        ...EDACOURSEPROFILE.RESULTEXTENSION,
+        ...EMOTIONAPIPROFILE.RESULTEXTENSION,
+        ...FEEDBACKINTERACTIONPROFILE.RESULTEXTENSION,
+        ...FLASHCARDSPROFILE.RESULTEXTENSION,
+        ...FLYINGPROFILE.RESULTEXTENSION,
+        ...GBLXAPIK12EDUCATIONAPPSPROFILE.RESULTEXTENSION,
+        ...GENERALVOCABULARYPROFILE.RESULTEXTENSION,
+        ...GEOLOCATIONPROFILE.RESULTEXTENSION,
+        ...GROUNDTRAININGPROFILE.RESULTEXTENSION,
+        ...HROPENASSESSMENTSPROFILE.RESULTEXTENSION,
+        ...HYFLEXCLASSROOMPROFILE.RESULTEXTENSION,
+        ...IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE.RESULTEXTENSION,
+        ...INITIALIZEDHHINITPROFILE.RESULTEXTENSION,
+        ...LANGUAGEEXPERIMENTPROFILE.RESULTEXTENSION,
+        ...LEARNINGMANAGEMENTSYSTEMPROFILE.RESULTEXTENSION,
+        ...TLAPROFILE.RESULTEXTENSION,
+        ...NAVYASSESSMENTPROFILE.RESULTEXTENSION,
+        ...NAVYCOMMONREFERENCEPROFILE.RESULTEXTENSION,
+        ...NAVYELEARNINGPROFILE.RESULTEXTENSION,
+        ...NELCPROFILE.RESULTEXTENSION,
+        ...OPENEDXPROFILE.RESULTEXTENSION,
+        ...ORPHANCONTAINERPROFILE.RESULTEXTENSION,
+        ...PDFANNOTATORPROFILE.RESULTEXTENSION,
+        ...PERFORMANCESUPPORTPROFILE.RESULTEXTENSION,
+        ...SCORMPROFILE.RESULTEXTENSION,
+        ...SERIOUSGAMESPROFILE.RESULTEXTENSION,
+        ...SIMULATIONBASEPROFILE.RESULTEXTENSION,
+        ...SOCIALMEDIAPROFILE.RESULTEXTENSION,
+        ...SURVEYPOCPROFILE.RESULTEXTENSION,
+        ...SYLLABUSEVENTSPROFILE.RESULTEXTENSION,
+        ...TASKTRAINERSIMULATIONPROFILE.RESULTEXTENSION,
+        ...TINCANVOCABULARYPROFILE.RESULTEXTENSION,
+        ...VIDEOPROFILE.RESULTEXTENSION,
+        ...VIRTUALCLASSROOMPROFILE.RESULTEXTENSION,
+        ...VIRTUALPATIENTPROFILE.RESULTEXTENSION,
+        ...XAPIOPENBADGESPROFILE.RESULTEXTENSION,
+    })
+});
+
 /**
  * The Object Class of a Statement
  */
@@ -182,8 +2322,9 @@ class ObjectStatement {
      * The constructor of the ObjectStatement class
      * 
      * @param {string} id the id of the object
-     * @param {string} type the type of the object
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} type the type of the object
      * @param {string} baseURI the base URI for the object construction
+     * @param {string} language the language for the name and description (default: "en")
      * @param {string} name the name of the object
      * @param {string} description the description of the object
      */
@@ -193,15 +2334,7 @@ class ObjectStatement {
         } else {
             this.id = setAsUri(id, baseURI);
         }
-        if(isUri(type)) {
-            this.definitionType = type;
-        } else {
-            if(type in this.typeIds) {
-                this.definitionType = this.typeIds[type];
-            } else {
-                this.definitionType = setAsUri(type, baseURI);
-            }
-        }
+        this.definitionType = setAsUri(type, baseURI);
         if(name) {
             this.definitionName.set(language, name);
         }
@@ -210,61 +2343,6 @@ class ObjectStatement {
         }
         this.defaultURI = baseURI;
     }
-    
-    /**
-     * The Type IDs list for Objects
-     */
-    typeIds = {
-        // Completable
-        game: 'https://w3id.org/xapi/seriousgames/activity-types/serious-game' ,
-        session: 'https://w3id.org/xapi/seriousgames/activity-types/session',
-        level: 'https://w3id.org/xapi/seriousgames/activity-types/level',
-        quest: 'https://w3id.org/xapi/seriousgames/activity-types/quest',
-        stage: 'https://w3id.org/xapi/seriousgames/activity-types/stage',
-        combat: 'https://w3id.org/xapi/seriousgames/activity-types/combat',
-        storynode: 'https://w3id.org/xapi/seriousgames/activity-types/story-node',
-        race: 'https://w3id.org/xapi/seriousgames/activity-types/race',
-        completable: 'https://w3id.org/xapi/seriousgames/activity-types/completable',
-    
-        // Acceesible
-        screen: 'https://w3id.org/xapi/seriousgames/activity-types/screen' ,
-        area: 'https://w3id.org/xapi/seriousgames/activity-types/area',
-        zone: 'https://w3id.org/xapi/seriousgames/activity-types/zone',
-        cutscene: 'https://w3id.org/xapi/seriousgames/activity-types/cutscene',
-        accessible: 'https://w3id.org/xapi/seriousgames/activity-types/accessible',
-    
-        // Alternative
-        question: 'http://adlnet.gov/expapi/activities/question' ,
-        menu: 'https://w3id.org/xapi/seriousgames/activity-types/menu',
-        dialog: 'https://w3id.org/xapi/seriousgames/activity-types/dialog-tree',
-        path: 'https://w3id.org/xapi/seriousgames/activity-types/path',
-        arena: 'https://w3id.org/xapi/seriousgames/activity-types/arena',
-        alternative: 'https://w3id.org/xapi/seriousgames/activity-types/alternative',
-    
-        // GameObject
-        enemy: 'https://w3id.org/xapi/seriousgames/activity-types/enemy' ,
-        npc: 'https://w3id.org/xapi/seriousgames/activity-types/non-player-character',
-        item: 'https://w3id.org/xapi/seriousgames/activity-types/item',
-        gameobject: 'https://w3id.org/xapi/seriousgames/activity-types/game-object',
-
-        // SCORM
-        course: 'http://adlnet.gov/expapi/activities/course',
-        module: 'http://adlnet.gov/expapi/activities/module',
-        SCO: 'http://adlnet.gov/expapi/activities/lesson',
-        assessment: 'http://adlnet.gov/expapi/activities/assessment',
-        interaction: 'http://adlnet.gov/expapi/activities/interaction',
-        cmi_interaction: "http://adlnet.gov/expapi/activities/cmi.interaction",
-        objective: 'http://adlnet.gov/expapi/activities/objective',
-        attempt: 'http://adlnet.gov/expapi/activities/attempt',
-        profile: 'http://adlnet.gov/expapi/activities/profile'
-    };
-
-    /**
-     * The Extensions IDs for Objects
-     */
-    ExtensionIDs = {
-      extended_interaction_type: "https://w3id.org/xapi/netc-assessment/extensions/activity/extended-interaction-type",
-    };
 
     /**
      * The ID of the Object
@@ -292,6 +2370,13 @@ class ObjectStatement {
     definitionDescription = new Map();
 
     /**
+     * The extensions of the Object definition
+     *
+     * @type {Object}
+     */
+    definitionExtensions;
+
+    /**
      * default URI for the object construction
      * @type {string}
      * */
@@ -316,6 +2401,26 @@ class ObjectStatement {
     }
 
     /**
+     * Set the extensions of the Object definition
+     * @param {Object} ext extensions object
+     */
+    setExtensions(ext) {
+        this.definitionExtensions = ext;
+    }
+
+    /**
+     * Add or set a single extension key-value pair in the Object definition
+     * @param {typeof ALL.ACTIVITYEXTENSION[keyof typeof ALL.ACTIVITYEXTENSION]|string} key extension key
+     * @param {any} value extension value
+     */
+    setExtension(key, value) {
+        if(!this.definitionExtensions) {
+            this.definitionExtensions = {};
+        }
+        this.definitionExtensions[key] = value;
+    }
+
+    /**
      * Convert to xAPI object, including interaction activities if set
      * @returns {Object}
      */
@@ -332,7 +2437,10 @@ class ObjectStatement {
             object.definition.description = Object.fromEntries(this.definitionDescription);
         }
         if (this.definitionType) {
-            object.definition.type = this.typeIds[this.definitionType] ? this.typeIds[this.definitionType] : this.definitionType;
+            object.definition.type = this.definitionType;
+        }
+        if (this.definitionExtensions) {
+            object.definition.extensions = this.definitionExtensions;
         }
         return object;
     }
@@ -363,6 +2471,9 @@ class ObjectStatement {
         for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
             obj.setObjectDefinitionDescription(lang, desc);
         }
+        if (xapiObj.definition?.extensions) {
+            obj.setExtensions(xapiObj.definition.extensions);
+        }
         return obj;
     }
 }
@@ -376,7 +2487,7 @@ class ContextStatement {
      * 
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {string} categoryId category Id of context
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
     constructor(base, platform, registrationId=null, categoryId=null) {
@@ -394,18 +2505,18 @@ class ContextStatement {
 
     /**
      * Add a category to the context
-     * @param {string} categoryId category Id to add
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      */
     addCategory(categoryId) {
-        if(categoryId && categoryId in this.categoryIDs) {
+        if(categoryId) {
             if(!this.contextActivities.category) {
                  this.contextActivities.category = [];
             }
             this.contextActivities.category.push(
                 {
-                    id: isUri(categoryId) ? categoryId : categoryId in this.categoryIDs ? this.categoryIDs[categoryId] : setAsUri(categoryId, this.defaultURI),
+                    id: setAsUri(categoryId, this.defaultURI),
                     definition: {
-                        type : "http://adlnet.gov/expapi/activities/profile"
+                        type : ALL.ACTIVITYTYPES.PROFILE
                     }
                 }
             );
@@ -446,19 +2557,9 @@ class ContextStatement {
      */
     contextActivities;
 
-    
-
-    /**
-     * The category IDs list
-     */
-    categoryIDs = {
-        seriousgame : 'https://w3id.org/xapi/seriousgame',
-        scorm: 'https://w3id.org/xapi/scorm/v/2'
-    };
-
     /**
      * Add or set a context activity
-     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
      * @param {ObjectStatement|ObjectStatement[]|string} activity activity object(s) or activity id
      * @param {string} [activityType] activity type when activity is an id
      */
@@ -466,7 +2567,7 @@ class ContextStatement {
         if (typeof activity === 'string') {
               activity = new ObjectStatement(activity, activityType, this.defaultURI);
         }
-        if (["parent", "grouping", "category", "other"].includes(type)) {
+        if ([STATEMENT.CONTEXT.ACTIVITIES.PARENT, STATEMENT.CONTEXT.ACTIVITIES.GROUPING, STATEMENT.CONTEXT.ACTIVITIES.CATEGORY, STATEMENT.CONTEXT.ACTIVITIES.OTHER].includes(type)) {
             // Accept single object or array
             if (!this.contextActivities[type]) {
                 this.contextActivities[type] = [];
@@ -510,10 +2611,19 @@ class ContextStatement {
         };
     }
 
+    /**
+     * Set the extensions of the Context
+     * @param {Object} ext extensions object
+     */
     setExtensions(ext) {
         this.extensions = ext;
     }
 
+    /**
+     * Add or set a single extension key-value pair
+     * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key
+     * @param {any} value extension value
+     */
     setExtension(key, value) {
         if(!this.extensions) {
             this.extensions = {};
@@ -555,49 +2665,19 @@ class VerbStatement {
     /**
      * Constructor of VerbStatement class
      * 
-     * @param {string} id The verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]|string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
     constructor(id, baseURI) {
         if(isUri(id)) {
             this.id = id;
+            this.display.set('en', id.split('/').pop()); // Default display is the last part of the URI
         } else {
-            if(id in this.ids) {
-                this.id = this.ids[id];
-                this.display.set('en', id);
-            } else {
-                this.id = setAsUri(id, baseURI);
-            }
+            this.id = setAsUri(id, baseURI);
+            this.display.set('en', id);
         }
     }
     
-    /**
-     * The Verb Ids array
-     */
-    ids = {
-        //Completable Verbs
-        initialized: 'http://adlnet.gov/expapi/verbs/initialized',
-        progressed: 'http://adlnet.gov/expapi/verbs/progressed',
-        completed: 'http://adlnet.gov/expapi/verbs/completed',
-        //Accessible Verbs
-        accessed: 'https://w3id.org/xapi/seriousgames/verbs/accessed',
-        skipped: 'http://id.tincanapi.com/verb/skipped',
-        //Alternative Verbs
-        selected: 'https://w3id.org/xapi/adb/verbs/selected',
-        unlocked: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
-        //GameObject Verbs
-        interacted: 'http://adlnet.gov/expapi/verbs/interacted',
-        used: 'https://w3id.org/xapi/seriousgames/verbs/used',
-
-        //SCORM Verbs
-        responded: 'http://adlnet.gov/expapi/verbs/responded',
-        resumed: 'http://adlnet.gov/expapi/verbs/resumed',
-        suspended: 'http://adlnet.gov/expapi/verbs/suspended',
-        terminated: 'http://adlnet.gov/expapi/verbs/resumed',
-        passed: 'http://adlnet.gov/expapi/verbs/passed',
-        failed: 'http://adlnet.gov/expapi/verbs/failed',
-        scored: 'http://adlnet.gov/expapi/verbs/scored',
-    };
     /**
      * The Verb Id 
      * @type {string}
@@ -737,23 +2817,6 @@ class ResultStatement {
     }
 
     /**
-     * The possible extensions of a result statement
-     */
-    ExtensionIDs = {
-        health: 'https://w3id.org/xapi/seriousgames/extensions/health',
-        position: 'https://w3id.org/xapi/seriousgames/extensions/position',
-        progress: 'https://w3id.org/xapi/seriousgames/extensions/progress',
-        interactionID: 'https://w3id.org/xapi/netc-assessment/extensions/activity/id-number',
-        response_explanation: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-explanation',
-        response_type: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
-    };
-
-    /**
-     * The Score Keys for the result
-     */
-    ScoreKey = ["raw", "min", "max", "scaled"];
-
-    /**
      * Set extensions from list
      * @param {Object} extensions extension list
      */
@@ -765,7 +2828,7 @@ class ResultStatement {
 
     /**
      * Set result extension for key value
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {*} value the value of the extension
      */
     setExtension(key, value) {
@@ -788,7 +2851,7 @@ class ResultStatement {
         if(! this.Score) {
             this.Score = {};
         }
-        if(this.ScoreKey.includes(key)) {
+        if(STATEMENT.RESULT.SCORE.hasOwnProperty(key.toUpperCase())) {
             this.Score[key] = Number(value);
         }    
     }
@@ -823,7 +2886,7 @@ class ResultStatement {
      * @param {number} raw the raw score 
      */
     setScoreRaw(raw) {
-        this.setScoreValue('raw', raw);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.RAW, raw);
     }
     
     /**
@@ -831,7 +2894,7 @@ class ResultStatement {
      * @param {number} min the min score 
      */
     setScoreMin(min) {
-        this.setScoreValue('min', min);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.MIN, min);
     }
 
     /**
@@ -839,7 +2902,7 @@ class ResultStatement {
      * @param {number} max the max score 
      */
     setScoreMax(max) {
-        this.setScoreValue('max', max);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.MAX, max);
     }
 
     /**
@@ -847,7 +2910,7 @@ class ResultStatement {
      * @param {number} scaled the scaled score 
      */
     setScoreScaled(scaled) {
-        this.setScoreValue('scaled', scaled);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.SCALED, scaled);
     }
 
     /**
@@ -855,7 +2918,7 @@ class ResultStatement {
      * @param {boolean} value the completion status
      */
     setCompletion(value) {
-        this.setExtension('completion', value);
+        this.setExtension(STATEMENT.RESULT.COMPLETION, value);
     }
 
     /**
@@ -863,7 +2926,7 @@ class ResultStatement {
      * @param {boolean} value the success status
      */
     setSuccess(value) {
-        this.setExtension('success', value);
+        this.setExtension(STATEMENT.RESULT.SUCCESS, value);
     }
 
     /**
@@ -881,7 +2944,7 @@ class ResultStatement {
 
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
-        this.setExtension('duration', isoDuration);
+        this.setExtension(STATEMENT.RESULT.DURATION, isoDuration);
     }
 
     /**
@@ -889,7 +2952,7 @@ class ResultStatement {
      * @param {string} value the response
      */
     setResponse(value) {
-        this.setExtension('response', value);
+        this.setExtension(STATEMENT.RESULT.RESPONSE, value);
     }
 
     /**
@@ -897,12 +2960,12 @@ class ResultStatement {
      * @param {number} value the progress status
      */
     setProgress(value) {
-        this.setExtension('progress', value);
+        this.setExtension(STATEMENT.RESULT.PROGRESS, value);
     }
 
     /**
      * Set result extension for key of the statement
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {string} value the value of the extension
      */
     setVar(key,value) {
@@ -942,8 +3005,8 @@ class ResultStatement {
             ret.extensions = this.Extensions;
 
             for (var key in this.Extensions) {
-                if (this.ExtensionIDs.hasOwnProperty(key)) {
-                    this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
+                if (key in ALL.RESULTEXTENSION) {
+                    this.Extensions[ALL.RESULTEXTENSION[key]] = this.Extensions[key];
                     delete this.Extensions[key];
                 } else {
                     var newuri= setAsUri(key, this.defaultURI);
@@ -957,7 +3020,24 @@ class ResultStatement {
 
         return ret;
     }
-    
+
+    /**
+     * Create a ResultStatement from xAPI result object
+     * @param {Object} xapiObj
+     * @param {string} baseURI
+     * @returns {ResultStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return new ResultStatement(baseURI);
+        const result = new ResultStatement(baseURI);
+        if ('score' in xapiObj) result.Score = xapiObj.score;
+        if ('success' in xapiObj) result.Success = xapiObj.success;
+        if ('completion' in xapiObj) result.Completion = xapiObj.completion;
+        if ('response' in xapiObj) result.Response = xapiObj.response;
+        if ('duration' in xapiObj) result.Duration = xapiObj.duration;
+        if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
+        return result;
+    }
     /**
      * convert to CSV
      * 
@@ -1065,34 +3145,68 @@ var exists = function(value) {
 };
 
 /**
- * Create a ResultStatement from xAPI result object
- * @param {Object} xapiObj
- * @param {string} baseURI
- * @returns {ResultStatement}
- */
-ResultStatement.fromXAPI = function(xapiObj, baseURI) {
-    if (!xapiObj) return new ResultStatement(baseURI);
-    const result = new ResultStatement(baseURI);
-    if ('score' in xapiObj) result.Score = xapiObj.score;
-    if ('success' in xapiObj) result.Success = xapiObj.success;
-    if ('completion' in xapiObj) result.Completion = xapiObj.completion;
-    if ('response' in xapiObj) result.Response = xapiObj.response;
-    if ('duration' in xapiObj) result.Duration = xapiObj.duration;
-    if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
-    return result;
-};
-
-/**
  * The Object Class of a Statement
  */
 class InteractionObjectStatement extends ObjectStatement {
+    /**
+        * The correctResponsesPattern property for interaction activities.
+        * Internally it is always handled as an array of strings.
+        * @type {string[]}
+     */
+    correctResponsesPattern;
+
+    /**
+     * The interactionType property for interaction activities (e.g., 'choice', 'fill-in', 'long-fill-in', 'matching', 'performance', 'sequencing', 'likert', 'numeric', 'other')
+     * @type {string}
+     */ 
+    interactionType;
+
+    /**
+     * The choices, scale, source, target, and steps properties for interaction activities, which are arrays of objects with id and description
+     * Each item in choices/scale should be an object with an 'id' and a 'description' that can be a string or an object with language keys
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    choices;
+
+    /**
+     * The scale property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+
+    scale;
+
+    /**
+     * The source property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    source;
+
+    /**
+     * The target property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    target;
+
+    /**
+     * The steps property for interaction activities, which is an array of objects with id and description
+     * @type {Array<{id: string, description: string|object}>}
+     */
+    steps;
+
+
+    /**
+     * Constructor for InteractionObjectStatement
+     * @param {string} objectId - The identifier of the object (IRI or UUID)
+     * @param {string} objectType - The type of the object (IRI)
+     * @param {string} defaultURI - The default base URI to resolve relative IDs
+     */
     constructor(objectId, objectType, defaultURI) {
         super(objectId, objectType, defaultURI);
     }
 
     /**
      * Set the interactionType for interaction activities
-     * @param {string} interactionType
+     * @param {typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES[keyof typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES]} interactionType
      */
     setInteractionType(interactionType, debug = false) {
         if(!this.interactionType) {
@@ -1116,22 +3230,30 @@ class InteractionObjectStatement extends ObjectStatement {
         if (!this.correctResponsesPattern) {
             this.correctResponsesPattern = [];
         }
-        if (Array.isArray(pattern)) {
-            this.correctResponsesPattern.push(...pattern);
-        } else {
-            this.correctResponsesPattern.push(pattern);
+        const values = Array.isArray(pattern) ? pattern : [pattern];
+        for (const value of values) {
+            if (typeof value !== 'string') {
+                continue;
+            }
+            const normalized = value.trim();
+            if (!normalized) {
+                continue;
+            }
+            if (!this.correctResponsesPattern.includes(normalized)) {
+                this.correctResponsesPattern.push(normalized);
+            }
         }
     }
 
     /**
      * Add a single choice with language support (for interaction activities)
-     * @param {string} componentType - One of 'choices', 'scale', 'source', 'target', 'steps'
+     * @param {typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES[keyof typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES]} componentType - One of 'choices', 'scale', 'source', 'target', 'steps'
      * @param {string} id - The identifier for the choice
      * @param {string} lang - The language code (e.g., 'en')
      * @param {string} description - The description in the given language
      */
     addInteractionWithLang(componentType, id, lang, description) {
-        if (["choices", "scale", "source", "target", "steps"].includes(componentType)) {
+        if ([STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].includes(componentType)) {
             if (!this[componentType]) {
                 this[componentType] = [];
             }
@@ -1154,12 +3276,16 @@ class InteractionObjectStatement extends ObjectStatement {
             object.definition.interactionType = this.interactionType;
         }
         if (this.correctResponsesPattern) {
-            object.definition.correctResponsesPattern = this.correctResponsesPattern;
+            if (this.correctResponsesPattern.length === 1) {
+                object.definition.correctResponsesPattern = this.correctResponsesPattern[0];
+            } else {
+                object.definition.correctResponsesPattern = this.correctResponsesPattern;
+            }
         }
-        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+        [STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].forEach((key) => {
             if (this[key]) {
                 // For choices/scale, ensure each item is {id, description: {lang: text}}
-                if ((key === "choices" || key === "scale") && Array.isArray(this[key])) {
+                if ((key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES || key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE) && Array.isArray(this[key])) {
                     object.definition[key] = this[key].map(item => {
                         if (item.id && item.description && typeof item.description === 'object') {
                             return { id: item.id, description: item.description };
@@ -1186,7 +3312,7 @@ class InteractionObjectStatement extends ObjectStatement {
         if (this.correctResponsesPattern) {
             csv += `,${this.correctResponsesPattern.join('|')}`;
         }
-        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+        [STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].forEach((key) => {
             if (this[key]) {
                 csv += `,${key}:${this[key].map(item => item.id).join('|')}`;
             }
@@ -1207,12 +3333,144 @@ class InteractionObjectStatement extends ObjectStatement {
         const obj = new InteractionObjectStatement(id, type, baseURI);
         if (xapiObj.definition) {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
-            if (xapiObj.definition.correctResponsesPattern) obj.correctResponsesPattern = xapiObj.definition.correctResponsesPattern;
+            if (xapiObj.definition.correctResponsesPattern) {
+                obj.correctResponsesPattern = [];
+                obj.addCorrectResponsesPattern(xapiObj.definition.correctResponsesPattern);
+            }
             ["choices", "scale", "source", "target", "steps"].forEach(key => {
                 if (xapiObj.definition[key]) obj[key] = xapiObj.definition[key];
             });
         }
         return obj;
+    }
+}
+
+/**
+ * xAPI Attachment object (5.2.2.6)
+ */
+class AttachmentStatement {
+    /**
+     * @param {string} usageType - IRI that identifies attachment usage
+     * @param {Object<string,string>} display - Language map title
+     * @param {string} contentType - Internet media type
+     * @param {number} length - Content length in octets
+     * @param {string} sha2 - SHA-2 hash of content
+     * @param {string} [defaultURI] - Base URI used if usageType is not absolute
+     */
+    constructor(usageType, display, contentType, length, sha2, defaultURI = "") {
+        this.defaultURI = defaultURI;
+        this.usageType = usageType ? setAsUri(usageType, defaultURI) : null;
+        this.display = display || {};
+        this.contentType = contentType;
+        this.length = length;
+        this.sha2 = sha2;
+    }
+
+    /** @type {string|null} */
+    usageType;
+
+    /** @type {Object<string,string>} */
+    display;
+
+    /** @type {Object<string,string>|undefined} */
+    description;
+
+    /** @type {string|undefined} */
+    contentType;
+
+    /** @type {number|undefined} */
+    length;
+
+    /** @type {string|undefined} */
+    sha2;
+
+    /** @type {string|undefined} */
+    fileUrl;
+
+    /** @type {string} */
+    defaultURI;
+
+    /**
+     * Sets the attachment description language map
+     * @param {Object<string,string>} description
+     * @returns {AttachmentStatement}
+     */
+    setDescription(description) {
+        this.description = description;
+        return this;
+    }
+
+    /**
+     * Sets file URL where the attachment can be fetched
+     * @param {string} fileUrl - IRL/URL of the attachment
+     * @returns {AttachmentStatement}
+     */
+    setFileUrl(fileUrl) {
+        if (fileUrl) {
+            this.fileUrl = isUri(fileUrl) ? fileUrl : setAsUri(fileUrl, this.defaultURI);
+        }
+        return this;
+    }
+
+    /**
+     * Validate required xAPI attachment fields
+     * @returns {boolean}
+     */
+    isValid() {
+        return Boolean(
+            this.usageType &&
+            this.display &&
+            Object.keys(this.display).length > 0 &&
+            this.contentType &&
+            Number.isInteger(this.length) &&
+            this.length >= 0 &&
+            this.sha2
+        );
+    }
+
+    /**
+     * Serialize attachment to xAPI object
+     * @returns {Object}
+     */
+    toXAPI() {
+        const xapi = {
+            usageType: this.usageType,
+            display: this.display,
+            contentType: this.contentType,
+            length: this.length,
+            sha2: this.sha2
+        };
+        if (this.description && Object.keys(this.description).length > 0) {
+            xapi.description = this.description;
+        }
+        if (this.fileUrl) {
+            xapi.fileUrl = this.fileUrl;
+        }
+        return xapi;
+    }
+
+    /**
+     * Creates an AttachmentStatement from xAPI object
+     * @param {Object} xapiObj
+     * @param {string} [baseURI]
+     * @returns {AttachmentStatement}
+     */
+    static fromXAPI(xapiObj, baseURI = "") {
+        const attachment = new AttachmentStatement(
+            xapiObj.usageType,
+            xapiObj.display,
+            xapiObj.contentType,
+            xapiObj.length,
+            xapiObj.sha2,
+            baseURI
+        );
+        if (xapiObj.description) {
+            attachment.setDescription(xapiObj.description);
+        }
+        if (xapiObj.fileUrl) {
+            attachment.setFileUrl(xapiObj.fileUrl);
+        }
+        return attachment;
     }
 }
 
@@ -1223,9 +3481,9 @@ class Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {string} verbId verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]|string} verbId verb id of the statement
      * @param {string} objectId object id of the statement
-     * @param {string} objectType object Type of the statement
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
      */
@@ -1243,6 +3501,7 @@ class Statement {
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
+        this.attachments = [];
     }
 
     /**
@@ -1301,6 +3560,12 @@ class Statement {
      */
     result;
 
+    /**
+     * Attachments associated with the statement
+     * @type {AttachmentStatement[]}
+     */
+    attachments;
+
     
     /**
      * Convert to xAPI format
@@ -1331,6 +3596,11 @@ class Statement {
         }
         if(this.version) {
             xapiTrace.version = this.version;
+        }
+        if (Array.isArray(this.attachments) && this.attachments.length > 0) {
+            xapiTrace.attachments = this.attachments.map((attachment) =>
+                attachment && typeof attachment.toXAPI === 'function' ? attachment.toXAPI() : attachment
+            );
         }
         return xapiTrace;
     }
@@ -1369,6 +3639,9 @@ class Statement {
         stmt.timestamp = xapiObj.timestamp ? new Date(xapiObj.timestamp) : new Date();
         stmt.version = xapiObj.version || "1.0.3";
         stmt.defaultURI = baseURI;
+        stmt.attachments = Array.isArray(xapiObj.attachments)
+            ? xapiObj.attachments.map((attachment) => AttachmentStatement.fromXAPI(attachment, baseURI))
+            : [];
         return stmt;
     }
     /**
@@ -1396,15 +3669,15 @@ class LRSStatement extends Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {string} verbId verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]} verbId verb id of the statement
      * @param {string} objectId object id of the statement
-     * @param {string} objectType object Type of the statement
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
      */
     constructor(actor, verbId, objectId, objectType, context, defaultURI) {
         super(actor, verbId, objectId, objectType, context, defaultURI);
-        this.authority=new ActorStatement({ name: 'unknown' });
+        this.authority=new ActorStatement({});
         this.stored = new Date();
     }
 
@@ -1589,11 +3862,10 @@ class StatementBuilder {
 
   /**
    * Add result extension to statement
-   * @param {string} key key of the result extension
+   * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key key of the result extension
    * @param {*} value value of the result extension
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
-  
   withResultExtension(key, value) {
     this.statement.result.setExtension(key, value);
     return this;
@@ -1609,7 +3881,7 @@ class StatementBuilder {
   }
   /**
    * Add context extension to statement
-   * @param {string} key key of the context extension
+   * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key key of the context extension
    * @param {*} value value of the context extension
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
@@ -1620,9 +3892,9 @@ class StatementBuilder {
   
   /**
      * Add context activity to statement
-     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
      * @param {string} activityId
-     * @param {string} activityType
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} activityType
      * @return {StatementBuilder} Returns the current instance for chaining
      */
   withContextActivity(type, activityId, activityType) {
@@ -1630,6 +3902,11 @@ class StatementBuilder {
     return this;
   }
 
+  /**
+     * Add context category to statement
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
   withContextCategory(categoryId) {
     this.statement.context.addCategory(categoryId);
     return this;
@@ -1693,6 +3970,27 @@ class StatementBuilder {
   }
 
   /**
+   * Add object/activity extension to statement object definition
+   * @param {typeof ALL.ACTIVITYEXTENSION[keyof typeof ALL.ACTIVITYEXTENSION]|string} key key of the object extension
+   * @param {*} value value of the object extension
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectExtension(key, value) {
+    this.statement.object.setExtension(key, value);
+    return this;
+  }
+
+  /**
+   * Add object/activity extensions as Object key/values list
+   * @param {Object} extensions extensions list
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectExtensions(extensions = {}) {
+    this.statement.object.setExtensions(extensions);
+    return this;
+  }
+
+  /**
    * Add or set an interaction component with language support (for interaction activities)
    * @param {string} type - One of 'choices', 'scale', 'source', 'target', 'steps'
    * @param {string} id - The identifier for the component
@@ -1751,24 +4049,42 @@ class StatementBuilder {
     }
     return this;
   }
-  
+
   /**
-   * Add or set an actor to the statement
-   * @param {string} type - The type of the actor
-   * @param {object} actor - The actor object
-   * @return {StatementBuilder} Returns the current instance for chaining
+   * Add one xAPI attachment to the statement
+   * @param {AttachmentStatement|Object} attachment - Attachment instance or plain attachment object
+   * @returns {StatementBuilder} Returns the current instance for chaining
    */
-  withActor(type, actor) {
-    if(this.statement instanceof LRSStatement) {
-      this.statement.actor.setActor(type, actor);
+  withAttachment(attachment) {
+    if (!Array.isArray(this.statement.attachments)) {
+      this.statement.attachments = [];
+    }
+    if (attachment instanceof AttachmentStatement) {
+      this.statement.attachments.push(attachment);
     } else {
-      if (this.client.settings.debug) {
-        throw new Error("Trying to set actor on a non-LRS statement");
-      } else {
-        console.warn("Trying to set actor on a non-LRS statement");
-      }
+      this.statement.attachments.push(AttachmentStatement.fromXAPI(attachment, this.statement.defaultURI));
     }
     return this;
+  }
+
+  /**
+   * Add multiple xAPI attachments to the statement
+   * @param {Array<AttachmentStatement|Object>} attachments - List of attachments
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withAttachments(attachments = []) {
+    for (const attachment of attachments) {
+      this.withAttachment(attachment);
+    }
+    return this;
+  }
+
+  /**
+   * Convert the built statement to xAPI format
+   * @returns {Object} The xAPI statement object
+   */
+  toXAPI() {
+    return this.statement.toXAPI();
   }
 
   /**
@@ -1801,51 +4117,155 @@ class LRSStatementBuilder extends StatementBuilder {
      */
     statement;
 
+    /**
+     * Adds a context activity to the statement
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type - The context activity type from STATEMENT_BUILDER_IDS.CONTEXT.ACTIVITIES
+     * @param {string} id - The IRI identifier of the context activity
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} activityType - The activity type IRI
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withContextActivity(type, id, activityType) {
-        super.withContextActivity(type, id, activityType);
+        this.statement.context.addContextActivity(type, id, activityType);
         return this;
     }
 
+    /**
+     * Sets the actor using an account identifier
+     * @param {string} accountName - The account name
+     * @param {string} accountHomePage - The home page IRI of the account service provider
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withActorAccount(accountName, accountHomePage) {
-        super.withActor('account', { name: accountName, homePage: accountHomePage });
+        this.statement.actor.setActor('account', { name: accountName, homePage: accountHomePage });
         return this;
     }
 
+    /**
+     * Sets the actor using an mbox (mailto URI)
+     * @param {string} mbox - The mailto URI of the actor (e.g. 'mailto:user@example.com')
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withActorMbox(mbox) {
-        super.withActor('mbox', mbox);
+        this.statement.actor.setActor('mbox', mbox);
         return this;
     }
 
+    /**
+     * Sets the actor using an mbox SHA1 hash
+     * @param {string} mboxSha1 - The SHA1 hash of the actor's mbox URI
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withActorMboxSha1(mboxSha1) {
-        super.withActor('mbox_sha1sum', mboxSha1);
-        return this;
-    }
-    
-    withActorOpenID(openid) {
-        super.withActor('openid', openid);
+        this.statement.actor.setActor('mbox_sha1sum', mboxSha1);
         return this;
     }
 
+    /**
+     * Sets the actor using an OpenID URI
+     * @param {string} openid - The OpenID URI of the actor
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
+    withActorOpenID(openid) {
+        this.statement.actor.setActor('openid', openid);
+        return this;
+    }
+
+    /**
+     * Sets the authority using an account identifier
+     * @param {string} accountName - The account name
+     * @param {string} accountHomePage - The home page IRI of the account service provider
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withAutorityAccount(accountName, accountHomePage) {
         this.statement.authority.setActor('account', { name: accountName, homePage: accountHomePage });
         return this;
     }
 
+    /**
+     * Sets the authority using an mbox (mailto URI)
+     * @param {string} mbox - The mailto URI of the authority (e.g. 'mailto:lrs@example.com')
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withAutorityMbox(mbox) {
         this.statement.authority.setActor('mbox', mbox);
         return this;
     }
 
+    /**
+     * Sets the authority using an mbox SHA1 hash
+     * @param {string} mboxSha1 - The SHA1 hash of the authority's mbox URI
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withAutorityMboxSha1(mboxSha1) {
         this.statement.authority.setActor('mbox_sha1sum', mboxSha1);
         return this;
     }
-    
+
+    /**
+     * Sets the authority using an OpenID URI
+     * @param {string} openid - The OpenID URI of the authority
+     * @returns {LRSStatementBuilder} This builder instance for chaining
+     */
     withAutorityOpenID(openid) {
         this.statement.authority.setActor('openid', openid);
         return this;
     }
 
+    /**
+     * Add or set the stored timestamp of the statement
+     * @param {Date|string} stored - The stored timestamp to set (can be a Date object or an ISO 8601 string)
+     * @return {LRSStatementBuilder} This builder instance for chaining
+     * */
+    withStored(stored) {
+        this.statement.stored = stored ? (stored instanceof Date ? stored : new Date(stored)) : undefined;
+        return this;
+    }
+
+    /**
+   * Add or set an actor to the statement
+   * @param {string} type - The type of the actor
+   * @param {object} actor - The actor object
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withActor(type, actor) {
+    this.statement.actor.setActor(type, actor);
+    return this;
+  }
+
+ /**
+     * Sets the ID of the statement
+     * @param {string} id - The UUID to set as the statement ID
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withId(id) {
+        this.statement.id = id;
+        return this;
+    }
+
+     /**
+     * Sets the version of the statement
+     * @param {string} version - The version to set
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withVersion(version) {
+        this.statement.version = version;
+        return this;
+    }
+
+    /**
+     * Sets the timestamp of the statement
+     * @param {Date|string} timestamp - The timestamp to set (can be a Date object or an ISO 8601 string)
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
+    withTimestamp(timestamp) {
+        this.statement.timestamp = timestamp instanceof Date ? timestamp : new Date(timestamp);
+        return this;
+    }
+
+    /**
+     * Sends the built statement to the LRS
+     * @returns {Promise<void>} Promise that resolves when the statement has been sent
+     */
     async send() {
         return await super.send();
     }
@@ -2859,9 +5279,9 @@ class AccessibleTracker {
      * Constructor of accessible tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the accessible object
-     * @param {number} type the type of the accessible object
+     * @param {string} type the type of the accessible object
      */
-    constructor(tracker, id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    constructor(tracker, id, type=ALL.ACTIVITYTYPES.AREA) {
         this.AccessibleId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -2873,7 +5293,7 @@ class AccessibleTracker {
     AccessibleId;
     /**
      * the type of the accessible object
-     * @type {number}
+     * @type {string}
      */
     Type;
     /**
@@ -2881,18 +5301,13 @@ class AccessibleTracker {
      * @type {xAPITrackerAsset}
      */
     Tracker;
-    /**
-     * the list of types possible for the accessible object
-     * @type {Array}
-     */
-    AccessibleType = ['screen', 'area', 'zone', 'cutscene', 'accessible']
 
     /**
      * Send Accessed statement
      * @returns {StatementBuilder}
      */
     accessed() {
-        return this.Tracker.trace('accessed',this.AccessibleType[this.Type],this.AccessibleId);
+        return this.Tracker.trace(SERIOUSGAMESPROFILE.VERBS.ACCESSED,this.Type,this.AccessibleId);
     }
 
     /**
@@ -2900,20 +5315,9 @@ class AccessibleTracker {
      * @returns {StatementBuilder}
      */
     skipped() {
-        return this.Tracker.trace('skipped',this.AccessibleType[this.Type],this.AccessibleId);
+        return this.Tracker.trace(ALL.VERBS.SKIPPED,this.Type,this.AccessibleId);
     }
 }
-
-/**
- * the list of types possible for the accessible object
- */
-const ACCESSIBLETYPE = Object.freeze({
-    SCREEN: 0,
-    AREA: 1,
-    ZONE: 2,
-    CUTSCENE: 3,
-    ACCESSIBLE: 4
-});
 
 /**
  * Completable Tracker
@@ -2923,9 +5327,9 @@ class CompletableTracker {
      * Constructor of completable Tracker
      * @param {xAPITrackerAsset} tracker the Tracker
      * @param {string} id the id of the completable object
-     * @param {number} type the Type of the completable object
+     * @param {string} type the Type of the completable object
      */
-    constructor(tracker, id, type=COMPLETABLETYPE.COMPLETABLE) {
+    constructor(tracker, id, type) {
         this.CompletableId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -2940,7 +5344,7 @@ class CompletableTracker {
 
     /**
      * the Type of the completable object
-     * @Type {number}
+     * @Type {string}
      */
     Type;
 
@@ -2949,12 +5353,6 @@ class CompletableTracker {
      * @Type {xAPITrackerAsset}
      */
     Tracker;
-
-    /**
-     * the list of Types possible for the completable object
-     * @Type {Array}
-     */
-    CompletableType = ['game', 'session', 'level', 'quest', 'stage', 'combat', 'storynode', 'race', 'completable'];
 
     /**
      * is initialized
@@ -2984,10 +5382,10 @@ class CompletableTracker {
             }
         }
         if (addInitializedTime) {
-            this.initializedTime = new Date();
+            this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        return this.Tracker.trace('initialized',this.CompletableType[this.Type],this.CompletableId);
+        return this.Tracker.trace(ALL.VERBS.INITIALIZED,this.Type,this.CompletableId);
     }
 
     /**
@@ -2996,7 +5394,7 @@ class CompletableTracker {
      * @returns {StatementBuilder}
      */
     progressed(progress) {
-        return this.Tracker.trace('progressed',this.CompletableType[this.Type],this.CompletableId)
+        return this.Tracker.trace(ALL.VERBS.PROGRESSED,this.Type,this.CompletableId)
             .withProgress(progress);
     }
 
@@ -3023,27 +5421,61 @@ class CompletableTracker {
         let actualDate=new Date();
         this.IsInitialized=false;
 
-        return this.Tracker.trace('completed',this.CompletableType[this.Type],this.CompletableId)
+        return this.Tracker.trace(ALL.VERBS.COMPLETED,this.Type,this.CompletableId)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
-            .withDuration(this.initializedTime, actualDate);
+            .withDuration(this.InitializedTime, actualDate);
     }
 }
 
-/**
- * the list of Types possible for the completable object
- */
-const COMPLETABLETYPE = Object.freeze({
-    GAME: 0,
-    SESSION: 1,
-    LEVEL: 2,
-    QUEST: 3,
-    STAGE: 4,
-    COMBAT: 5,
-    STORYNODE: 6,
-    RACE: 7,
-    COMPLETABLE: 8
+const SERIOUSGAMEPROFILE = Object.freeze({
+    CATEGORYID:  'https://w3id.org/xapi/seriousgame',
+    VERBS: {
+        //Completable Verbs
+        INITIALIZED: 'http://adlnet.gov/expapi/verbs/initialized',
+        PROGRESSED: 'http://adlnet.gov/expapi/verbs/progressed',
+        COMPLETED: 'http://adlnet.gov/expapi/verbs/completed',
+        //Accessible Verbs
+        ACCESSED: 'https://w3id.org/xapi/seriousgames/verbs/accessed',
+        SKIPPED: 'http://id.tincanapi.com/verb/skipped',
+        //Alternative Verbs
+        SELECTED: 'https://w3id.org/xapi/adb/verbs/selected',
+        UNLOCKED: 'https://w3id.org/xapi/seriousgames/verbs/unlocked',
+        //GameObject Verbs
+        INTERACTED: 'http://adlnet.gov/expapi/verbs/interacted',
+        USED: 'https://w3id.org/xapi/seriousgames/verbs/used'
+    },
+    ACTIVITYTYPES: {
+        // Completable
+        GAME: 'https://w3id.org/xapi/seriousgames/activity-types/serious-game' ,
+        SESSION: 'https://w3id.org/xapi/seriousgames/activity-types/session',
+        LEVEL: 'https://w3id.org/xapi/seriousgames/activity-types/level',
+        QUEST: 'https://w3id.org/xapi/seriousgames/activity-types/quest',
+        STAGE: 'https://w3id.org/xapi/seriousgames/activity-types/stage',
+        COMBAT: 'https://w3id.org/xapi/seriousgames/activity-types/combat',
+        STORYNODE: 'https://w3id.org/xapi/seriousgames/activity-types/story-node',
+        RACE: 'https://w3id.org/xapi/seriousgames/activity-types/race',
+        COMPLETABLE: 'https://w3id.org/xapi/seriousgames/activity-types/completable',
+        // Accessible
+        SCREEN: 'https://w3id.org/xapi/seriousgames/activity-types/screen' ,
+        AREA: 'https://w3id.org/xapi/seriousgames/activity-types/area',
+        ZONE: 'https://w3id.org/xapi/seriousgames/activity-types/zone',
+        CUTSCENE: 'https://w3id.org/xapi/seriousgames/activity-types/cutscene',
+        ACCESSIBLE: 'https://w3id.org/xapi/seriousgames/activity-types/accessible',
+        // Alternative
+        QUESTION: 'http://adlnet.gov/expapi/activities/question' ,
+        MENU: 'https://w3id.org/xapi/seriousgames/activity-types/menu',
+        DIALOG: 'https://w3id.org/xapi/seriousgames/activity-types/dialog-tree',
+        PATH: 'https://w3id.org/xapi/seriousgames/activity-types/path',
+        ARENA: 'https://w3id.org/xapi/seriousgames/activity-types/arena',
+        ALTERNATIVE: 'https://w3id.org/xapi/seriousgames/activity-types/alternative',
+        // GameObject
+        ENEMY: 'https://w3id.org/xapi/seriousgames/activity-types/enemy' ,
+        NPC: 'https://w3id.org/xapi/seriousgames/activity-types/non-player-character',
+        ITEM: 'https://w3id.org/xapi/seriousgames/activity-types/item',
+        GAMEOBJECT: 'https://w3id.org/xapi/seriousgames/activity-types/game-object'
+    }
 });
 
 /**
@@ -3054,9 +5486,9 @@ class AlternativeTracker {
      * Constructor of accessible tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the accessible object
-     * @param {number} type the type of the accessible object
+     * @param {string} type the type of the accessible object
      */
-    constructor(tracker, id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    constructor(tracker, id, type=SERIOUSGAMEPROFILE.ACTIVITYTYPES.ALTERNATIVE) {
         this.AlternativeId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -3068,7 +5500,7 @@ class AlternativeTracker {
     AlternativeId;
     /**
      * the type of the alternative object
-     * @type {number}
+     * @type {string}
      */
     Type;
     /**
@@ -3076,11 +5508,6 @@ class AlternativeTracker {
      * @type {xAPITrackerAsset}
      */
     Tracker;
-    /**
-     * the list of types possible for the alternative object
-     * @type {Array}
-     */
-    AlternativeType = ['question', 'menu', 'dialog', 'path', 'arena', 'alternative'];
 
     /**
      * Send selected statement
@@ -3088,7 +5515,7 @@ class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     selected(optionId) {        
-        return this.Tracker.trace('selected',this.AlternativeType[this.Type],this.AlternativeId)
+        return this.Tracker.trace(ALL.VERBS.SELECTED,this.Type,this.AlternativeId)
             .withResponse(optionId);
     }
 
@@ -3098,22 +5525,10 @@ class AlternativeTracker {
      * @returns {StatementBuilder}
      */
     unlocked(optionId) {
-        return this.Tracker.trace('unlocked',this.AlternativeType[this.Type],this.AlternativeId)
+        return this.Tracker.trace(SERIOUSGAMESPROFILE.VERBS.UNLOCKED,this.Type,this.AlternativeId)
                 .withResponse(optionId);
     }
 }
-
-/**
- * the list of types possible for the alternative object
- */
-const ALTERNATIVETYPE = Object.freeze({
-    QUESTION: 0,
-    MENU: 1,
-    DIALOG: 2,
-    PATH: 3,
-    ARENA: 4,
-    ALTERNATIVE: 5
-});
 
 /**
  * Game Object Tracker
@@ -3123,9 +5538,9 @@ class GameObjectTracker {
      * Constructor of Game Object tracker
      * @param {xAPITrackerAsset} tracker the tracker
      * @param {string} id the id of the Game Object object
-     * @param {number} type the Type of the Game Object object
+     * @param {string} type the Type of the Game Object object
      */
-    constructor(tracker,id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    constructor(tracker,id, type=SERIOUSGAMEPROFILE.ACTIVITYTYPES.GAMEOBJECT) {
         this.GameobjectId=id;
         this.Type=type;
         this.Tracker= tracker;
@@ -3137,7 +5552,7 @@ class GameObjectTracker {
     GameobjectId;
     /**
      * the Type of the Game Object object
-     * @Type {number}
+     * @Type {string}
      */
     Type;
     /**
@@ -3145,18 +5560,13 @@ class GameObjectTracker {
      * @Type {xAPITrackerAsset}
      */
     tracker;
-    /**
-     * the list of types possible for the Game Object object
-     * @Type {Array}
-     */
-    GameObjectType = ['enemy', 'npc', 'item', 'gameobject'];
 
     /**
      * Send Interacted statement
      * @returns {StatementBuilder}
      */
     interacted() {
-        return this.Tracker.trace('interacted',this.GameObjectType[this.Type],this.GameobjectId);
+        return this.Tracker.trace(ALL.VERBS.INTERACTED,this.Type,this.GameobjectId);
     }
     
     /**
@@ -3164,19 +5574,9 @@ class GameObjectTracker {
      * @returns {StatementBuilder}
      */
     used() {
-        return this.Tracker.trace('used',this.GameObjectType[this.Type],this.GameobjectId);
+        return this.Tracker.trace(ALL.VERBS.USED,this.Type,this.GameobjectId);
     }
 }
-
-/**
- * the list of types possible for the gameobject object
- */
-const GAMEOBJECTTYPE = Object.freeze({
-    ENEMY: 0,
-    NPC: 1,
-    ITEM: 2,
-    GAMEOBJECT: 3,
-});
 
 /**
  * Scorm Tracker
@@ -3189,7 +5589,7 @@ class ScormTracker {
      * @param {string} type the type of the Scorm object
      * @param {ContextStatement} context the context statement of the Scorm object
      */
-    constructor(tracker, id, type="SCO", context = tracker.context) {
+    constructor(tracker, id, type=SCORMPROFILE.ACTIVITYTYPES.LESSON, context = tracker.context) {
         this.ScormId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -3211,21 +5611,6 @@ class ScormTracker {
      * @type {xAPITrackerAsset}
      */
     Tracker;
-    /**
-     * the list of types possible for the Scorm object
-     * @type {Map<string, string>}
-     */
-    ScormType = new Map([
-        ["SCO", 'http://adlnet.gov/expapi/activities/lesson'],
-        ["course", 'http://adlnet.gov/expapi/activities/course'],
-        ["module", 'http://adlnet.gov/expapi/activities/module'],
-        ["assessment", 'http://adlnet.gov/expapi/activities/assessment'],
-        ["interaction", 'http://adlnet.gov/expapi/activities/interaction'],
-        ["cmi_interaction", "http://adlnet.gov/expapi/activities/cmi.interaction"],
-        ["objective", 'http://adlnet.gov/expapi/activities/objective'],
-        ["attempt", 'http://adlnet.gov/expapi/activities/attempt'],
-        ["profile", 'http://adlnet.gov/expapi/activities/profile']
-    ]);
 
     /**
      * is initialized
@@ -3258,10 +5643,10 @@ class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != "SCO") {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
-        return this.Tracker.trace('initialized', this.ScormType.get(this.Type), this.ScormId, this.Context);
+        return this.Tracker.trace(SCORMPROFILE.VERBS.INITIALIZED, this.Type, this.ScormId, this.Context);
     }
 
     /**
@@ -3279,10 +5664,10 @@ class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != "SCO") {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
-        return this.Tracker.trace('suspended', this.ScormType.get(this.Type), this.ScormId, this.Context)
+        return this.Tracker.trace(SCORMPROFILE.VERBS.SUSPENDED, this.Type, this.ScormId, this.Context)
                 .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -3305,10 +5690,10 @@ class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != "SCO") {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
-        return this.Tracker.trace('resumed', this.ScormType.get(this.Type), this.ScormId, this.Context);
+        return this.Tracker.trace(SCORMPROFILE.VERBS.RESUMED, this.Type, this.ScormId, this.Context);
     }
 
     /**
@@ -3326,10 +5711,10 @@ class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != "SCO") {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
-        return this.Tracker.trace('terminated', this.ScormType.get(this.Type), this.ScormId, this.Context)
+        return this.Tracker.trace(SCORMPROFILE.VERBS.TERMINATED, this.Type, this.ScormId, this.Context)
                     .withDuration(this.InitializedTime, actualDate);
     }
 
@@ -3338,7 +5723,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     passed() {
-        return this.Tracker.trace('passed',this.ScormType.get(this.Type), this.ScormId, this.Context);
+        return this.Tracker.trace(SCORMPROFILE.VERBS.PASSED, this.Type, this.ScormId, this.Context);
     }
 
     /**
@@ -3346,7 +5731,7 @@ class ScormTracker {
      * @returns {StatementBuilder}
      */
     failed() {
-        return this.Tracker.trace('failed',this.ScormType.get(this.Type), this.ScormId, this.Context);
+        return this.Tracker.trace(SCORMPROFILE.VERBS.FAILED, this.Type, this.ScormId, this.Context);
     }
 
     /**
@@ -3357,7 +5742,7 @@ class ScormTracker {
     scored(score) {
         if (typeof score === 'undefined') {score = 1;}
 
-        return this.Tracker.trace('scored',this.ScormType.get(this.Type), this.ScormId, this.Context)
+        return this.Tracker.trace(SCORMPROFILE.VERBS.SCORED, this.Type, this.ScormId, this.Context)
             .withScore({raw:score});
     }
 
@@ -3382,7 +5767,7 @@ class ScormTracker {
             }
         }
         let actualDate=new Date();
-        return this.Tracker.trace('completed',this.ScormType.get(this.Type), this.ScormId, this.Context)
+        return this.Tracker.trace(SCORMPROFILE.VERBS.COMPLETED, this.Type, this.ScormId, this.Context)
             .withSuccess(success)
             .withCompletion(completion)
             .withScore({raw:score})
@@ -3396,6 +5781,8 @@ const msFn = ms.default || ms;
  * Main JavaScript Tracker class for xAPI tracking functionality
  */
 class JSTracker {
+    ALL = ALL;
+    STATEMENT_BUILDER_IDS = STATEMENT;
     /**
      * The underlying tracker instance
      * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
@@ -3704,6 +6091,9 @@ class JSTracker {
  * SCORM-specific tracker extending JSTracker
  */
 class JSScormTracker extends JSTracker {
+    SCORMPROFILE = SCORMPROFILE;
+    STATEMENT_BUILDER_IDS = STATEMENT;
+    ALL = ALL;
     /**
      * list of scorm instances
      */
@@ -3737,7 +6127,7 @@ class JSScormTracker extends JSTracker {
      * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type="SCO") {
+    scorm(id, type=SCORMPROFILE.ACTIVITYTYPES.LESSON) {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
@@ -3776,6 +6166,8 @@ class JSScormTracker extends JSTracker {
  * SCORM-specific tracker extending JSTracker
  */
 class LRSTracker extends JSTracker {
+    ALL = ALL;    
+    STATEMENT_BUILDER_IDS = STATEMENT;
     /**
      * Creates a new MyTracker instance
      */
@@ -3822,22 +6214,9 @@ class SeriousGameTracker extends JSTracker {
     /**
      * Accessible type constants
      */
-    ACCESSIBLETYPE = ACCESSIBLETYPE;
-
-    /**
-     * Completable type constants
-     */
-    COMPLETABLETYPE = COMPLETABLETYPE;
-
-    /**
-     * Alternative type constants
-     */
-    ALTERNATIVETYPE = ALTERNATIVETYPE;
-
-    /**
-     * Game object type constants
-     */
-    GAMEOBJECTTYPE = GAMEOBJECTTYPE;
+    SERIOUSGAMEPROFILE = SERIOUSGAMESPROFILE;
+    STATEMENT_BUILDER_IDS = STATEMENT;
+    ALL = ALL;
 
     /**
      * SCORM tracker instance
@@ -3942,10 +6321,10 @@ class SeriousGameTracker extends JSTracker {
     /**
      * Creates a game object tracker instance
      * @param {string} id - Game object ID
-     * @param {number} type - Game object type
+     * @param {string} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type=GAMEOBJECTTYPE.GAMEOBJECT) {
+    gameObject(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.ITEM) {
         var gameObject;
         if(!this.instances["gameObject"][type]) {
             this.instances["gameObject"][type]={};
@@ -3962,10 +6341,10 @@ class SeriousGameTracker extends JSTracker {
     /**
      * Creates a completable tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Completable type
+     * @param {string} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type=COMPLETABLETYPE.COMPLETABLE) {
+    completable(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.SERIOUS_GAME) {
         var completable;
         if(!this.instances["completable"][type]) {
             this.instances["completable"][type]={};
@@ -3982,10 +6361,10 @@ class SeriousGameTracker extends JSTracker {
     /**
      * Creates an alternative tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Alternative type
+     * @param {string} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type=ALTERNATIVETYPE.ALTERNATIVE) {
+    alternative(id, type=ALL.ACTIVITYTYPES.ASSESSMENT) {
         var alternative;
         if(!this.instances["alternative"][type]) {
             this.instances["alternative"][type]={};
@@ -4002,10 +6381,10 @@ class SeriousGameTracker extends JSTracker {
     /**
      * Creates an accessible tracker instance
      * @param {string} id - Activity ID
-     * @param {number} type - Accessible type
+     * @param {string} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accessible(id, type=ACCESSIBLETYPE.ACCESSIBLE) {
+    accessible(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.AREA) {
         var accessible;
         if(!this.instances["accessible"][type]) {
             this.instances["accessible"][type]={};

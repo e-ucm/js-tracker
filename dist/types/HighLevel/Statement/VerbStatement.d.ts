@@ -12,36 +12,15 @@ export default class VerbStatement {
     /**
      * Constructor of VerbStatement class
      *
-     * @param {string} id The verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]|string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
-    constructor(id: string, baseURI: string);
+    constructor(id: (typeof ALL.VERBS)[keyof typeof ALL.VERBS] | string, baseURI: string);
     /**
      * The Verb Id
      * @type {string}
      */
     id: string;
-    /**
-     * The Verb Ids array
-     */
-    ids: {
-        initialized: string;
-        progressed: string;
-        completed: string;
-        accessed: string;
-        skipped: string;
-        selected: string;
-        unlocked: string;
-        interacted: string;
-        used: string;
-        responded: string;
-        resumed: string;
-        suspended: string;
-        terminated: string;
-        passed: string;
-        failed: string;
-        scored: string;
-    };
     /**
      * The Verb display
      * @type {Map<string, string>}
@@ -66,3 +45,4 @@ export default class VerbStatement {
      */
     toCSV(): string;
 }
+import { ALL } from "./Ids/Profiles/Generated/index.js";

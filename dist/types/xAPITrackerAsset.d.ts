@@ -167,5 +167,5 @@ import XAPI from "@xapi/xapi";
 import Statement from "./HighLevel/Statement/Statement.js";
 import ActorStatement from "./HighLevel/Statement/ActorStatement.js";
 import ContextStatement from "./HighLevel/Statement/ContextStatement.js";
-import StatementBuilder from "./HighLevel/StatementBuilder.js";
-import LRSStatementBuilder from "./HighLevel/LRSStatementBuilder.js";
+import StatementBuilder from "./HighLevel/StatementBuilder/StatementBuilder.js";
+import LRSStatementBuilder from "./HighLevel/StatementBuilder/LRSStatementBuilder.js";

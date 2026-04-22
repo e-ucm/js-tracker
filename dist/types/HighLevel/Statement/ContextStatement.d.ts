@@ -14,10 +14,10 @@ export default class ContextStatement {
      *
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {string} categoryId category Id of context
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base: string, platform: string, registrationId?: string, categoryId?: string);
+    constructor(base: string, platform: string, registrationId?: string, categoryId?: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]);
     /**
      * default URI for the context construction
      * @type {string}
@@ -42,9 +42,9 @@ export default class ContextStatement {
     contextActivities: any;
     /**
      * Add a category to the context
-     * @param {string} categoryId category Id to add
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      */
-    addCategory(categoryId: string): void;
+    addCategory(categoryId: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]): void;
     /**
      * Extensions of the Context
      *
@@ -52,27 +52,29 @@ export default class ContextStatement {
      */
     extensions: any;
     /**
-     * The category IDs list
-     */
-    categoryIDs: {
-        seriousgame: string;
-        scorm: string;
-    };
-    /**
      * Add or set a context activity
-     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
      * @param {ObjectStatement|ObjectStatement[]|string} activity activity object(s) or activity id
      * @param {string} [activityType] activity type when activity is an id
      */
-    addContextActivity(type: "parent" | "grouping" | "category" | "other", activity: ObjectStatement | ObjectStatement[] | string, activityType?: string): void;
+    addContextActivity(type: (typeof STATEMENT.CONTEXT.ACTIVITIES)[keyof typeof STATEMENT.CONTEXT.ACTIVITIES], activity: ObjectStatement | ObjectStatement[] | string, activityType?: string): void;
     /**
      * convert to XAPI
      *
      * @returns {Object}
      */
     toXAPI(): any;
+    /**
+     * Set the extensions of the Context
+     * @param {Object} ext extensions object
+     */
     setExtensions(ext: any): void;
-    setExtension(key: any, value: any): void;
+    /**
+     * Add or set a single extension key-value pair
+     * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key
+     * @param {any} value extension value
+     */
+    setExtension(key: (typeof ALL.CONTEXTEXTENSION)[keyof typeof ALL.CONTEXTEXTENSION] | string, value: any): void;
     /**
      * convert to CSV
      *
@@ -80,4 +82,6 @@ export default class ContextStatement {
      */
     toCSV(): string;
 }
+import { ALL } from './Ids/Profiles/Generated/index.js';
+import { STATEMENT } from './Ids/Statements.js';
 import ObjectStatement from './ObjectStatement.js';
