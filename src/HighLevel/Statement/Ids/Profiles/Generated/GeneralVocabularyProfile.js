@@ -3,7 +3,6 @@
 export const GENERALVOCABULARYPROFILE = Object.freeze({
     CATEGORYID: 'https://pttportal.af.mil/xapi/profile/vocab/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},

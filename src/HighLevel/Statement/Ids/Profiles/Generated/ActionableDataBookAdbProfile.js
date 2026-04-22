@@ -19,7 +19,6 @@ export const ACTIONABLEDATABOOKADBPROFILE = Object.freeze({
         SELECTED: 'https://w3id.org/xapi/adb/verbs/selected',
         WATCHED: 'https://w3id.org/xapi/adb/verbs/watched',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},

@@ -6,12 +6,6 @@ export const PDFANNOTATORPROFILE = Object.freeze({
         ANNOTATED: 'http://risc-inc.com/annotator/verbs/annotated',
         MODIFIED_ANNOTATION: 'http://risc-inc.com/annotator/verbs/modified',
     },
-    ACTIVITIYTYPES: {
-        FREETEXT_ANNOTATION: 'http://www.risc-inc.com/annotator/activities/freetext',
-        HIGHLIGHTED_TEXT_ANNOTATION: 'http://risc-inc.com/annotator/activities/highlight',
-        NOTE_ANNOTATION: 'http://risc-inc.com/annotator/activities/note',
-        UNDERLINE_ANNOTATION: 'http://risc-inc.com/annotator/activities/underline',
-    },
     ACTIVITYTYPES: {
         FREETEXT_ANNOTATION: 'http://www.risc-inc.com/annotator/activities/freetext',
         HIGHLIGHTED_TEXT_ANNOTATION: 'http://risc-inc.com/annotator/activities/highlight',

@@ -3,9 +3,6 @@
 export const VIRTUALCLASSROOMPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/virtual-classroom/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {
-        VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activity-types/virtual-classroom',
-    },
     ACTIVITYTYPES: {
         VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activity-types/virtual-classroom',
     },

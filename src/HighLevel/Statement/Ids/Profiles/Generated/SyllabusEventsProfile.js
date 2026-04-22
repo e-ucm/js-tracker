@@ -3,12 +3,6 @@
 export const SYLLABUSEVENTSPROFILE = Object.freeze({
     CATEGORYID: 'https://pttportal.af.mil/xapi/profile/syllabus-events/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {
-        SYLLABUS_EVENT: 'https://pttportal.af.mil/xapi/activity-type/syllabus-event',
-        SYLLABUS_PHASE: 'https://pttportal.af.mil/xapi/activity-type/syllabus-phase',
-        SYLLABUS_UNIT: 'https://pttportal.af.mil/xapi/activity-type/syllabus-unit',
-        TRAINING_PROGRAM: 'https://pttportal.af.mil/xapi/activity-type/training-program',
-    },
     ACTIVITYTYPES: {
         SYLLABUS_EVENT: 'https://pttportal.af.mil/xapi/activity-type/syllabus-event',
         SYLLABUS_PHASE: 'https://pttportal.af.mil/xapi/activity-type/syllabus-phase',

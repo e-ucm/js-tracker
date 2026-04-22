@@ -6,7 +6,6 @@ export const VIRTUALPATIENTPROFILE = Object.freeze({
         IGNORED: 'https://w3id.org/xapi/medbiq/verbs/ignored',
         UPDATED: 'https://w3id.org/xapi/medbiq/verbs/updated',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},

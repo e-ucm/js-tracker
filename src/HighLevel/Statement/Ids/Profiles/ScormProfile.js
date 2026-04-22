@@ -10,7 +10,7 @@ export const SCORMPROFILE = Object.freeze({
         FAILED: 'http://adlnet.gov/expapi/verbs/failed',
         SCORED: 'http://adlnet.gov/expapi/verbs/scored',
     },
-    ACTIVITIYTYPES: {
+    ACTIVITYTYPES: {
         //SCORM Object Types
         COURSE: 'http://adlnet.gov/expapi/activities/course',
         MODULE: 'http://adlnet.gov/expapi/activities/module',

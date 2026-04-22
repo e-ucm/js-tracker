@@ -3,7 +3,6 @@
 export const LEARNINGMANAGEMENTSYSTEMPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/lms/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {

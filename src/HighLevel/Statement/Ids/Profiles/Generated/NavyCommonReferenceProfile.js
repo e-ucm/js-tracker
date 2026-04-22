@@ -9,11 +9,6 @@ export const NAVYCOMMONREFERENCEPROFILE = Object.freeze({
         PRINTED: 'https://w3id.org/xapi/netc/verbs/printed',
         UPLOADED: 'https://w3id.org/xapi/netc/verbs/uploaded',
     },
-    ACTIVITIYTYPES: {
-        MENU: 'https://w3id.org/xapi/netc/activity-types/menu',
-        MENU_ITEM: 'https://w3id.org/xapi/netc/activity-types/menu-item',
-        ORGANIZATION: 'https://w3id.org/xapi/netc/activity-types/organization',
-    },
     ACTIVITYTYPES: {
         MENU: 'https://w3id.org/xapi/netc/activity-types/menu',
         MENU_ITEM: 'https://w3id.org/xapi/netc/activity-types/menu-item',

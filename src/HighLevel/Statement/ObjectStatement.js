@@ -1,4 +1,5 @@
 import { isUri, setAsUri } from "./helper.js";
+import { ALL } from "./Ids/Profiles/Generated/index.js";
 
 /**
  * The Object Class of a Statement
@@ -8,8 +9,9 @@ export default class ObjectStatement {
      * The constructor of the ObjectStatement class
      * 
      * @param {string} id the id of the object
-     * @param {string} type the type of the object
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} type the type of the object
      * @param {string} baseURI the base URI for the object construction
+     * @param {string} language the language for the name and description (default: "en")
      * @param {string} name the name of the object
      * @param {string} description the description of the object
      */
@@ -55,6 +57,13 @@ export default class ObjectStatement {
     definitionDescription = new Map();
 
     /**
+     * The extensions of the Object definition
+     *
+     * @type {Object}
+     */
+    definitionExtensions;
+
+    /**
      * default URI for the object construction
      * @type {string}
      * */
@@ -79,6 +88,26 @@ export default class ObjectStatement {
     }
 
     /**
+     * Set the extensions of the Object definition
+     * @param {Object} ext extensions object
+     */
+    setExtensions(ext) {
+        this.definitionExtensions = ext;
+    }
+
+    /**
+     * Add or set a single extension key-value pair in the Object definition
+     * @param {typeof ALL.ACTIVITYEXTENSION[keyof typeof ALL.ACTIVITYEXTENSION]|string} key extension key
+     * @param {any} value extension value
+     */
+    setExtension(key, value) {
+        if(!this.definitionExtensions) {
+            this.definitionExtensions = {};
+        }
+        this.definitionExtensions[key] = value;
+    }
+
+    /**
      * Convert to xAPI object, including interaction activities if set
      * @returns {Object}
      */
@@ -96,6 +125,9 @@ export default class ObjectStatement {
         }
         if (this.definitionType) {
             object.definition.type = this.definitionType;
+        }
+        if (this.definitionExtensions) {
+            object.definition.extensions = this.definitionExtensions;
         }
         return object;
     }
@@ -125,6 +157,9 @@ export default class ObjectStatement {
         }
         for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
             obj.setObjectDefinitionDescription(lang, desc);
+        }
+        if (xapiObj.definition?.extensions) {
+            obj.setExtensions(xapiObj.definition.extensions);
         }
         return obj;
     }

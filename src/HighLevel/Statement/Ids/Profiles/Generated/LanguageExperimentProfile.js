@@ -3,7 +3,6 @@
 export const LANGUAGEEXPERIMENTPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/langexperiment/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},

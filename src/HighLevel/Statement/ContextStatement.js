@@ -13,7 +13,7 @@ export default class ContextStatement {
      * 
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {string} categoryId category Id of context
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
     constructor(base, platform, registrationId=null, categoryId=null) {
@@ -31,7 +31,7 @@ export default class ContextStatement {
 
     /**
      * Add a category to the context
-     * @param {string} categoryId category Id to add
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      */
     addCategory(categoryId) {
         if(categoryId) {
@@ -85,7 +85,7 @@ export default class ContextStatement {
 
     /**
      * Add or set a context activity
-     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
      * @param {ObjectStatement|ObjectStatement[]|string} activity activity object(s) or activity id
      * @param {string} [activityType] activity type when activity is an id
      */
@@ -147,7 +147,7 @@ export default class ContextStatement {
 
     /**
      * Add or set a single extension key-value pair
-     * @param {string} key extension key
+     * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key
      * @param {any} value extension value
      */
     setExtension(key, value) {

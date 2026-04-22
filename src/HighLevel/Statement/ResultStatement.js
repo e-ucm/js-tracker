@@ -1,4 +1,6 @@
 import { setAsUri } from "./helper.js";
+import { ALL } from "./Ids/Profiles/Generated/All.js";
+import { STATEMENT } from "./Ids/Statements.js";
 
 /**
  * The Result Class of a Statement
@@ -72,23 +74,6 @@ export default class ResultStatement {
     }
 
     /**
-     * The possible extensions of a result statement
-     */
-    ExtensionIDs = {
-        health: 'https://w3id.org/xapi/seriousgames/extensions/health',
-        position: 'https://w3id.org/xapi/seriousgames/extensions/position',
-        progress: 'https://w3id.org/xapi/seriousgames/extensions/progress',
-        interactionID: 'https://w3id.org/xapi/netc-assessment/extensions/activity/id-number',
-        response_explanation: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-explanation',
-        response_type: 'https://w3id.org/xapi/netc-assessment/extensions/result/response-type',
-    };
-
-    /**
-     * The Score Keys for the result
-     */
-    ScoreKey = ["raw", "min", "max", "scaled"];
-
-    /**
      * Set extensions from list
      * @param {Object} extensions extension list
      */
@@ -100,7 +85,7 @@ export default class ResultStatement {
 
     /**
      * Set result extension for key value
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {*} value the value of the extension
      */
     setExtension(key, value) {
@@ -123,7 +108,7 @@ export default class ResultStatement {
         if(! this.Score) {
             this.Score = {};
         }
-        if(this.ScoreKey.includes(key)) {
+        if(STATEMENT.RESULT.SCORE.hasOwnProperty(key.toUpperCase())) {
             this.Score[key] = Number(value);
         }    
     }
@@ -158,7 +143,7 @@ export default class ResultStatement {
      * @param {number} raw the raw score 
      */
     setScoreRaw(raw) {
-        this.setScoreValue('raw', raw);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.RAW, raw);
     }
     
     /**
@@ -166,7 +151,7 @@ export default class ResultStatement {
      * @param {number} min the min score 
      */
     setScoreMin(min) {
-        this.setScoreValue('min', min);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.MIN, min);
     }
 
     /**
@@ -174,7 +159,7 @@ export default class ResultStatement {
      * @param {number} max the max score 
      */
     setScoreMax(max) {
-        this.setScoreValue('max', max);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.MAX, max);
     }
 
     /**
@@ -182,7 +167,7 @@ export default class ResultStatement {
      * @param {number} scaled the scaled score 
      */
     setScoreScaled(scaled) {
-        this.setScoreValue('scaled', scaled);
+        this.setScoreValue(STATEMENT.RESULT.SCORE.SCALED, scaled);
     }
 
     /**
@@ -190,7 +175,7 @@ export default class ResultStatement {
      * @param {boolean} value the completion status
      */
     setCompletion(value) {
-        this.setExtension('completion', value);
+        this.setExtension(STATEMENT.RESULT.COMPLETION, value);
     }
 
     /**
@@ -198,7 +183,7 @@ export default class ResultStatement {
      * @param {boolean} value the success status
      */
     setSuccess(value) {
-        this.setExtension('success', value);
+        this.setExtension(STATEMENT.RESULT.SUCCESS, value);
     }
 
     /**
@@ -216,7 +201,7 @@ export default class ResultStatement {
 
         // Construct the ISO 8601 duration string
         const isoDuration = `P${days}DT${hours}H${minutes}M${seconds}S`;
-        this.setExtension('duration', isoDuration);
+        this.setExtension(STATEMENT.RESULT.DURATION, isoDuration);
     }
 
     /**
@@ -224,7 +209,7 @@ export default class ResultStatement {
      * @param {string} value the response
      */
     setResponse(value) {
-        this.setExtension('response', value);
+        this.setExtension(STATEMENT.RESULT.RESPONSE, value);
     }
 
     /**
@@ -232,12 +217,12 @@ export default class ResultStatement {
      * @param {number} value the progress status
      */
     setProgress(value) {
-        this.setExtension('progress', value);
+        this.setExtension(STATEMENT.RESULT.PROGRESS, value);
     }
 
     /**
      * Set result extension for key of the statement
-     * @param {string} key the key of the extension
+     * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key the key of the extension
      * @param {string} value the value of the extension
      */
     setVar(key,value) {
@@ -277,8 +262,8 @@ export default class ResultStatement {
             ret.extensions = this.Extensions;
 
             for (var key in this.Extensions) {
-                if (this.ExtensionIDs.hasOwnProperty(key)) {
-                    this.Extensions[this.ExtensionIDs[key]] = this.Extensions[key];
+                if (key in ALL.RESULTEXTENSION) {
+                    this.Extensions[ALL.RESULTEXTENSION[key]] = this.Extensions[key];
                     delete this.Extensions[key];
                 } else {
                     var newuri= setAsUri(key, this.defaultURI);
@@ -292,7 +277,24 @@ export default class ResultStatement {
 
         return ret;
     }
-    
+
+    /**
+     * Create a ResultStatement from xAPI result object
+     * @param {Object} xapiObj
+     * @param {string} baseURI
+     * @returns {ResultStatement}
+     */
+    static fromXAPI(xapiObj, baseURI) {
+        if (!xapiObj) return new ResultStatement(baseURI);
+        const result = new ResultStatement(baseURI);
+        if ('score' in xapiObj) result.Score = xapiObj.score;
+        if ('success' in xapiObj) result.Success = xapiObj.success;
+        if ('completion' in xapiObj) result.Completion = xapiObj.completion;
+        if ('response' in xapiObj) result.Response = xapiObj.response;
+        if ('duration' in xapiObj) result.Duration = xapiObj.duration;
+        if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
+        return result;
+    }
     /**
      * convert to CSV
      * 
@@ -397,22 +399,4 @@ var ismap = function(obj) {
  */
 var exists = function(value) {
     return !(typeof value === 'undefined' || value === null);
-};
-
-/**
- * Create a ResultStatement from xAPI result object
- * @param {Object} xapiObj
- * @param {string} baseURI
- * @returns {ResultStatement}
- */
-ResultStatement.fromXAPI = function(xapiObj, baseURI) {
-    if (!xapiObj) return new ResultStatement(baseURI);
-    const result = new ResultStatement(baseURI);
-    if ('score' in xapiObj) result.Score = xapiObj.score;
-    if ('success' in xapiObj) result.Success = xapiObj.success;
-    if ('completion' in xapiObj) result.Completion = xapiObj.completion;
-    if ('response' in xapiObj) result.Response = xapiObj.response;
-    if ('duration' in xapiObj) result.Duration = xapiObj.duration;
-    if ('extensions' in xapiObj) result.setExtensions(xapiObj.extensions);
-    return result;
 };

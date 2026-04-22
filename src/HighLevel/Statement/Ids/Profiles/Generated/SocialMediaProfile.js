@@ -7,7 +7,6 @@ export const SOCIALMEDIAPROFILE = Object.freeze({
         LEFT: 'https://xapi.org.au/sociallearningprofile/left',
         LOVED: 'https://xapi.org.au/sociallearningprofile/loved',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {
         EMOTION: 'https://xapi.org.au/sociallearningprofile/emotion',

@@ -13,7 +13,7 @@ export class AlternativeTracker {
      * @param {string} id the id of the accessible object
      * @param {string} type the type of the accessible object
      */
-    constructor(tracker, id, type=SERIOUSGAMEPROFILE.ACTIVITIYTYPES.ALTERNATIVE) {
+    constructor(tracker, id, type=SERIOUSGAMEPROFILE.ACTIVITYTYPES.ALTERNATIVE) {
         this.AlternativeId=id;
         this.Type=type;
         this.Tracker = tracker;

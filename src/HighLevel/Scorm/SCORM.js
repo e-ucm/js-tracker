@@ -14,7 +14,7 @@ export class ScormTracker {
      * @param {string} type the type of the Scorm object
      * @param {ContextStatement} context the context statement of the Scorm object
      */
-    constructor(tracker, id, type=SCORMPROFILE.ACTIVITIYTYPES.LESSON, context = tracker.context) {
+    constructor(tracker, id, type=SCORMPROFILE.ACTIVITYTYPES.LESSON, context = tracker.context) {
         this.ScormId=id;
         this.Type=type;
         this.Tracker = tracker;
@@ -68,7 +68,7 @@ export class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot initialize an object for a type different that SCO.");
         }
         return this.Tracker.trace(SCORMPROFILE.VERBS.INITIALIZED, this.Type, this.ScormId, this.Context);
@@ -89,7 +89,7 @@ export class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot suspend an object for a type different that SCO.");
         }
         return this.Tracker.trace(SCORMPROFILE.VERBS.SUSPENDED, this.Type, this.ScormId, this.Context)
@@ -115,7 +115,7 @@ export class ScormTracker {
             this.InitializedTime = new Date();
             this.IsInitialized=true;
         }
-        if(this.Type != SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot resume an object for a type different that SCO.");
         }
         return this.Tracker.trace(SCORMPROFILE.VERBS.RESUMED, this.Type, this.ScormId, this.Context);
@@ -136,7 +136,7 @@ export class ScormTracker {
         }
         let actualDate=new Date();
         this.IsInitialized=false;
-        if(this.Type != SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
+        if(this.Type != SCORMPROFILE.ACTIVITYTYPES.LESSON) {
             throw new Error("You cannot terminate an object for a type different that SCO.");
         }
         return this.Tracker.trace(SCORMPROFILE.VERBS.TERMINATED, this.Type, this.ScormId, this.Context)

@@ -3,7 +3,6 @@
 export const XAPIOPENBADGESPROFILE = Object.freeze({
     CATEGORYID: 'http://specification.openbadges.org/xapi',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {

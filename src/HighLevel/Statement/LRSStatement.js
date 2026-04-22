@@ -5,7 +5,7 @@ import ActorStatement from "./ActorStatement.js";
 import ContextStatement from "./ContextStatement.js";
 import InteractionObjectStatement from "./InteractionObjectStatement.js";
 import Statement from "./Statement.js";
-
+import { ALL } from "./Ids/Profiles/Generated/index.js";
 
 /**
 * Statement class
@@ -14,15 +14,15 @@ export default class LRSStatement extends Statement {
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement
-     * @param {string} verbId verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]} verbId verb id of the statement
      * @param {string} objectId object id of the statement
-     * @param {string} objectType object Type of the statement
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} objectType object Type of the statement
      * @param {ContextStatement} context context of the statement
      * @param {string} defaultURI default URI for the statement construction
      */
     constructor(actor, verbId, objectId, objectType, context, defaultURI) {
         super(actor, verbId, objectId, objectType, context, defaultURI);
-        this.authority=new ActorStatement({ name: 'unknown' });
+        this.authority=new ActorStatement({});
         this.stored = new Date();
     }
 

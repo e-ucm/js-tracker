@@ -7,10 +7,6 @@ export const CMI5PROFILE = Object.freeze({
         SATISFIED: 'https://w3id.org/xapi/adl/verbs/satisfied',
         WAIVED: 'https://w3id.org/xapi/adl/verbs/waived',
     },
-    ACTIVITIYTYPES: {
-        BLOCK: 'https://w3id.org/xapi/cmi5/activitytype/block',
-        COURSE: 'https://w3id.org/xapi/cmi5/activitytype/course',
-    },
     ACTIVITYTYPES: {
         BLOCK: 'https://w3id.org/xapi/cmi5/activitytype/block',
         COURSE: 'https://w3id.org/xapi/cmi5/activitytype/course',

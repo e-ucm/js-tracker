@@ -13,16 +13,6 @@ export const SCORMPROFILE = Object.freeze({
         SUSPENDED: 'http://adlnet.gov/expapi/verbs/suspended',
         TERMINATED: 'http://adlnet.gov/expapi/verbs/terminated',
     },
-    ACTIVITIYTYPES: {
-        ASSESSMENT: 'http://adlnet.gov/expapi/activities/assessment',
-        ATTEMPT: 'http://adlnet.gov/expapi/activities/attempt',
-        CMI_INTERACTION: 'http://adlnet.gov/expapi/activities/cmi.interaction',
-        COURSE: 'http://adlnet.gov/expapi/activities/course',
-        LESSON: 'http://adlnet.gov/expapi/activities/lesson',
-        MODULE: 'http://adlnet.gov/expapi/activities/module',
-        OBJECTIVE: 'http://adlnet.gov/expapi/activities/objective',
-        PROFILE: 'http://adlnet.gov/expapi/activities/profile',
-    },
     ACTIVITYTYPES: {
         ASSESSMENT: 'http://adlnet.gov/expapi/activities/assessment',
         ATTEMPT: 'http://adlnet.gov/expapi/activities/attempt',

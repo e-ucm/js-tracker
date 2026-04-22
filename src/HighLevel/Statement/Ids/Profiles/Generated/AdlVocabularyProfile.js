@@ -22,15 +22,6 @@ export const ADLVOCABULARYPROFILE = Object.freeze({
         SHARED: 'http://adlnet.gov/expapi/verbs/shared',
         VOIDED: 'http://adlnet.gov/expapi/verbs/voided',
     },
-    ACTIVITIYTYPES: {
-        FILE: 'http://adlnet.gov/expapi/activities/file',
-        LINK: 'http://adlnet.gov/expapi/activities/link',
-        MEDIA: 'http://adlnet.gov/expapi/activities/media',
-        MEETING: 'http://adlnet.gov/expapi/activities/meeting',
-        PERFORMANCE: 'http://adlnet.gov/expapi/activities/performance',
-        QUESTION: 'http://adlnet.gov/expapi/activities/question',
-        SIMULATION: 'http://adlnet.gov/expapi/activities/simulation',
-    },
     ACTIVITYTYPES: {
         FILE: 'http://adlnet.gov/expapi/activities/file',
         LINK: 'http://adlnet.gov/expapi/activities/link',

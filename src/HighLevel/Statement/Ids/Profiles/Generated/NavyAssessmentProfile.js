@@ -3,7 +3,6 @@
 export const NAVYASSESSMENTPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/netc-assessment/v/3',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {
         EXTENDED_INTERACTION_TYPE: 'https://w3id.org/xapi/netc-assessment/extensions/activity/extended-interaction-type',

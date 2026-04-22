@@ -1,6 +1,8 @@
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import LRSStatement from "../Statement/LRSStatement.js";
 import StatementBuilder from "./StatementBuilder.js";
+import { STATEMENT } from "../Statement/Ids/Statements.js";
+import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
 
 export default class LRSStatementBuilder extends StatementBuilder {
     /**
@@ -20,9 +22,9 @@ export default class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Adds a context activity to the statement
-     * @param {"parent"|"grouping"|"category"|"other"} type - The context activity type (e.g. 'parent', 'grouping', 'category', 'other')
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type - The context activity type from STATEMENT_BUILDER_IDS.CONTEXT.ACTIVITIES
      * @param {string} id - The IRI identifier of the context activity
-     * @param {string} activityType - The activity type IRI
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} activityType - The activity type IRI
      * @returns {LRSStatementBuilder} This builder instance for chaining
      */
     withContextActivity(type, id, activityType) {

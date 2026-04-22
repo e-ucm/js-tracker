@@ -6,7 +6,6 @@ export const IMSGLOBALLEARNINGTOOLINTEROPERABILITYPROFILE = Object.freeze({
         RETURNED_LTI: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/verb/returned-lti',
         USED_LTI: 'http://profiles.usalearning.net/xapi/5eda3789-9801-4dcc-ae22-9971b2a31871/verb/lti-used',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {

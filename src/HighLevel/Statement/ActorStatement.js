@@ -28,7 +28,7 @@ export default class ActorStatement {
 
     /**
      * Set actor properties with validation
-     * @param {String} type - one of name, mbox, mbox_sha1sum, openid, account, member
+     * @param {typeof STATEMENT.ACTOR.AGENTTYPE[keyof typeof STATEMENT.ACTOR.AGENTTYPE]|typeof STATEMENT.ACTOR.GROUPTYPE[keyof typeof STATEMENT.ACTOR.GROUPTYPE]} type - one of name, mbox, mbox_sha1sum, openid, account, member
      * @param {Object|Array|String} actorData - data for the specified type
      */
     setActor(type, actorData) {

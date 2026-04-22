@@ -3,7 +3,6 @@
 export const COREPROFILE = Object.freeze({
     CATEGORYID: 'https://pttportal.af.mil/xapi/profile/core/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},

@@ -7,10 +7,6 @@ export const CONTENTREPOSITORYPROFILE = Object.freeze({
         COMMENCED: 'https://xapi.org.au/contentprofile/verb/commenced',
         WITHDREW: 'https://xapi.org.au/contentprofile/verb/withdrew',
     },
-    ACTIVITIYTYPES: {
-        JOURNAL_ARTICLE: 'http://xapi.org.au/contentprofile/activitytype/journal_article',
-        SURVEY: 'https://xapi.org.au/contentprofile/activitytype/survey',
-    },
     ACTIVITYTYPES: {
         JOURNAL_ARTICLE: 'http://xapi.org.au/contentprofile/activitytype/journal_article',
         SURVEY: 'https://xapi.org.au/contentprofile/activitytype/survey',

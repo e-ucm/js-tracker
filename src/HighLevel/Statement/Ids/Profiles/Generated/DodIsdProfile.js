@@ -427,7 +427,6 @@ export const DODISDPROFILE = Object.freeze({
         WROTE: 'https://w3id.org/xapi/dod-isd/verbs/wrote',
         ZEROED: 'https://w3id.org/xapi/dod-isd/verbs/zeroed',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {

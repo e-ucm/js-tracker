@@ -7,9 +7,6 @@ export const GEOLOCATIONPROFILE = Object.freeze({
         CHECKED_OUT: 'https://xapi.org.au/geolocationprofileprofile/verb/checkedout/',
         FINISHED: 'https://xapi.org.au/geolocationprofileprofile/verb/finished',
     },
-    ACTIVITIYTYPES: {
-        PLACE: 'https://xapi.org.au/geolocationprofileprofile/activity/place',
-    },
     ACTIVITYTYPES: {
         PLACE: 'https://xapi.org.au/geolocationprofileprofile/activity/place',
     },

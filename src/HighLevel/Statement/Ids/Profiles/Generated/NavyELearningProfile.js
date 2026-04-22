@@ -3,9 +3,6 @@
 export const NAVYELEARNINGPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/netc-e-learning/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {
-        SECTION: 'https://w3id.org/xapi/netc-e-learning/activity-types/section',
-    },
     ACTIVITYTYPES: {
         SECTION: 'https://w3id.org/xapi/netc-e-learning/activity-types/section',
     },

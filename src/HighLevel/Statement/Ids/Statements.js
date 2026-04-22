@@ -25,6 +25,19 @@ export const STATEMENT = Object.freeze({
         }
     },
 
+    RESULT: {
+        SCORE: {
+            RAW: "raw",
+            MIN: "min",
+            MAX: "max",
+            SCALED: "scaled"
+        },
+        SUCCESS: "success",
+        COMPLETION: "completion",
+        RESPONSE: "response",
+        DURATION: "duration",
+        PROGRESS: "progress"
+    },
     INTERACTIONOBJECT: {
         INTERACTIONTYPES: {
             TRUE_FALSE: "true-false",

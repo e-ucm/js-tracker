@@ -13,7 +13,7 @@ export class AccessibleTracker {
      * @param {string} id the id of the accessible object
      * @param {string} type the type of the accessible object
      */
-    constructor(tracker, id, type=ALL.ACTIVITIYTYPES.AREA) {
+    constructor(tracker, id, type=ALL.ACTIVITYTYPES.AREA) {
         this.AccessibleId=id;
         this.Type=type;
         this.Tracker = tracker;

@@ -97,7 +97,7 @@ function generateProfileFile(profileJson, fileName) {
 
   const groups = {
     VERBS: {},
-    ACTIVITIYTYPES: {},
+    ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {},
     RESULTEXTENSION: {}
@@ -109,7 +109,7 @@ function generateProfileFile(profileJson, fileName) {
         pushConcept(groups.VERBS, concept);
         break;
       case "ActivityType":
-        pushConcept(groups.ACTIVITIYTYPES, concept);
+        pushConcept(groups.ACTIVITYTYPES, concept);
         break;
       case "ActivityExtension":
         pushConcept(groups.ACTIVITYEXTENSION, concept);
@@ -131,8 +131,7 @@ function generateProfileFile(profileJson, fileName) {
     `export const ${constName} = Object.freeze({`,
     `    CATEGORYID: '${categoryId}',`,
     `    VERBS: ${renderObjectEntries(groups.VERBS, "        ")},`,
-    `    ACTIVITIYTYPES: ${renderObjectEntries(groups.ACTIVITIYTYPES, "        ")},`,
-    `    ACTIVITYTYPES: ${renderObjectEntries(groups.ACTIVITIYTYPES, "        ")},`,
+    `    ACTIVITYTYPES: ${renderObjectEntries(groups.ACTIVITYTYPES, "        ")},`,
     `    ACTIVITYEXTENSION: ${renderObjectEntries(groups.ACTIVITYEXTENSION, "        ")},`,
     `    CONTEXTEXTENSION: ${renderObjectEntries(groups.CONTEXTEXTENSION, "        ")},`,
     `    RESULTEXTENSION: ${renderObjectEntries(groups.RESULTEXTENSION, "        ")}`,
@@ -159,7 +158,7 @@ function generateAggregateFile(profiles) {
     .join("\n");
 
   const activityTypes = profiles
-    .map(({ constName }) => `        ...${constName}.ACTIVITIYTYPES,`)
+    .map(({ constName }) => `        ...${constName}.ACTIVITYTYPES,`)
     .join("\n");
 
   const activityExtensions = profiles
@@ -185,9 +184,6 @@ function generateAggregateFile(profiles) {
     "    }),",
     "    VERBS: Object.freeze({",
     verbs,
-    "    }),",
-    "    ACTIVITIYTYPES: Object.freeze({",
-    activityTypes,
     "    }),",
     "    ACTIVITYTYPES: Object.freeze({",
     activityTypes,

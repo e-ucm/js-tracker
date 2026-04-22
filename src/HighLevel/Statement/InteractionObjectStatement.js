@@ -1,5 +1,6 @@
 import { isUri, setAsUri } from "./helper.js";
 import ObjectStatement from "./ObjectStatement.js";
+import { STATEMENT } from "./Ids/Statements.js";
 
 /**
  * The Object Class of a Statement
@@ -63,7 +64,7 @@ export default class InteractionObjectStatement extends ObjectStatement {
 
     /**
      * Set the interactionType for interaction activities
-     * @param {string} interactionType
+     * @param {typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES[keyof typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES]} interactionType
      */
     setInteractionType(interactionType, debug = false) {
         if(!this.interactionType) {
@@ -104,13 +105,13 @@ export default class InteractionObjectStatement extends ObjectStatement {
 
     /**
      * Add a single choice with language support (for interaction activities)
-     * @param {string} componentType - One of 'choices', 'scale', 'source', 'target', 'steps'
+     * @param {typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES[keyof typeof STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES]} componentType - One of 'choices', 'scale', 'source', 'target', 'steps'
      * @param {string} id - The identifier for the choice
      * @param {string} lang - The language code (e.g., 'en')
      * @param {string} description - The description in the given language
      */
     addInteractionWithLang(componentType, id, lang, description) {
-        if (["choices", "scale", "source", "target", "steps"].includes(componentType)) {
+        if ([STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].includes(componentType)) {
             if (!this[componentType]) {
                 this[componentType] = [];
             }
@@ -139,10 +140,10 @@ export default class InteractionObjectStatement extends ObjectStatement {
                 object.definition.correctResponsesPattern = this.correctResponsesPattern;
             }
         }
-        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+        [STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].forEach((key) => {
             if (this[key]) {
                 // For choices/scale, ensure each item is {id, description: {lang: text}}
-                if ((key === "choices" || key === "scale") && Array.isArray(this[key])) {
+                if ((key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES || key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE) && Array.isArray(this[key])) {
                     object.definition[key] = this[key].map(item => {
                         if (item.id && item.description && typeof item.description === 'object') {
                             return { id: item.id, description: item.description };
@@ -169,7 +170,7 @@ export default class InteractionObjectStatement extends ObjectStatement {
         if (this.correctResponsesPattern) {
             csv += `,${this.correctResponsesPattern.join('|')}`;
         }
-        ["choices", "scale", "source", "target", "steps"].forEach((key) => {
+        [STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].forEach((key) => {
             if (this[key]) {
                 csv += `,${key}:${this[key].map(item => item.id).join('|')}`;
             }

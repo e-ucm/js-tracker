@@ -15,7 +15,7 @@ export const SERIOUSGAMEPROFILE = Object.freeze({
         INTERACTED: 'http://adlnet.gov/expapi/verbs/interacted',
         USED: 'https://w3id.org/xapi/seriousgames/verbs/used'
     },
-    ACTIVITIYTYPES: {
+    ACTIVITYTYPES: {
         // Completable
         GAME: 'https://w3id.org/xapi/seriousgames/activity-types/serious-game' ,
         SESSION: 'https://w3id.org/xapi/seriousgames/activity-types/session',

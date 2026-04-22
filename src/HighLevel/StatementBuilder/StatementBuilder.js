@@ -5,6 +5,8 @@ import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import InteractionObjectStatement from "../Statement/InteractionObjectStatement.js";
 import LRSStatement from "../Statement/LRSStatement.js";
 import Statement from "../Statement/Statement.js";
+import { STATEMENT } from "../Statement/Ids/Statements.js";
+import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
 import AttachmentStatement from "../Statement/AttachementStatement.js";
 
 // ------------------------------------------------------------------
@@ -145,11 +147,10 @@ export default class StatementBuilder {
 
   /**
    * Add result extension to statement
-   * @param {string} key key of the result extension
+   * @param {typeof ALL.RESULTEXTENSION[keyof typeof ALL.RESULTEXTENSION]|string} key key of the result extension
    * @param {*} value value of the result extension
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
-  
   withResultExtension(key, value) {
     this.statement.result.setExtension(key, value);
     return this;
@@ -165,7 +166,7 @@ export default class StatementBuilder {
   }
   /**
    * Add context extension to statement
-   * @param {string} key key of the context extension
+   * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key key of the context extension
    * @param {*} value value of the context extension
    * @returns {StatementBuilder} Returns the current instance for chaining
    */
@@ -176,9 +177,9 @@ export default class StatementBuilder {
   
   /**
      * Add context activity to statement
-     * @param {"parent"|"grouping"|"category"|"other"} type
+     * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
      * @param {string} activityId
-     * @param {string} activityType
+     * @param {typeof ALL.ACTIVITYTYPES[keyof typeof ALL.ACTIVITYTYPES]|string} activityType
      * @return {StatementBuilder} Returns the current instance for chaining
      */
   withContextActivity(type, activityId, activityType) {
@@ -186,6 +187,11 @@ export default class StatementBuilder {
     return this;
   }
 
+  /**
+     * Add context category to statement
+     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
   withContextCategory(categoryId) {
     this.statement.context.addCategory(categoryId);
     return this;
@@ -245,6 +251,27 @@ export default class StatementBuilder {
    * */ 
   withObjectDefinitionDescription(lang, description) {
     this.statement.object.setObjectDefinitionDescription(lang, description);
+    return this;
+  }
+
+  /**
+   * Add object/activity extension to statement object definition
+   * @param {typeof ALL.ACTIVITYEXTENSION[keyof typeof ALL.ACTIVITYEXTENSION]|string} key key of the object extension
+   * @param {*} value value of the object extension
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectExtension(key, value) {
+    this.statement.object.setExtension(key, value);
+    return this;
+  }
+
+  /**
+   * Add object/activity extensions as Object key/values list
+   * @param {Object} extensions extensions list
+   * @return {StatementBuilder} Returns the current instance for chaining
+   */
+  withObjectExtensions(extensions = {}) {
+    this.statement.object.setExtensions(extensions);
     return this;
   }
 

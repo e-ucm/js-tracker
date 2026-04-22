@@ -49,17 +49,6 @@ export const TLAPROFILE = Object.freeze({
         VALIDATED: 'https://w3id.org/xapi/tla/verbs/validated',
         VERIFIED: 'https://w3id.org/xapi/tla/verbs/verified',
     },
-    ACTIVITIYTYPES: {
-        ACTIVITY: 'https://w3id.org/xapi/tla/activity-types/activity',
-        ASSESSMENT: 'https://w3id.org/xapi/tla/activity-types/assessment',
-        BADGE: 'https://w3id.org/xapi/tla/activity-types/badge',
-        CAREER: 'https://w3id.org/xapi/tla/activity-types/career',
-        CAREER_STATE: 'https://w3id.org/xapi/tla/activity-types/career_state',
-        COMPETENCY: 'https://w3id.org/xapi/tla/activity-types/competency',
-        CONTENT_SET: 'https://w3id.org/xapi/tla/activity-types/content_set',
-        CREDENTIAL: 'https://w3id.org/xapi/tla/activity-types/credential',
-        JOB_DUTY_GIG: 'https://w3id.org/xapi/tla/activity-types/job_duty_gig',
-    },
     ACTIVITYTYPES: {
         ACTIVITY: 'https://w3id.org/xapi/tla/activity-types/activity',
         ASSESSMENT: 'https://w3id.org/xapi/tla/activity-types/assessment',

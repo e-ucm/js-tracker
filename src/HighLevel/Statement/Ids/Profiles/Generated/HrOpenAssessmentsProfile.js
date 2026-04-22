@@ -14,17 +14,6 @@ export const HROPENASSESSMENTSPROFILE = Object.freeze({
         SOLVED_2: 'https://w3id.org/xapi/hros-asessment/verbs/solved',
         WROTE: 'https://w3id.org/xapi/hros-asessment/verbs/writes',
     },
-    ACTIVITIYTYPES: {
-        AUDIO: 'https://w3id.org/xapi/hros-asessment/activitytypes/audio',
-        CODE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/codeassessment',
-        FIELD_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/fieldassessment',
-        LEADERSHIP_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/leadershipassessment',
-        PERSONALITY_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/personalityassessment',
-        POLICE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/policeassessment',
-        PSYCHOMETRIC_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/psychometricassessment',
-        VIRTUAL_REALITY_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/vrassessment',
-        WORK_SAMPLE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/worksampleassessment',
-    },
     ACTIVITYTYPES: {
         AUDIO: 'https://w3id.org/xapi/hros-asessment/activitytypes/audio',
         CODE_ASSESSMENT: 'https://w3id.org/xapi/hros-asessment/activitytypes/codeassessment',

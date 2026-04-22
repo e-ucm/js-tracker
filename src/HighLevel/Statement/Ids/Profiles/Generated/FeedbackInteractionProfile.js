@@ -6,9 +6,6 @@ export const FEEDBACKINTERACTIONPROFILE = Object.freeze({
         COMMENTED: 'https://w3id.org/xapi/adb/verbs/commented',
         RATED: 'https://w3id.org/xapi/acrossx/verbs/rated',
     },
-    ACTIVITIYTYPES: {
-        FEEDBACK_INTERACTION: 'https://xapi.com.au/activities/feedback',
-    },
     ACTIVITYTYPES: {
         FEEDBACK_INTERACTION: 'https://xapi.com.au/activities/feedback',
     },

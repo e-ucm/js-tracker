@@ -365,7 +365,7 @@ export class JSScormTracker extends JSTracker {
      * @param {string} type - SCORM type
      * @returns {ScormTracker} New SCORM tracker instance
      */
-    scorm(id, type=SCORMPROFILE.ACTIVITIYTYPES.LESSON) {
+    scorm(id, type=SCORMPROFILE.ACTIVITYTYPES.LESSON) {
         var scorm;
         if(!this.scormInstances[type]) {
             this.scormInstances[type]={};
@@ -562,7 +562,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} type - Game object type
      * @returns {GameObjectTracker} New GameObjectTracker instance
      */
-    gameObject(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.ITEM) {
+    gameObject(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.ITEM) {
         var gameObject;
         if(!this.instances["gameObject"][type]) {
             this.instances["gameObject"][type]={};
@@ -582,7 +582,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} type - Completable type
      * @returns {CompletableTracker} New CompletableTracker instance
      */
-    completable(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.SERIOUS_GAME) {
+    completable(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.SERIOUS_GAME) {
         var completable;
         if(!this.instances["completable"][type]) {
             this.instances["completable"][type]={};
@@ -602,7 +602,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} type - Alternative type
      * @returns {AlternativeTracker} New AlternativeTracker instance
      */
-    alternative(id, type=ALL.ACTIVITIYTYPES.ASSESSMENT) {
+    alternative(id, type=ALL.ACTIVITYTYPES.ASSESSMENT) {
         var alternative;
         if(!this.instances["alternative"][type]) {
             this.instances["alternative"][type]={};
@@ -622,7 +622,7 @@ export class SeriousGameTracker extends JSTracker {
      * @param {string} type - Accessible type
      * @returns {AccessibleTracker} New AccessibleTracker instance
      */
-    accessible(id, type=SERIOUSGAMESPROFILE.ACTIVITIYTYPES.AREA) {
+    accessible(id, type=SERIOUSGAMESPROFILE.ACTIVITYTYPES.AREA) {
         var accessible;
         if(!this.instances["accessible"][type]) {
             this.instances["accessible"][type]={};

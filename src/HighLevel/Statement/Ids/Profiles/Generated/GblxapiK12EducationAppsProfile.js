@@ -3,7 +3,6 @@
 export const GBLXAPIK12EDUCATIONAPPSPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/gblxapi/v1.0',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {
         DIFFICULTY: 'https://w3id.org/xapi.gblxapi/extensions/difficulty',

@@ -14,10 +14,6 @@ export const ORPHANCONTAINERPROFILE = Object.freeze({
         UNMUTED: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/unmuted',
         UNSHARED_SCREEN: 'http://schema.dases.eu/xapi/profile/virtual-classroom/verb/unshared-screen',
     },
-    ACTIVITIYTYPES: {
-        SIMULATION_SESSION: 'https://profiles.adlnet.gov/xapi/917114b6-71b4-4fcd-b6d3-892890594446/activitytype/Preflight',
-        VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activityt-types/virtual-classroom',
-    },
     ACTIVITYTYPES: {
         SIMULATION_SESSION: 'https://profiles.adlnet.gov/xapi/917114b6-71b4-4fcd-b6d3-892890594446/activitytype/Preflight',
         VIRTUAL_CLASSROOM: 'https://w3id.org/xapi/virtual-classroom/activityt-types/virtual-classroom',

@@ -6,7 +6,6 @@ export const OPENEDXPROFILE = Object.freeze({
         UNREPORTED: 'https://w3id.org/xapi/openedx/verb/unreported',
         VOTED: 'https://w3id.org/xapi/openedx/verb/voted',
     },
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {

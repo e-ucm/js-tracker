@@ -14,7 +14,7 @@ export class GameObjectTracker {
      * @param {string} id the id of the Game Object object
      * @param {string} type the Type of the Game Object object
      */
-    constructor(tracker,id, type=SERIOUSGAMEPROFILE.ACTIVITIYTYPES.GAMEOBJECT) {
+    constructor(tracker,id, type=SERIOUSGAMEPROFILE.ACTIVITYTYPES.GAMEOBJECT) {
         this.GameobjectId=id;
         this.Type=type;
         this.Tracker= tracker;

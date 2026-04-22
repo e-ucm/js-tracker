@@ -1,4 +1,5 @@
 import { isUri, setAsUri } from "./helper.js";
+import { ALL } from "./Ids/Profiles/Generated/index.js";
 
 /**
  * The Verb Class  of a Statement
@@ -7,7 +8,7 @@ export default class VerbStatement {
     /**
      * Constructor of VerbStatement class
      * 
-     * @param {string} id The verb id of the statement
+     * @param {typeof ALL.VERBS[keyof typeof ALL.VERBS]|string} id The verb id of the statement
      * @param {string} baseURI The base URI for the statement
      */
     constructor(id, baseURI) {

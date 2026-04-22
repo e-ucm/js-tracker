@@ -7,9 +7,6 @@ export const VIDEOPROFILE = Object.freeze({
         PLAYED: 'https://w3id.org/xapi/video/verbs/played',
         SEEKED: 'https://w3id.org/xapi/video/verbs/seeked',
     },
-    ACTIVITIYTYPES: {
-        VIDEO: 'https://w3id.org/xapi/video/activity-type/video',
-    },
     ACTIVITYTYPES: {
         VIDEO: 'https://w3id.org/xapi/video/activity-type/video',
     },

@@ -3,7 +3,6 @@
 export const EMOTIONAPIPROFILE = Object.freeze({
     CATEGORYID: 'https://profiles.adlnet.gov/xapi/4a1d0786-1de4-4941-9edc-2513b5c83a17/v/1',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {
         AROUSAL: 'https://profiles.adlnet.gov/xapi/4a1d0786-1de4-4941-9edc-2513b5c83a17/extension/arousal',

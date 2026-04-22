@@ -3,7 +3,6 @@
 export const SIMULATIONBASEPROFILE = Object.freeze({
     CATEGORYID: 'https://w3id.org/xapi/simulation/v/3',
     VERBS: {},
-    ACTIVITIYTYPES: {},
     ACTIVITYTYPES: {},
     ACTIVITYEXTENSION: {},
     CONTEXTEXTENSION: {
