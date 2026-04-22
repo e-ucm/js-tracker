@@ -111,19 +111,34 @@ export default class InteractionObjectStatement extends ObjectStatement {
      * @param {string} description - The description in the given language
      */
     addInteractionWithLang(componentType, id, lang, description) {
-        if ([STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].includes(componentType)) {
-            if (!this[componentType]) {
-                this[componentType] = [];
+        // Find which property/properties this componentType maps to
+        const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
+        let matched = false;
+        for (const [interactionType, componentProps] of Object.entries(componentsMap)) {
+            let typeKey = interactionType.toUpperCase();
+            let interactionTypeValue = STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES[typeKey];
+            if (componentType === interactionTypeValue) {
+                matched = true;
+                for (const prop of componentProps) {
+                    if (!this[prop]) {
+                        this[prop] = [];
+                    }
+                    let existing = this[prop].find(c => c.id === id);
+                    if (existing) {
+                        if (typeof existing.description !== 'object' || existing.description === null) {
+                            existing.description = {};
+                        }
+                        existing.description[lang] = description;
+                    } else {
+                        let desc = {};
+                        desc[lang] = description;
+                        this[prop].push({ id, description: desc });
+                    }
+                }
             }
-            // Check if choice with this id exists
-            let existing = this[componentType].find(c => c.id === id);
-            if (existing) {
-                existing.description[lang] = description;
-            } else {
-                let desc = {};
-                desc[lang] = description;
-                this[componentType].push({ id, description: desc });
-            }
+        }
+        if (!matched) {
+            console.warn(`Component type ${componentType} does not map to any INTERACTIONCOMPONENTS property.`);
         }
     }
 
@@ -140,25 +155,29 @@ export default class InteractionObjectStatement extends ObjectStatement {
                 object.definition.correctResponsesPattern = this.correctResponsesPattern;
             }
         }
-        [STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.MATCHING, STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.STEPS].forEach((key) => {
-            if (this[key]) {
-                // For choices/scale, ensure each item is {id, description: {lang: text}}
-                if ((key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.CHOICES || key === STATEMENT.INTERACTIONOBJECT.INTERACTIONTYPES.SCALE) && Array.isArray(this[key])) {
-                    object.definition[key] = this[key].map(item => {
-                        if (item.id && item.description && typeof item.description === 'object') {
-                            return { id: item.id, description: item.description };
-                        } else if (item.id && typeof item.description === 'string') {
-                            // fallback: wrap string in default lang
-                            return { id: item.id, description: { en: item.description } };
-                        } else {
-                            return item;
-                        }
-                    });
-                } else {
-                    object.definition[key] = this[key];
+        // Use INTERACTIONCOMPONENTS mapping for dynamic property assignment
+        const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
+        for (const componentProps of Object.values(componentsMap)) {
+            for (const prop of componentProps) {
+                if (this[prop]) {
+                    // For choices/scale, ensure each item is {id, description: {lang: text}}
+                    if ((prop === "choices" || prop === "scale") && Array.isArray(this[prop])) {
+                        object.definition[prop] = this[prop].map(item => {
+                            if (item.id && item.description && typeof item.description === 'object') {
+                                return { id: item.id, description: item.description };
+                            } else if (item.id && typeof item.description === 'string') {
+                                // fallback: wrap string in default lang
+                                return { id: item.id, description: { en: item.description } };
+                            } else {
+                                return item;
+                            }
+                        });
+                    } else {
+                        object.definition[prop] = this[prop];
+                    }
                 }
             }
-        });
+        }
         return object;
     }
 
@@ -195,9 +214,17 @@ export default class InteractionObjectStatement extends ObjectStatement {
                 obj.correctResponsesPattern = [];
                 obj.addCorrectResponsesPattern(xapiObj.definition.correctResponsesPattern);
             }
-            ["choices", "scale", "source", "target", "steps"].forEach(key => {
-                if (xapiObj.definition[key]) obj[key] = xapiObj.definition[key];
-            });
+            // Use INTERACTIONCOMPONENTS mapping for dynamic property assignment
+            const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
+            const seen = new Set();
+            for (const componentProps of Object.values(componentsMap)) {
+                for (const prop of componentProps) {
+                    if (!seen.has(prop) && xapiObj.definition[prop]) {
+                        obj[prop] = xapiObj.definition[prop];
+                        seen.add(prop);
+                    }
+                }
+            }
         }
         return obj;
     }
