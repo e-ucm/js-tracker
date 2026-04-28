@@ -1318,6 +1318,7 @@ export class SeriousGameTracker extends JSTracker {
         alternative: {};
         accessible: {};
     };
+    parent_activity_id: string;
     /**
      * Marks the game as started
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
