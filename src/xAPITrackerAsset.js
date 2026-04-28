@@ -8,6 +8,7 @@ import * as ms from "ms";
 import LRSStatementBuilder from "./HighLevel/StatementBuilder/LRSStatementBuilder.js";
 import LRSStatement from "./HighLevel/Statement/LRSStatement.js";
 const msFn = ms.default || ms;
+import { ALL } from "./HighLevel/Statement/Ids/Profiles/Generated/All.js";
 
 /**
  * XAPI Tracker Asset Class
@@ -54,7 +55,7 @@ export default class xAPITrackerAsset {
         max_retry_delay:msFn("2min"),
         debug:false,
         parent_activity_id:'',
-        parent_activity_type:"SCO"
+        parent_activity_type:ALL.ACTIVITYTYPES.LESSON
     };
 
     /**

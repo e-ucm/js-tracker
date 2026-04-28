@@ -64,7 +64,7 @@ export class JSTracker {
         max_retry_delay:msFn("2min"),
         debug:false,
         parent_activity_id:'',
-        parent_activity_type:'COURSE'
+        parent_activity_type:ALL.ACTIVITYTYPES.LESSON
     };
     /**
      * @typedef {Object} oauth1
@@ -477,11 +477,11 @@ export class SeriousGameTracker extends JSTracker {
      */
     constructor() {
         super();
-        this.trackerSettings.parent_activity_id="";
+        this.parent_activity_id=this.trackerSettings.parent_activity_id || '';
     }
 
     async login() {
-        this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.parent_activity_id, this.trackerSettings.parent_activity_type, this.tracker.context_without_parent);
+        this.scormTracker = new ScormTracker(this.tracker, this.parent_activity_id, ALL.ACTIVITYTYPES.LESSON, this.tracker.context_without_parent);
         await super.login();
     }
 
