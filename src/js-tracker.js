@@ -15,6 +15,75 @@ import { SCORMPROFILE } from './HighLevel/Statement/Ids/Profiles/Generated/Scorm
 import { STATEMENT } from './HighLevel/Statement/Ids/Statements.js';
 const msFn = ms.default || ms;
 
+const TRACKER_CONFIG_MESSAGE_TYPE = 'js-tracker-config';
+const TRACKER_READY_MESSAGE_TYPE = 'js-tracker-ready';
+let trackerConfigMessageListenerInitialized = false;
+let pendingTrackerConfigResolvers = [];
+let latestTrackerConfigFromMessage = null;
+
+function resolvePendingTrackerConfig(config) {
+    if (pendingTrackerConfigResolvers.length === 0) {
+        return;
+    }
+
+    const resolvers = pendingTrackerConfigResolvers.slice();
+    pendingTrackerConfigResolvers = [];
+    resolvers.forEach((resolver) => resolver(config));
+}
+
+function initTrackerConfigMessageListener() {
+    if (trackerConfigMessageListenerInitialized || typeof window === 'undefined') {
+        return;
+    }
+
+    trackerConfigMessageListenerInitialized = true;
+    window.addEventListener('message', (event) => {
+        if (!event || !event.data || event.data.type !== TRACKER_CONFIG_MESSAGE_TYPE) {
+            return;
+        }
+
+        latestTrackerConfigFromMessage = event.data.payload || {};
+        resolvePendingTrackerConfig(latestTrackerConfigFromMessage);
+    });
+}
+
+function requestTrackerConfigFromParent() {
+    if (typeof window === 'undefined' || !window.parent || window.parent === window) {
+        return;
+    }
+
+    try {
+        window.parent.postMessage({ type: TRACKER_READY_MESSAGE_TYPE }, '*');
+    } catch (error) {
+        console.warn('Could not request tracker config from parent window', error);
+    }
+}
+
+function waitForTrackerConfigFromMessage(timeoutMs) {
+    return new Promise((resolve) => {
+        if (latestTrackerConfigFromMessage) {
+            resolve(latestTrackerConfigFromMessage);
+            return;
+        }
+
+        let timeoutId = null;
+        const resolver = (config) => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            resolve(config);
+        };
+
+        pendingTrackerConfigResolvers.push(resolver);
+        requestTrackerConfigFromParent();
+
+        timeoutId = setTimeout(() => {
+            pendingTrackerConfigResolvers = pendingTrackerConfigResolvers.filter((fn) => fn !== resolver);
+            resolve(null);
+        }, timeoutMs);
+    });
+}
+
 /**
  * Main JavaScript Tracker class for xAPI tracking functionality
  */
@@ -51,6 +120,7 @@ export class JSTracker {
     trackerSettings={
         generateSettingsFromURLParams:false,
         oauth_type:"OAuth0",
+        auth_token:null,
         batch_mode:true,
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
@@ -104,6 +174,7 @@ export class JSTracker {
      * Creates a new JSTracker instance
      */
     constructor() {
+        initTrackerConfigMessageListener();
     }
 
     /**
@@ -112,7 +183,12 @@ export class JSTracker {
      */
     async login() {
         if(this.trackerSettings.generateSettingsFromURLParams) {
-            this.generateXAPITrackerFromURLParams();
+            const messageConfig = await waitForTrackerConfigFromMessage(1500);
+            if (messageConfig) {
+                this.generateXAPITrackerFromConfig(messageConfig);
+            } else {
+                this.generateXAPITrackerFromURLParams();
+            }
         }
          if (this.trackerSettings.oauth_type === "OAuth2") {
             /**
@@ -138,6 +214,9 @@ export class JSTracker {
             this.tracker = new xAPITrackerAsset();
         }
         this.tracker.settings = this.trackerSettings;
+        if (this.trackerSettings.auth_token) {
+            this.tracker.auth_token = this.trackerSettings.auth_token;
+        }
         await this.tracker.login();
     }
 
@@ -160,6 +239,7 @@ export class JSTracker {
             this.tracker.logout();
         }
         this.trackerSettings.oauth_type="OAuth0";
+        this.trackerSettings.auth_token=null;
     }
 
     /**
@@ -178,82 +258,100 @@ export class JSTracker {
      * Generates an xAPI tracker instance from URL parameters
      */
     generateXAPITrackerFromURLParams() {
-        const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
+        const config = {
+            result_uri: urlParams.get('result_uri'),
+            backup_uri: urlParams.get('backup_uri'),
+            backup_type: urlParams.get('backup_type'),
+            actor_homepage: urlParams.get('actor_homepage'),
+            actor_user: urlParams.get('actor_user'),
+            sso_token_endpoint: urlParams.get('sso_token_endpoint'),
+            sso_client_id: urlParams.get('sso_client_id'),
+            sso_login_hint: urlParams.get('sso_login_hint'),
+            sso_grant_type: urlParams.get('sso_grant_type'),
+            sso_scope: urlParams.get('sso_scope'),
+            sso_username: urlParams.get('sso_username'),
+            sso_password: urlParams.get('sso_password'),
+            username: urlParams.get('username'),
+            password: urlParams.get('password'),
+            auth_token: urlParams.get('auth_token'),
+            debug: urlParams.get('debug'),
+            batch_length: urlParams.get('batch_length'),
+            batch_timeout: urlParams.get('batch_timeout'),
+            max_retry_delay: urlParams.get('max_retry_delay')
+        };
+
+        this.generateXAPITrackerFromConfig(config);
+    }
+
+    /**
+     * Generates an xAPI tracker instance from a plain configuration object
+     * @param {Object} config - Tracker configuration values
+     */
+    generateXAPITrackerFromConfig(config = {}) {
+        const xAPIConfig = {};
         let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
-        if (urlParams.size > 0) {
-            // RESULT URI
-            result_uri = urlParams.get('result_uri');
+        if (Object.keys(config).length === 0) {
+            result_uri = null;
+            backup_type = "XAPI";
+            actor_homePage = null;
+            actor_name = null;
+            debug = false;
+        } else {
+            result_uri = config.result_uri || null;
+            backup_uri = config.backup_uri || null;
+            backup_type = config.backup_type || 'XAPI';
+            actor_homePage = config.actor_homepage || null;
+            actor_name = config.actor_user || null;
 
-            // BACKUP URI
-            backup_uri = urlParams.get('backup_uri');
-            backup_type = urlParams.get('backup_type');
-
-            // ACTOR DATA
-            actor_homePage = urlParams.get('actor_homepage');
-            actor_name = urlParams.get('actor_user');
-
-            // SSO OAUTH 2.0 DATA
-            const sso_token_endpoint = urlParams.get('sso_token_endpoint');
-            if (sso_token_endpoint) {
-                xAPIConfig.token_endpoint = sso_token_endpoint;
+            if (config.sso_token_endpoint) {
+                xAPIConfig.token_endpoint = config.sso_token_endpoint;
             }
-            const sso_client_id = urlParams.get('sso_client_id');
-            if (sso_client_id) {
-                xAPIConfig.client_id = sso_client_id;
+            if (config.sso_client_id) {
+                xAPIConfig.client_id = config.sso_client_id;
             }
-            const sso_login_hint = urlParams.get('sso_login_hint');
-            if (sso_login_hint) {
-                xAPIConfig.login_hint = sso_login_hint;
+            if (config.sso_login_hint) {
+                xAPIConfig.login_hint = config.sso_login_hint;
             }
-            const sso_grant_type = urlParams.get('sso_grant_type');
-            if (sso_grant_type) {
-                xAPIConfig.grant_type = sso_grant_type;
+            if (config.sso_grant_type) {
+                xAPIConfig.grant_type = config.sso_grant_type;
             }
-            const sso_scope = urlParams.get('sso_scope');
-            if (sso_scope) {
-                xAPIConfig.scope = sso_scope;
+            if (config.sso_scope) {
+                xAPIConfig.scope = config.sso_scope;
             }
-            const sso_username = urlParams.get('sso_username');
-            if (sso_username) {
-                xAPIConfig.username = sso_username;
+            if (config.sso_username) {
+                xAPIConfig.username = config.sso_username;
             }
-            const sso_password = urlParams.get('sso_password');
-            if (sso_password) {
-                xAPIConfig.password = sso_password;
-            } else {
-                if (sso_username) {
-                    xAPIConfig.password = sso_username;
-                }
+            if (config.sso_password) {
+                xAPIConfig.password = config.sso_password;
+            } else if (config.sso_username) {
+                xAPIConfig.password = config.sso_username;
             }
 
-            // OAUTH 1.0 DATA
-            username = urlParams.get('username');
-            password = urlParams.get('password');
+            username = config.username || null;
+            password = config.password || null;
 
-            // OAUTH 0: VIA AUTHTOKEN DIRECTLY (not recommended)
-            auth_token = urlParams.get('auth_token');
+            auth_token = config.auth_token || null;
+            if (auth_token) {
+                xAPIConfig.auth_token = auth_token.startsWith('Bearer ')
+                    ? auth_token
+                    : `Bearer ${auth_token}`;
+            }
 
-            // DEBUG
-            strDebug = urlParams.get('debug');
+            strDebug = config.debug;
+            if (config.batch_length) {
+                batchLength = parseInt(config.batch_length);
+            }
+            if (config.batch_timeout) {
+                batchTimeout = msFn(config.batch_timeout);
+            }
+            if (config.max_retry_delay) {
+                maxRetryDelay = msFn(config.max_retry_delay);
+            }
 
-            // BATCH
-            var batch_length_param=urlParams.get('batch_length');
-            var batch_timeout_param=urlParams.get('batch_timeout');
-            var max_retry_delay_param=urlParams.get('max_retry_delay');
-            if(batch_length_param) {
-                batchLength = parseInt(batch_length_param);
-            }
-            if(batch_timeout_param) {
-                batchTimeout = msFn(batch_timeout_param);
-            }
-            if(max_retry_delay_param) {
-                maxRetryDelay = msFn(max_retry_delay_param);
-            }
-            
             if (strDebug !== null && strDebug === "true") {
                 debug = Boolean(strDebug);
                 console.debug(result_uri);
@@ -265,15 +363,12 @@ export class JSTracker {
                 console.debug(batchTimeout);
                 console.debug(maxRetryDelay);
             }
-        } else {
-            result_uri = null;
-            backup_type = "XAPI";
-            actor_homePage = null;
-            actor_name = null;
-            debug = false;
         }
 
-        if (xAPIConfig.token_endpoint) {
+        if (xAPIConfig.auth_token) {
+            this.trackerSettings.oauth_type = "OAuth0";
+            this.trackerSettings.auth_token = xAPIConfig.auth_token;
+        } else if (xAPIConfig.token_endpoint) {
             this.trackerSettings.oauth_type="OAuth2";
             this.oauth2.client_id = xAPIConfig.client_id;
             this.oauth2.grant_type = xAPIConfig.grant_type;
