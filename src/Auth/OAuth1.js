@@ -22,11 +22,13 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         super();
         this.oauth1Settings.username="";
         this.oauth1Settings.password="";
-        window.addEventListener('beforeunload', () => {
-            if (this.auth_token) {
-                this.logout();
-            }
-        });
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', () => {
+                if (this.auth_token) {
+                    this.logout();
+                }
+            });
+        }
     }
 
     async login() {

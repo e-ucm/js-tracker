@@ -45,11 +45,13 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     constructor() {
         super();
         this.oauth2 = null;
-        window.addEventListener('beforeunload', async () => {
-            if (this.auth_token) {
-                await this.logout();
-            }
-        });
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', async () => {
+                if (this.auth_token) {
+                    await this.logout();
+                }
+            });
+        }
     }
 
     async login() {

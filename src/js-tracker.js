@@ -420,7 +420,8 @@ export class LRSTracker extends JSTracker {
     logout() {
         super.logout();
     }
-        /**
+    
+    /**
      * Creates a new statement builder
      * @param {string} verbId - The verb ID for the statement
      * @param {string} objectType - The type of the object

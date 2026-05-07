@@ -4810,11 +4810,13 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         super();
         this.oauth1Settings.username="";
         this.oauth1Settings.password="";
-        window.addEventListener('beforeunload', () => {
-            if (this.auth_token) {
-                this.logout();
-            }
-        });
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', () => {
+                if (this.auth_token) {
+                    this.logout();
+                }
+            });
+        }
     }
 
     async login() {
@@ -5259,11 +5261,13 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     constructor() {
         super();
         this.oauth2 = null;
-        window.addEventListener('beforeunload', async () => {
-            if (this.auth_token) {
-                await this.logout();
-            }
-        });
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', async () => {
+                if (this.auth_token) {
+                    await this.logout();
+                }
+            });
+        }
     }
 
     async login() {
@@ -6242,7 +6246,8 @@ class LRSTracker extends JSTracker {
     logout() {
         super.logout();
     }
-        /**
+    
+    /**
      * Creates a new statement builder
      * @param {string} verbId - The verb ID for the statement
      * @param {string} objectType - The type of the object
