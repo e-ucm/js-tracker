@@ -4548,24 +4548,29 @@ class xAPITrackerAsset {
                 this.retryDelay = null;
             }
         } catch (error) {
-            console.error("Error sending batch:", error.response);
-            const status = error.response.status;
-            const errorMessage = error.response.data.message || error.message;
+            this.sendingInProgress = false;
+            if (!error.response) {
+                // Network error or no response (e.g. ECONNREFUSED, DNS failure)
+                console.error("[TRACKER: Batch Processor] Network error (no response):", error.message);
+                this.#onOffline();
+            } else {
+                console.error("Error sending batch:", error.response);
+                const status = error.response.status;
+                const errorMessage = (error.response.data && error.response.data.message) || error.message;
 
-            switch (status) {
-                case 401: // Unauthorized
-                case 403: // Forbidden
-                    console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
-                    this.#onOffline();
-                    await this.refreshAuth();
-                    this.sendingInProgress = false;
-                    await this.#sendBatch();
-                    break;
-                default:
-                    console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
-                    this.sendingInProgress = false;
-                    this.#onOffline();
-                    break;
+                switch (status) {
+                    case 401: // Unauthorized
+                    case 403: // Forbidden
+                        console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
+                        this.#onOffline();
+                        await this.refreshAuth();
+                        await this.#sendBatch();
+                        break;
+                    default:
+                        console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
+                        this.#onOffline();
+                        break;
+                }
             }
 
             if(this.retryDelay == null) {
