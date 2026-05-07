@@ -1,0 +1,40 @@
+export const SERIOUSGAMEPROFILE: Readonly<{
+    CATEGORYID: "https://w3id.org/xapi/seriousgame";
+    VERBS: {
+        INITIALIZED: string;
+        PROGRESSED: string;
+        COMPLETED: string;
+        ACCESSED: string;
+        SKIPPED: string;
+        SELECTED: string;
+        UNLOCKED: string;
+        INTERACTED: string;
+        USED: string;
+    };
+    ACTIVITYTYPES: {
+        GAME: string;
+        SESSION: string;
+        LEVEL: string;
+        QUEST: string;
+        STAGE: string;
+        COMBAT: string;
+        STORYNODE: string;
+        RACE: string;
+        COMPLETABLE: string;
+        SCREEN: string;
+        AREA: string;
+        ZONE: string;
+        CUTSCENE: string;
+        ACCESSIBLE: string;
+        QUESTION: string;
+        MENU: string;
+        DIALOG: string;
+        PATH: string;
+        ARENA: string;
+        ALTERNATIVE: string;
+        ENEMY: string;
+        NPC: string;
+        ITEM: string;
+        GAMEOBJECT: string;
+    };
+}>;
