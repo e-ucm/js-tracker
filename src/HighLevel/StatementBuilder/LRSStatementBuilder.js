@@ -12,6 +12,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      */
     constructor(xapiClient, initial) {
         super(xapiClient, initial);
+        this.statement = initial;
     }
 
     /**
