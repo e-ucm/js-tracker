@@ -16,7 +16,7 @@ export default class ContextStatement {
      * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base, platform, registrationId=null, categoryId=null) {
+    constructor(base, platform=null, registrationId=null, categoryId=null) {
         this.defaultURI = base;
         this.platform = platform;
         if(registrationId != null) {
@@ -130,10 +130,10 @@ export default class ContextStatement {
             });
         }
         return {
-            platform: this.platform,
             registration: this.registration,
             contextActivities: serializedContextActivities,
-            ...(this.extensions ? { extensions: this.extensions } : {})
+            ...(this.extensions ? { extensions: this.extensions } : {}),
+            ...(this.platform ? { platform: this.platform } : {}),
         };
     }
 

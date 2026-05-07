@@ -2511,7 +2511,7 @@ class ContextStatement {
      * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base, platform, registrationId=null, categoryId=null) {
+    constructor(base, platform=null, registrationId=null, categoryId=null) {
         this.defaultURI = base;
         this.platform = platform;
         if(registrationId != null) {
@@ -2625,10 +2625,10 @@ class ContextStatement {
             });
         }
         return {
-            platform: this.platform,
             registration: this.registration,
             contextActivities: serializedContextActivities,
-            ...(this.extensions ? { extensions: this.extensions } : {})
+            ...(this.extensions ? { extensions: this.extensions } : {}),
+            ...(this.platform ? { platform: this.platform } : {}),
         };
     }
 
@@ -3672,9 +3672,9 @@ class Statement {
             object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
         }
         // Context
-        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : null;
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : new ContextStatement(baseURI);
         // Result
-        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : null;
+        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : new ResultStatement(baseURI);
 
         // Create Statement instance (bypass constructor)
         const stmt = Object.create(Statement.prototype);

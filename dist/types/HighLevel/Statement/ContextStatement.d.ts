@@ -17,7 +17,7 @@ export default class ContextStatement {
      * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base: string, platform: string, registrationId?: string, categoryId?: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]);
+    constructor(base: string, platform?: string, registrationId?: string, categoryId?: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]);
     /**
      * default URI for the context construction
      * @type {string}

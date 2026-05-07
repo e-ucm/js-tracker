@@ -159,9 +159,9 @@ export default class Statement {
             object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
         }
         // Context
-        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : null;
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : new ContextStatement(baseURI);
         // Result
-        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : null;
+        const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : new ResultStatement(baseURI);
 
         // Create Statement instance (bypass constructor)
         const stmt = Object.create(Statement.prototype);
