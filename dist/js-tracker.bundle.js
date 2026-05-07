@@ -3731,10 +3731,21 @@ class LRSStatement extends Statement {
      * Create a Statement from an xAPI object
      * @param {Object} xapiObj
      * @param {string} baseURI default URI for the statement construction (optional)
-     * @returns {Statement} A new Statement instance created from the xAPI object
+     * @returns {LRSStatement} A new LRSStatement instance created from the xAPI object
      */
     static fromXAPI(xapiObj, baseURI) {
-        return super.fromXAPI(xapiObj, baseURI);
+        // Get the base statement from parent
+        const baseStmt = super.fromXAPI(xapiObj, baseURI);
+        
+        // Create an LRSStatement instance and copy all properties at once
+        const stmt = Object.create(LRSStatement.prototype);
+        Object.assign(stmt, baseStmt);
+        
+        // Initialize LRS-specific properties
+        stmt.authority = new ActorStatement({});
+        stmt.stored = xapiObj.stored ? (xapiObj.stored instanceof Date ? xapiObj.stored : new Date(xapiObj.stored)) : new Date();
+        
+        return stmt;
     }
 
     /**
