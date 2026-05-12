@@ -146,7 +146,7 @@ export default class Statement {
      * @param {string} baseURI default URI for the statement construction (optional)
      * @returns {Statement}
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         // Actor
         const actor = ActorStatement.fromXAPI(xapiObj.actor);
         // Verb
@@ -159,7 +159,7 @@ export default class Statement {
             object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
         }
         // Context
-        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : new ContextStatement(baseURI);
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI, platform) : new ContextStatement(baseURI, platform);
         // Result
         const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : new ResultStatement(baseURI);
 

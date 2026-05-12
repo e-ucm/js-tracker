@@ -34,6 +34,16 @@ export default class LRSStatementBuilder extends StatementBuilder {
     }
 
     /**
+     * Add or set a platform to statement context
+     * @param {string} platform platform to set
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withPlatform(platform) {
+        this.statement.context.setPlatform(platform);
+        return this;
+    }
+
+    /**
      * Sets the actor using an account identifier
      * @param {string} accountName - The account name
      * @param {string} accountHomePage - The home page IRI of the account service provider
@@ -126,17 +136,17 @@ export default class LRSStatementBuilder extends StatementBuilder {
     }
 
     /**
-   * Add or set an actor to the statement
-   * @param {string} type - The type of the actor
-   * @param {object} actor - The actor object
-   * @return {StatementBuilder} Returns the current instance for chaining
-   */
-  withActor(type, actor) {
-    this.statement.actor.setActor(type, actor);
-    return this;
-  }
+     * Add or set an actor to the statement
+     * @param {string} type - The type of the actor
+     * @param {object} actor - The actor object
+     * @return {StatementBuilder} Returns the current instance for chaining
+    */
+    withActor(type, actor) {
+        this.statement.actor.setActor(type, actor);
+        return this;
+    }
 
- /**
+    /**
      * Sets the ID of the statement
      * @param {string} id - The UUID to set as the statement ID
      * @returns {StatementBuilder} This builder instance for chaining

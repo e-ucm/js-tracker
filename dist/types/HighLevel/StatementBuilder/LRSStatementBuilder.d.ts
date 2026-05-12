@@ -19,6 +19,12 @@ export default class LRSStatementBuilder extends StatementBuilder {
      */
     withContextActivity(type: (typeof STATEMENT.CONTEXT.ACTIVITIES)[keyof typeof STATEMENT.CONTEXT.ACTIVITIES], id: string, activityType: (typeof ALL.ACTIVITYTYPES)[keyof typeof ALL.ACTIVITYTYPES] | string): LRSStatementBuilder;
     /**
+     * Add or set a platform to statement context
+     * @param {string} platform platform to set
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withPlatform(platform: string): StatementBuilder;
+    /**
      * Sets the actor using an account identifier
      * @param {string} accountName - The account name
      * @param {string} accountHomePage - The home page IRI of the account service provider
@@ -75,17 +81,17 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * */
     withStored(stored: Date | string): LRSStatementBuilder;
     /**
-   * Add or set an actor to the statement
-   * @param {string} type - The type of the actor
-   * @param {object} actor - The actor object
-   * @return {StatementBuilder} Returns the current instance for chaining
-   */
+     * Add or set an actor to the statement
+     * @param {string} type - The type of the actor
+     * @param {object} actor - The actor object
+     * @return {StatementBuilder} Returns the current instance for chaining
+    */
     withActor(type: string, actor: object): StatementBuilder;
     /**
-        * Sets the ID of the statement
-        * @param {string} id - The UUID to set as the statement ID
-        * @returns {StatementBuilder} This builder instance for chaining
-        */
+     * Sets the ID of the statement
+     * @param {string} id - The UUID to set as the statement ID
+     * @returns {StatementBuilder} This builder instance for chaining
+     */
     withId(id: string): StatementBuilder;
     /**
     * Sets the version of the statement

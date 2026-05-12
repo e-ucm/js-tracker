@@ -161,6 +161,29 @@ export default class xAPITrackerAsset {
     flush({ withBackup }?: {
         withBackup?: boolean;
     }): Promise<void>;
+    /**
+     * Fetches a single statement based on the provided query
+     * @param {Object} query - The query parameters for fetching the statement
+     * @returns {Promise<Object>} The response containing the fetched statement
+     */
+    getStatement(query: any): Promise<any>;
+    /**
+     * Fetches multiple statements based on the provided query
+     * @param {Object} query - The query parameters for fetching statements
+     * @returns {Promise<Object>} The response containing the fetched statements
+     */
+    getStatements(query: any): Promise<any>;
+    /**
+     * Fetches more statements using the "more" URL from a previous response
+     * @param {string} more - The "more" URL from the previous response to fetch the next batch of statements
+     * @returns {Promise<Object>} The response containing the next batch of statements
+     */
+    getMoreStatements(more: string): Promise<any>;
+    /**
+     * Gets the XAPI client
+     * @returns {Promise<Object>} The XAPI client
+     */
+    getXAPIClient(): Promise<any>;
     #private;
 }
 import XAPI from "@xapi/xapi";

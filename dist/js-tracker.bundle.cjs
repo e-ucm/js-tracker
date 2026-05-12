@@ -2508,10 +2508,9 @@ class ContextStatement {
      * 
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base, platform=null, registrationId=null, categoryId=null) {
+    constructor(base, platform, registrationId=null) {
         this.defaultURI = base;
         this.platform = platform;
         if(registrationId != null) {
@@ -2519,9 +2518,6 @@ class ContextStatement {
         } else {
             this.registration=uuid.v4();
         }
-        // Initialize contextActivities with category by default
-        this.contextActivities = {};
-        this.addCategory(categoryId);
     }
 
     /**
@@ -2641,6 +2637,14 @@ class ContextStatement {
     }
 
     /**
+     * Set the platform of the Context
+     * @param {string} platform platform string
+     */
+    setPlatform(platform) {
+        this.platform = platform;
+    }
+
+    /**
      * Add or set a single extension key-value pair
      * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key
      * @param {any} value extension value
@@ -2667,12 +2671,14 @@ class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         if (!xapiObj) return null;
         const base = baseURI;
-        const platform = xapiObj.platform;
+        if(xapiObj.platform) {
+            platform = xapiObj.platform;
+        }
         const registrationId = xapiObj.registration;
-        const ctx = new ContextStatement(base, platform, registrationId);
+        const ctx = new ContextStatement(base,platform, registrationId);
         if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
         if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
         return ctx;
@@ -3659,7 +3665,7 @@ class Statement {
      * @param {string} baseURI default URI for the statement construction (optional)
      * @returns {Statement}
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         // Actor
         const actor = ActorStatement.fromXAPI(xapiObj.actor);
         // Verb
@@ -3672,7 +3678,7 @@ class Statement {
             object = ObjectStatement.fromXAPI(xapiObj.object, baseURI);
         }
         // Context
-        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI) : new ContextStatement(baseURI);
+        const context = xapiObj.context ? ContextStatement.fromXAPI(xapiObj.context, baseURI, platform) : new ContextStatement(baseURI, platform);
         // Result
         const result = xapiObj.result ? ResultStatement.fromXAPI(xapiObj.result, baseURI) : new ResultStatement(baseURI);
 
@@ -4190,6 +4196,16 @@ class LRSStatementBuilder extends StatementBuilder {
     }
 
     /**
+     * Add or set a platform to statement context
+     * @param {string} platform platform to set
+     * @return {StatementBuilder} Returns the current instance for chaining
+     */
+    withPlatform(platform) {
+        this.statement.context.setPlatform(platform);
+        return this;
+    }
+
+    /**
      * Sets the actor using an account identifier
      * @param {string} accountName - The account name
      * @param {string} accountHomePage - The home page IRI of the account service provider
@@ -4282,17 +4298,17 @@ class LRSStatementBuilder extends StatementBuilder {
     }
 
     /**
-   * Add or set an actor to the statement
-   * @param {string} type - The type of the actor
-   * @param {object} actor - The actor object
-   * @return {StatementBuilder} Returns the current instance for chaining
-   */
-  withActor(type, actor) {
-    this.statement.actor.setActor(type, actor);
-    return this;
-  }
+     * Add or set an actor to the statement
+     * @param {string} type - The type of the actor
+     * @param {object} actor - The actor object
+     * @return {StatementBuilder} Returns the current instance for chaining
+    */
+    withActor(type, actor) {
+        this.statement.actor.setActor(type, actor);
+        return this;
+    }
 
- /**
+    /**
      * Sets the ID of the statement
      * @param {string} id - The UUID to set as the statement ID
      * @returns {StatementBuilder} This builder instance for chaining
@@ -4493,8 +4509,8 @@ class xAPITrackerAsset {
     start() {
         this.started = true;
         this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
-        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage);
-        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration, null);
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
+        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
         if(this.settings.parent_activity_id) {
             this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
         }
@@ -4790,6 +4806,96 @@ class xAPITrackerAsset {
             ]);
         } else {
             await this.#sendBatch();
+        }
+    }
+
+    /**
+     * Fetches a single statement based on the provided query
+     * @param {Object} query - The query parameters for fetching the statement
+     * @returns {Promise<Object>} The response containing the fetched statement
+     */
+    async getStatement(query) {
+        if (!this.online) {
+            throw new Error("Cannot fetch statement: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch statement: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch statement: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getStatement(query);
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch statement: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches multiple statements based on the provided query
+     * @param {Object} query - The query parameters for fetching statements
+     * @returns {Promise<Object>} The response containing the fetched statements
+     */
+    async getStatements(query) {
+        if (!this.online) {
+            throw new Error("Cannot fetch statements: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch statements: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch statements: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getStatements(query);
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch statements: ${error.message}`);
+       }
+    }
+
+    /**
+     * Fetches more statements using the "more" URL from a previous response
+     * @param {string} more - The "more" URL from the previous response to fetch the next batch of statements
+     * @returns {Promise<Object>} The response containing the next batch of statements
+     */
+    async getMoreStatements(more) {
+        if (!this.online) {
+            throw new Error("Cannot fetch more statements: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch more statements: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch more statements: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getMoreStatements({more : more});
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch more statements: ${error.message}`);
+        }
+    }
+
+    /**
+     * Gets the XAPI client
+     * @returns {Promise<Object>} The XAPI client
+     */
+    async getXAPIClient() {
+        if (!this.online) {
+            throw new Error("Cannot get XAPI client: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot get XAPI client: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot get XAPI client: XAPI client is not initialized");
+        }
+        try {
+            return this.xapi;
+        } catch (error) {
+            throw new Error(`Failed to get XAPI client: ${error.message}`);
         }
     }
 }
@@ -6273,6 +6379,53 @@ class LRSTracker extends JSTracker {
      */
     fromXAPI(statement) {
         return this.tracker.fromXAPI(statement, true);
+    }
+
+    /**
+     * Get the underlying LRS client for direct API calls
+     * @returns {Object} The LRS client instance
+     */
+    getLRSClient() {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting LRS client.");
+        }
+        return this.tracker.getXAPIClient();
+    }
+
+    /**
+     * Gets a statement by its ID
+     * @param {string} statementId - The ID of the statement to fetch
+     * @returns {Promise} A promise that resolves with the fetched statement
+     */
+    async getStatementById(statementId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getStatement(statementId);
+    }
+
+    /**
+     * Gets statements based on a query
+     * @param {Object} query - The query to filter statements
+     * @returns {Promise} A promise that resolves with the fetched statements
+     */
+    async getStatementByQuery(query) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getStatements(query);
+    }
+
+    /**
+     * Gets more statements using a "more" URL from a previous query result
+     * @param {string} moreUrl - The URL to fetch more statements
+     * @returns {Promise} A promise that resolves with the fetched statements
+     */
+    async getMoreStatements(moreUrl) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getMoreStatements(moreUrl);
     }
 }
 

@@ -8,16 +8,15 @@ export default class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj: any, baseURI: string): ContextStatement;
+    static fromXAPI(xapiObj: any, baseURI: string, platform?: any): ContextStatement;
     /**
      * Constructor of the ContextStatement class
      *
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base: string, platform?: string, registrationId?: string, categoryId?: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]);
+    constructor(base: string, platform: string, registrationId?: string);
     /**
      * default URI for the context construction
      * @type {string}
@@ -36,11 +35,6 @@ export default class ContextStatement {
      */
     registration: string;
     /**
-     * Context Activities (parent, grouping, category, other)
-     * @type {Object}
-     */
-    contextActivities: any;
-    /**
      * Add a category to the context
      * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      */
@@ -51,6 +45,11 @@ export default class ContextStatement {
      * @type {Object}
      */
     extensions: any;
+    /**
+     * Context Activities (parent, grouping, category, other)
+     * @type {Object}
+     */
+    contextActivities: any;
     /**
      * Add or set a context activity
      * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
@@ -69,6 +68,11 @@ export default class ContextStatement {
      * @param {Object} ext extensions object
      */
     setExtensions(ext: any): void;
+    /**
+     * Set the platform of the Context
+     * @param {string} platform platform string
+     */
+    setPlatform(platform: string): void;
     /**
      * Add or set a single extension key-value pair
      * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key

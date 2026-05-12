@@ -14,7 +14,7 @@ export default class Statement {
      * @param {string} baseURI default URI for the statement construction (optional)
      * @returns {Statement}
      */
-    static fromXAPI(xapiObj: any, baseURI: string): Statement;
+    static fromXAPI(xapiObj: any, baseURI: string, platform?: any): Statement;
     /**
      * Constructor of the Statement class
      * @param {ActorStatement} actor actor of the statement

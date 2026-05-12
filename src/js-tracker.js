@@ -443,6 +443,53 @@ export class LRSTracker extends JSTracker {
     fromXAPI(statement) {
         return this.tracker.fromXAPI(statement, true);
     }
+
+    /**
+     * Get the underlying LRS client for direct API calls
+     * @returns {Object} The LRS client instance
+     */
+    getLRSClient() {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting LRS client.");
+        }
+        return this.tracker.getXAPIClient();
+    }
+
+    /**
+     * Gets a statement by its ID
+     * @param {string} statementId - The ID of the statement to fetch
+     * @returns {Promise} A promise that resolves with the fetched statement
+     */
+    async getStatementById(statementId) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getStatement(statementId);
+    }
+
+    /**
+     * Gets statements based on a query
+     * @param {Object} query - The query to filter statements
+     * @returns {Promise} A promise that resolves with the fetched statements
+     */
+    async getStatementByQuery(query) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getStatements(query);
+    }
+
+    /**
+     * Gets more statements using a "more" URL from a previous query result
+     * @param {string} moreUrl - The URL to fetch more statements
+     * @returns {Promise} A promise that resolves with the fetched statements
+     */
+    async getMoreStatements(moreUrl) {
+        if (!this.tracker) {
+            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
+        }
+        return await this.tracker.getMoreStatements(moreUrl);
+    }
 }
 
 

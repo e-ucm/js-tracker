@@ -13,10 +13,9 @@ export default class ContextStatement {
      * 
      * @param {string} base default URI for the context construction
      * @param {string} platform platform of context
-     * @param {typeof ALL.CATEGORYID[keyof typeof ALL.CATEGORYID]} categoryId
      * @param {string} registrationId registration id of context
      */
-    constructor(base, platform=null, registrationId=null, categoryId=null) {
+    constructor(base, platform, registrationId=null) {
         this.defaultURI = base;
         this.platform = platform;
         if(registrationId != null) {
@@ -24,9 +23,6 @@ export default class ContextStatement {
         } else {
             this.registration=uuidv4();
         }
-        // Initialize contextActivities with category by default
-        this.contextActivities = {};
-        this.addCategory(categoryId);
     }
 
     /**
@@ -146,6 +142,14 @@ export default class ContextStatement {
     }
 
     /**
+     * Set the platform of the Context
+     * @param {string} platform platform string
+     */
+    setPlatform(platform) {
+        this.platform = platform;
+    }
+
+    /**
      * Add or set a single extension key-value pair
      * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key extension key
      * @param {any} value extension value
@@ -172,12 +176,14 @@ export default class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         if (!xapiObj) return null;
         const base = baseURI;
-        const platform = xapiObj.platform;
+        if(xapiObj.platform) {
+            platform = xapiObj.platform;
+        }
         const registrationId = xapiObj.registration;
-        const ctx = new ContextStatement(base, platform, registrationId);
+        const ctx = new ContextStatement(base,platform, registrationId);
         if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
         if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
         return ctx;

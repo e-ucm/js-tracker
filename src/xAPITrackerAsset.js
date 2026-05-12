@@ -168,8 +168,8 @@ export default class xAPITrackerAsset {
     start() {
         this.started = true;
         this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
-        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage);
-        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration, null);
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
+        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
         if(this.settings.parent_activity_id) {
             this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
         }
@@ -465,6 +465,96 @@ export default class xAPITrackerAsset {
             ]);
         } else {
             await this.#sendBatch();
+        }
+    }
+
+    /**
+     * Fetches a single statement based on the provided query
+     * @param {Object} query - The query parameters for fetching the statement
+     * @returns {Promise<Object>} The response containing the fetched statement
+     */
+    async getStatement(query) {
+        if (!this.online) {
+            throw new Error("Cannot fetch statement: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch statement: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch statement: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getStatement(query);
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch statement: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches multiple statements based on the provided query
+     * @param {Object} query - The query parameters for fetching statements
+     * @returns {Promise<Object>} The response containing the fetched statements
+     */
+    async getStatements(query) {
+        if (!this.online) {
+            throw new Error("Cannot fetch statements: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch statements: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch statements: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getStatements(query);
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch statements: ${error.message}`);
+       }
+    }
+
+    /**
+     * Fetches more statements using the "more" URL from a previous response
+     * @param {string} more - The "more" URL from the previous response to fetch the next batch of statements
+     * @returns {Promise<Object>} The response containing the next batch of statements
+     */
+    async getMoreStatements(more) {
+        if (!this.online) {
+            throw new Error("Cannot fetch more statements: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot fetch more statements: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot fetch more statements: XAPI client is not initialized");
+        }
+        try {
+            const response = await this.xapi.getMoreStatements({more : more});
+            return response.data;
+        } catch (error) {
+            throw new Error(`Failed to fetch more statements: ${error.message}`);
+        }
+    }
+
+    /**
+     * Gets the XAPI client
+     * @returns {Promise<Object>} The XAPI client
+     */
+    async getXAPIClient() {
+        if (!this.online) {
+            throw new Error("Cannot get XAPI client: Tracker is offline");
+        }
+        if (!this.connected) {
+            throw new Error("Cannot get XAPI client: Tracker is not connected");
+        }
+        if (!this.xapi) {
+            throw new Error("Cannot get XAPI client: XAPI client is not initialized");
+        }
+        try {
+            return this.xapi;
+        } catch (error) {
+            throw new Error(`Failed to get XAPI client: ${error.message}`);
         }
     }
 }
