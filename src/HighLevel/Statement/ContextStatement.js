@@ -167,8 +167,12 @@ export default class ContextStatement {
      */
     clone() {
         const cloned = new ContextStatement(this.defaultURI, this.platform, this.registration);
-        cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
-        cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
+        if(this.contextActivities) {
+            cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
+        }
+        if(this.extensions) {  
+            cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
+        }
         return cloned;
     }
 
