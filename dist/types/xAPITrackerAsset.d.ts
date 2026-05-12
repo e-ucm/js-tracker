@@ -24,6 +24,7 @@ export default class xAPITrackerAsset {
      * @property {number} max_retry_delay
      * @property {boolean} debug
      * @property {string} parent_activity_id
+     * @property {string} registration_id
     * @property {string} parent_activity_type
      */
     settings: {
@@ -40,6 +41,7 @@ export default class xAPITrackerAsset {
         max_retry_delay: any;
         debug: boolean;
         parent_activity_id: string;
+        registration_id: string;
         parent_activity_type: string;
     };
     /**

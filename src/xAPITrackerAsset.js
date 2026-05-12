@@ -39,6 +39,7 @@ export default class xAPITrackerAsset {
      * @property {number} max_retry_delay
      * @property {boolean} debug
      * @property {string} parent_activity_id
+     * @property {string} registration_id
     * @property {string} parent_activity_type
      */
     settings={
@@ -55,6 +56,7 @@ export default class xAPITrackerAsset {
         max_retry_delay:msFn("2min"),
         debug:false,
         parent_activity_id:'',
+        registration_id: '',
         parent_activity_type:ALL.ACTIVITYTYPES.LESSON
     };
 
@@ -168,7 +170,11 @@ export default class xAPITrackerAsset {
     start() {
         this.started = true;
         this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.platform}});
-        this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.context.registration);
+        if(this.settings.registration_id) {
+            this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.settings.registration_id);
+        } else {
+            this.context = new ContextStatement(this.settings.default_uri, this.settings.platform);
+        }
         this.context_without_parent = this.context.clone();
         if(this.settings.parent_activity_id) {
             this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
