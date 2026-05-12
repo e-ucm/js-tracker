@@ -15,7 +15,7 @@ export default class xAPITrackerAsset {
      * @property {string} batch_endpoint
      * @property {number} batch_length
      * @property {number} batch_timeout
-     * @property {string} actor_homePage
+     * @property {string} platform
      * @property {string} actor_name
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
@@ -31,7 +31,7 @@ export default class xAPITrackerAsset {
         batch_endpoint: string;
         batch_length: number;
         batch_timeout: any;
-        actor_homePage: string;
+        platform: string;
         actor_name: string;
         backup_mode: boolean;
         backup_endpoint: string;

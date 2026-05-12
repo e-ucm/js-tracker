@@ -49,11 +49,12 @@ export default class LRSStatement extends Statement {
      * Create a Statement from an xAPI object
      * @param {Object} xapiObj
      * @param {string} baseURI default URI for the statement construction (optional)
+     * @param {string} platform platform for the statement construction (optional)
      * @returns {LRSStatement} A new LRSStatement instance created from the xAPI object
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         // Get the base statement from parent
-        const baseStmt = super.fromXAPI(xapiObj, baseURI);
+        const baseStmt = super.fromXAPI(xapiObj, baseURI, platform);
         
         // Create an LRSStatement instance and copy all properties at once
         const stmt = Object.create(LRSStatement.prototype);

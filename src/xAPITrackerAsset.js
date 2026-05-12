@@ -30,7 +30,7 @@ export default class xAPITrackerAsset {
      * @property {string} batch_endpoint
      * @property {number} batch_length
      * @property {number} batch_timeout
-     * @property {string} actor_homePage
+     * @property {string} platform
      * @property {string} actor_name
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
@@ -46,7 +46,7 @@ export default class xAPITrackerAsset {
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
         batch_timeout:msFn("30sec"),
-        actor_homePage:"http://myhomepage.com",
+        platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
@@ -167,9 +167,9 @@ export default class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
-        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
-        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
+        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.platform}});
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.context.registration);
+        this.context_without_parent = this.context.clone();
         if(this.settings.parent_activity_id) {
             this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
         }
@@ -341,10 +341,10 @@ export default class xAPITrackerAsset {
      */
     fromXAPI(statement, lrs = false) {
         if(lrs) {   
-            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri);
+            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri, this.settings.platform);
             return new LRSStatementBuilder(this, stmt);
         } else {
-            const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+            const stmt = Statement.fromXAPI(statement, this.settings.default_uri, this.settings.platform);
             return new StatementBuilder(this, stmt);
         }
     }

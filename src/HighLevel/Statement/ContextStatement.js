@@ -160,6 +160,17 @@ export default class ContextStatement {
         }
         this.extensions[key] = value;
     }
+    
+    /**
+     * Clone the ContextStatement instance
+     * @returns {ContextStatement} shallow copy of the ContextStatement instance
+     */
+    clone() {
+        const cloned = new ContextStatement(this.defaultURI, this.platform, this.registration);
+        cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
+        cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
+        return cloned;
+    }
 
     /**
      * convert to CSV

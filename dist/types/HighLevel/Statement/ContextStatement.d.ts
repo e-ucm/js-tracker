@@ -80,6 +80,11 @@ export default class ContextStatement {
      */
     setExtension(key: (typeof ALL.CONTEXTEXTENSION)[keyof typeof ALL.CONTEXTEXTENSION] | string, value: any): void;
     /**
+     * Clone the ContextStatement instance
+     * @returns {ContextStatement} shallow copy of the ContextStatement instance
+     */
+    clone(): ContextStatement;
+    /**
      * convert to CSV
      *
      * @returns {String}

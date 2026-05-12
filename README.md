@@ -22,7 +22,7 @@ var tracker = new SeriousGameTracker();
 tracker.trackerSettings.activity_id="https://myendpoint.com/activities/activityId";
 tracker.trackerSettings.generateSettingsFromURLParams=false;
 tracker.trackerSettings.batch_endpoint = "https://myendpoint.com";
-tracker.trackerSettings.actor_homePage = "https://myhomepage.com";
+tracker.trackerSettings.platform = "https://myhomepage.com";
 tracker.trackerSettings.actor_name = "username";
 ```
 or 
@@ -49,8 +49,8 @@ Here is the complete list of configuration options for a JavaScript tracker:
 	+ Maximum number of traces stored in the tracker queue.
 * **batch_timeout**: integer (default: `30000`) // 30 seconds
 	+ Timeout for sending batch data to the tracker.
-* **actor_homePage**: string (default: ``)
-	+ Homepage URL for the actor.
+* **platform**: string (default: ``)
+	+ Homepage URL for the actor and platform url in the context.
 * **actor_name**: string (default: `mydefaultactor`)
 	+ Name of the actor.
 * **backup_mode**: boolean (default: `false`)

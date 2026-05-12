@@ -6,9 +6,10 @@ export default class LRSStatement extends Statement {
      * Create a Statement from an xAPI object
      * @param {Object} xapiObj
      * @param {string} baseURI default URI for the statement construction (optional)
+     * @param {string} platform platform for the statement construction (optional)
      * @returns {LRSStatement} A new LRSStatement instance created from the xAPI object
      */
-    static fromXAPI(xapiObj: any, baseURI: string): LRSStatement;
+    static fromXAPI(xapiObj: any, baseURI: string, platform?: string): LRSStatement;
     /**
      * @param {ActorStatement} authority
      **/

@@ -2634,6 +2634,17 @@ class ContextStatement {
         }
         this.extensions[key] = value;
     }
+    
+    /**
+     * Clone the ContextStatement instance
+     * @returns {ContextStatement} shallow copy of the ContextStatement instance
+     */
+    clone() {
+        const cloned = new ContextStatement(this.defaultURI, this.platform, this.registration);
+        cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
+        cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
+        return cloned;
+    }
 
     /**
      * convert to CSV
@@ -3737,11 +3748,12 @@ class LRSStatement extends Statement {
      * Create a Statement from an xAPI object
      * @param {Object} xapiObj
      * @param {string} baseURI default URI for the statement construction (optional)
+     * @param {string} platform platform for the statement construction (optional)
      * @returns {LRSStatement} A new LRSStatement instance created from the xAPI object
      */
-    static fromXAPI(xapiObj, baseURI) {
+    static fromXAPI(xapiObj, baseURI, platform = null) {
         // Get the base statement from parent
-        const baseStmt = super.fromXAPI(xapiObj, baseURI);
+        const baseStmt = super.fromXAPI(xapiObj, baseURI, platform);
         
         // Create an LRSStatement instance and copy all properties at once
         const stmt = Object.create(LRSStatement.prototype);
@@ -4350,7 +4362,7 @@ class xAPITrackerAsset {
      * @property {string} batch_endpoint
      * @property {number} batch_length
      * @property {number} batch_timeout
-     * @property {string} actor_homePage
+     * @property {string} platform
      * @property {string} actor_name
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
@@ -4366,7 +4378,7 @@ class xAPITrackerAsset {
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
         batch_timeout:msFn$1("30sec"),
-        actor_homePage:"http://myhomepage.com",
+        platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
@@ -4487,9 +4499,9 @@ class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.actor_homePage}});
-        this.context = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
-        this.context_without_parent = new ContextStatement(this.settings.default_uri, this.settings.actor_homePage, this.context.registration);
+        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.platform}});
+        this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.context.registration);
+        this.context_without_parent = this.context.clone();
         if(this.settings.parent_activity_id) {
             this.context.addContextActivity("parent", this.settings.parent_activity_id, this.settings.parent_activity_type);
         }
@@ -4661,10 +4673,10 @@ class xAPITrackerAsset {
      */
     fromXAPI(statement, lrs = false) {
         if(lrs) {   
-            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri);
+            const stmt = LRSStatement.fromXAPI(statement, this.settings.default_uri, this.settings.platform);
             return new LRSStatementBuilder(this, stmt);
         } else {
-            const stmt = Statement.fromXAPI(statement, this.settings.default_uri);
+            const stmt = Statement.fromXAPI(statement, this.settings.default_uri, this.settings.platform);
             return new StatementBuilder(this, stmt);
         }
     }
@@ -5953,7 +5965,7 @@ class JSTracker {
      * @property {string} oauth_type
      * @property {number} batch_length
      * @property {number} batch_timeout
-     * @property {string} actor_homePage
+     * @property {string} platform
      * @property {string} actor_name
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
@@ -5971,7 +5983,7 @@ class JSTracker {
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
         batch_timeout:msFn("30sec"),
-        actor_homePage:"http://myhomepage.com",
+        platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
@@ -6096,7 +6108,7 @@ class JSTracker {
     generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
+        let result_uri, backup_uri, backup_type, actor_name, platform, strDebug, debug;
         let username, password;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -6109,7 +6121,7 @@ class JSTracker {
             backup_type = urlParams.get('backup_type');
 
             // ACTOR DATA
-            actor_homePage = urlParams.get('actor_homepage');
+            platform = urlParams.get('platform');
             actor_name = urlParams.get('actor_user');
 
             // SSO OAUTH 2.0 DATA
@@ -6175,7 +6187,7 @@ class JSTracker {
                 console.debug(result_uri);
                 console.debug(backup_type);
                 console.debug(actor_name);
-                console.debug(actor_homePage);
+                console.debug(platform);
                 console.debug(debug);
                 console.debug(batchLength);
                 console.debug(batchTimeout);
@@ -6184,7 +6196,7 @@ class JSTracker {
         } else {
             result_uri = null;
             backup_type = "XAPI";
-            actor_homePage = null;
+            platform = null;
             actor_name = null;
             debug = false;
         }
@@ -6204,7 +6216,7 @@ class JSTracker {
             this.oauth1.password = password;
         }
         this.trackerSettings.batch_endpoint=result_uri;
-        this.trackerSettings.actor_homePage=actor_homePage;
+        this.trackerSettings.platform=platform;
         this.trackerSettings.actor_name=actor_name;
         this.trackerSettings.backup_endpoint=backup_uri;
         this.trackerSettings.backup_type=backup_type;

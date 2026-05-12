@@ -37,7 +37,7 @@ export class JSTracker {
      * @property {string} oauth_type
      * @property {number} batch_length
      * @property {number} batch_timeout
-     * @property {string} actor_homePage
+     * @property {string} platform
      * @property {string} actor_name
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
@@ -55,7 +55,7 @@ export class JSTracker {
         batch_endpoint:"http://myurl.com/endpoint",
         batch_length:100,
         batch_timeout:msFn("30sec"),
-        actor_homePage:"http://myhomepage.com",
+        platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
@@ -180,7 +180,7 @@ export class JSTracker {
     generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_name, actor_homePage, strDebug, debug;
+        let result_uri, backup_uri, backup_type, actor_name, platform, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -193,7 +193,7 @@ export class JSTracker {
             backup_type = urlParams.get('backup_type');
 
             // ACTOR DATA
-            actor_homePage = urlParams.get('actor_homepage');
+            platform = urlParams.get('platform');
             actor_name = urlParams.get('actor_user');
 
             // SSO OAUTH 2.0 DATA
@@ -259,7 +259,7 @@ export class JSTracker {
                 console.debug(result_uri);
                 console.debug(backup_type);
                 console.debug(actor_name);
-                console.debug(actor_homePage);
+                console.debug(platform);
                 console.debug(debug);
                 console.debug(batchLength);
                 console.debug(batchTimeout);
@@ -268,7 +268,7 @@ export class JSTracker {
         } else {
             result_uri = null;
             backup_type = "XAPI";
-            actor_homePage = null;
+            platform = null;
             actor_name = null;
             debug = false;
         }
@@ -288,7 +288,7 @@ export class JSTracker {
             this.oauth1.password = password;
         }
         this.trackerSettings.batch_endpoint=result_uri;
-        this.trackerSettings.actor_homePage=actor_homePage;
+        this.trackerSettings.platform=platform;
         this.trackerSettings.actor_name=actor_name;
         this.trackerSettings.backup_endpoint=backup_uri;
         this.trackerSettings.backup_type=backup_type;
