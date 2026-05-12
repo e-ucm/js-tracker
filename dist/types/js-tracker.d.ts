@@ -1261,11 +1261,7 @@ export class LRSTracker extends JSTracker {
      * @returns {LRSStatementBuilder} A new StatementBuilder instance
      */
     fromXAPI(statement: any): LRSStatementBuilder;
-    /**
-     * Get the underlying LRS client for direct API calls
-     * @returns {Object} The LRS client instance
-     */
-    getLRSClient(): any;
+    getLRSClientResponseData(response: any): Promise<any>;
     /**
      * Gets a statement by its ID
      * @param {string} statementId - The ID of the statement to fetch
@@ -1284,6 +1280,26 @@ export class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statements
      */
     getMoreStatements(moreUrl: string): Promise<any>;
+    getAgent(params: any): Promise<any>;
+    createAgentProfile(params: any): Promise<any>;
+    setAgentProfile(params: any): Promise<any>;
+    getAgentProfiles(params: any): Promise<any>;
+    getAgentProfile(params: any): Promise<any>;
+    deleteAgentProfile(params: any): Promise<any>;
+    getActivity(params: any): Promise<any>;
+    createActivityProfile(params: any): Promise<any>;
+    setActivityProfile(params: any): Promise<any>;
+    getActivityProfiles(params: any): Promise<any>;
+    getActivityProfile(params: any): Promise<any>;
+    deleteActivityProfile(params: any): Promise<any>;
+    createState(params: any): Promise<any>;
+    setState(params: any): Promise<any>;
+    getStates(params: any): Promise<any>;
+    getState(params: any): Promise<any>;
+    deleteState(params: any): Promise<any>;
+    deleteStates(params: any): Promise<any>;
+    getAbout(params: any): Promise<any>;
+    getExtension(activityId: any, extensionId: any, params?: {}): Promise<any>;
 }
 /**
  * Serious Game Tracker extending JSTracker with game-specific functionality

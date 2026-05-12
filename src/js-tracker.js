@@ -13,6 +13,7 @@ import { ALL } from './HighLevel/Statement/Ids/Profiles/Generated/All.js';
 import { SERIOUSGAMESPROFILE } from './HighLevel/Statement/Ids/Profiles/Generated/SeriousGamesProfile.js';
 import { SCORMPROFILE } from './HighLevel/Statement/Ids/Profiles/Generated/ScormProfile.js';
 import { STATEMENT } from './HighLevel/Statement/Ids/Statements.js';
+import XAPI from '@xapi/xapi';
 const msFn = ms.default || ms;
 
 /**
@@ -444,15 +445,8 @@ export class LRSTracker extends JSTracker {
         return this.tracker.fromXAPI(statement, true);
     }
 
-    /**
-     * Get the underlying LRS client for direct API calls
-     * @returns {Object} The LRS client instance
-     */
-    getLRSClient() {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting LRS client.");
-        }
-        return this.tracker.getXAPIClient();
+    async getLRSClientResponseData(response) {
+        return response && response.data !== undefined ? response.data : response;
     }
 
     /**
@@ -461,10 +455,9 @@ export class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statement
      */
     async getStatementById(statementId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getStatement(statementId);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStatement({ statementId });
+        return this.getLRSClientResponseData(response);
     }
 
     /**
@@ -473,10 +466,9 @@ export class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statements
      */
     async getStatementByQuery(query) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getStatements(query);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStatements(query);
+        return this.getLRSClientResponseData(response);
     }
 
     /**
@@ -485,10 +477,129 @@ export class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statements
      */
     async getMoreStatements(moreUrl) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getMoreStatements(moreUrl);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getMoreStatements({ more: moreUrl });
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgent(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgent(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgentProfiles(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgentProfiles(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivity(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivity(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivityProfiles(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivityProfiles(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getStates(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStates(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteStates(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteStates(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAbout(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAbout(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getExtension(activityId, extensionId, params = {}) {
+        const activity = await this.getActivity({ activityId, ...params });
+        const extensions = activity && activity.definition ? activity.definition.extensions : undefined;
+        return extensions ? extensions[extensionId] : undefined;
     }
 }
 

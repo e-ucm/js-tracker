@@ -4799,81 +4799,12 @@ class xAPITrackerAsset {
             await this.#sendBatch();
         }
     }
-
-    /**
-     * Fetches a single statement based on the provided query
-     * @param {Object} query - The query parameters for fetching the statement
-     * @returns {Promise<Object>} The response containing the fetched statement
-     */
-    async getStatement(query) {
-        if (!this.online) {
-            throw new Error("Cannot fetch statement: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch statement: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch statement: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getStatement(query);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch statement: ${error.message}`);
-        }
-    }
-
-    /**
-     * Fetches multiple statements based on the provided query
-     * @param {Object} query - The query parameters for fetching statements
-     * @returns {Promise<Object>} The response containing the fetched statements
-     */
-    async getStatements(query) {
-        if (!this.online) {
-            throw new Error("Cannot fetch statements: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch statements: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch statements: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getStatements(query);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch statements: ${error.message}`);
-       }
-    }
-
-    /**
-     * Fetches more statements using the "more" URL from a previous response
-     * @param {string} more - The "more" URL from the previous response to fetch the next batch of statements
-     * @returns {Promise<Object>} The response containing the next batch of statements
-     */
-    async getMoreStatements(more) {
-        if (!this.online) {
-            throw new Error("Cannot fetch more statements: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch more statements: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch more statements: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getMoreStatements({more : more});
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch more statements: ${error.message}`);
-        }
-    }
-
+    
     /**
      * Gets the XAPI client
-     * @returns {Promise<Object>} The XAPI client
+     * @returns {XAPI} The XAPI client
      */
-    async getXAPIClient() {
+    getXAPIClient() {
         if (!this.online) {
             throw new Error("Cannot get XAPI client: Tracker is offline");
         }
@@ -6372,15 +6303,8 @@ class LRSTracker extends JSTracker {
         return this.tracker.fromXAPI(statement, true);
     }
 
-    /**
-     * Get the underlying LRS client for direct API calls
-     * @returns {Object} The LRS client instance
-     */
-    getLRSClient() {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting LRS client.");
-        }
-        return this.tracker.getXAPIClient();
+    async getLRSClientResponseData(response) {
+        return response && response.data !== undefined ? response.data : response;
     }
 
     /**
@@ -6389,10 +6313,9 @@ class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statement
      */
     async getStatementById(statementId) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getStatement(statementId);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStatement({ statementId });
+        return this.getLRSClientResponseData(response);
     }
 
     /**
@@ -6401,10 +6324,9 @@ class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statements
      */
     async getStatementByQuery(query) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getStatements(query);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStatements(query);
+        return this.getLRSClientResponseData(response);
     }
 
     /**
@@ -6413,10 +6335,129 @@ class LRSTracker extends JSTracker {
      * @returns {Promise} A promise that resolves with the fetched statements
      */
     async getMoreStatements(moreUrl) {
-        if (!this.tracker) {
-            throw new Error("Tracker not initialized. Call login() and start() before getting statements.");
-        }
-        return await this.tracker.getMoreStatements(moreUrl);
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getMoreStatements({ more: moreUrl });
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgent(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgent(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgentProfiles(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgentProfiles(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteAgentProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteAgentProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivity(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivity(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivityProfiles(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivityProfiles(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteActivityProfile(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteActivityProfile(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async createState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.createState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async setState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.setState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getStates(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getStates(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteState(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteState(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async deleteStates(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.deleteStates(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getAbout(params) {
+        const client = this.tracker.getXAPIClient();
+        const response = await client.getAbout(params);
+        return this.getLRSClientResponseData(response);
+    }
+
+    async getExtension(activityId, extensionId, params = {}) {
+        const activity = await this.getActivity({ activityId, ...params });
+        const extensions = activity && activity.definition ? activity.definition.extensions : undefined;
+        return extensions ? extensions[extensionId] : undefined;
     }
 }
 

@@ -467,81 +467,12 @@ export default class xAPITrackerAsset {
             await this.#sendBatch();
         }
     }
-
-    /**
-     * Fetches a single statement based on the provided query
-     * @param {Object} query - The query parameters for fetching the statement
-     * @returns {Promise<Object>} The response containing the fetched statement
-     */
-    async getStatement(query) {
-        if (!this.online) {
-            throw new Error("Cannot fetch statement: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch statement: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch statement: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getStatement(query);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch statement: ${error.message}`);
-        }
-    }
-
-    /**
-     * Fetches multiple statements based on the provided query
-     * @param {Object} query - The query parameters for fetching statements
-     * @returns {Promise<Object>} The response containing the fetched statements
-     */
-    async getStatements(query) {
-        if (!this.online) {
-            throw new Error("Cannot fetch statements: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch statements: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch statements: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getStatements(query);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch statements: ${error.message}`);
-       }
-    }
-
-    /**
-     * Fetches more statements using the "more" URL from a previous response
-     * @param {string} more - The "more" URL from the previous response to fetch the next batch of statements
-     * @returns {Promise<Object>} The response containing the next batch of statements
-     */
-    async getMoreStatements(more) {
-        if (!this.online) {
-            throw new Error("Cannot fetch more statements: Tracker is offline");
-        }
-        if (!this.connected) {
-            throw new Error("Cannot fetch more statements: Tracker is not connected");
-        }
-        if (!this.xapi) {
-            throw new Error("Cannot fetch more statements: XAPI client is not initialized");
-        }
-        try {
-            const response = await this.xapi.getMoreStatements({more : more});
-            return response.data;
-        } catch (error) {
-            throw new Error(`Failed to fetch more statements: ${error.message}`);
-        }
-    }
-
+    
     /**
      * Gets the XAPI client
-     * @returns {Promise<Object>} The XAPI client
+     * @returns {XAPI} The XAPI client
      */
-    async getXAPIClient() {
+    getXAPIClient() {
         if (!this.online) {
             throw new Error("Cannot get XAPI client: Tracker is offline");
         }
