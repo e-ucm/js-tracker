@@ -37,6 +37,17 @@ export default class ActorStatement {
      * @param {Object|Array|String} actorData - data for the specified type
      */
     setActor(type, actorData) {
+        // For Agent types, clear other identifier types to ensure only one is present
+        if (type === STATEMENT.ACTOR.AGENTTYPE.MBOX || 
+            type === STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM || 
+            type === STATEMENT.ACTOR.AGENTTYPE.OPENID || 
+            type === STATEMENT.ACTOR.AGENTTYPE.ACCOUNT) {
+            // Clear all identifier types
+            this.mbox = undefined;
+            this.mbox_sha1sum = undefined;
+            this.openid = undefined;
+            this.account = undefined;
+        }
         switch (type) {
             case STATEMENT.ACTOR.GROUPTYPE.NAME:
                 if (this.objectType === STATEMENT.ACTOR.TYPES.AGENT) {

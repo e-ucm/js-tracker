@@ -42,7 +42,11 @@ export default class LRSStatement extends Statement {
      * @returns {Object} xAPI statement object
      */
     toXAPI() {
-        return super.toXAPI();
+        return {
+            ...super.toXAPI(),
+            authority: this.authority.toXAPI(),
+            stored: this.stored.toISOString()
+        };
     }
 
     /**
@@ -61,7 +65,8 @@ export default class LRSStatement extends Statement {
         Object.assign(stmt, baseStmt);
         
         // Initialize LRS-specific properties
-        stmt.authority = new ActorStatement({});
+        // Load authority from incoming xAPI object if present, otherwise create empty
+        stmt.authority = xapiObj.authority ? ActorStatement.fromXAPI(xapiObj.authority) : new ActorStatement({});
         stmt.stored = xapiObj.stored ? (xapiObj.stored instanceof Date ? xapiObj.stored : new Date(xapiObj.stored)) : new Date();
         
         return stmt;
@@ -73,6 +78,6 @@ export default class LRSStatement extends Statement {
      * @returns {String}
      */
     toCSV() {
-        return super.toCSV();
+        return `${super.toCSV()},${this.authority.toCSV()},${this.stored.toISOString()}`;
     }
 }
