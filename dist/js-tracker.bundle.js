@@ -103,6 +103,17 @@ class ActorStatement {
      * @param {Object|Array|String} actorData - data for the specified type
      */
     setActor(type, actorData) {
+        // For Agent types, clear other identifier types to ensure only one is present
+        if (type === STATEMENT.ACTOR.AGENTTYPE.MBOX || 
+            type === STATEMENT.ACTOR.AGENTTYPE.MBOX_SHA1SUM || 
+            type === STATEMENT.ACTOR.AGENTTYPE.OPENID || 
+            type === STATEMENT.ACTOR.AGENTTYPE.ACCOUNT) {
+            // Clear all identifier types
+            this.mbox = undefined;
+            this.mbox_sha1sum = undefined;
+            this.openid = undefined;
+            this.account = undefined;
+        }
         switch (type) {
             case STATEMENT.ACTOR.GROUPTYPE.NAME:
                 if (this.objectType === STATEMENT.ACTOR.TYPES.AGENT) {
@@ -3745,7 +3756,11 @@ class LRSStatement extends Statement {
      * @returns {Object} xAPI statement object
      */
     toXAPI() {
-        return super.toXAPI();
+        return {
+            ...super.toXAPI(),
+            authority: this.authority.toXAPI(),
+            stored: this.stored.toISOString()
+        };
     }
 
     /**
@@ -3764,7 +3779,8 @@ class LRSStatement extends Statement {
         Object.assign(stmt, baseStmt);
         
         // Initialize LRS-specific properties
-        stmt.authority = new ActorStatement({});
+        // Load authority from incoming xAPI object if present, otherwise create empty
+        stmt.authority = xapiObj.authority ? ActorStatement.fromXAPI(xapiObj.authority) : new ActorStatement({});
         stmt.stored = xapiObj.stored ? (xapiObj.stored instanceof Date ? xapiObj.stored : new Date(xapiObj.stored)) : new Date();
         
         return stmt;
@@ -3776,7 +3792,7 @@ class LRSStatement extends Statement {
      * @returns {String}
      */
     toCSV() {
-        return super.toCSV();
+        return `${super.toCSV()},${this.authority.toCSV()},${this.stored.toISOString()}`;
     }
 }
 

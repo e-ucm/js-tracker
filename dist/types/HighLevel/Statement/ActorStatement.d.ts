@@ -27,11 +27,11 @@ export default class ActorStatement {
      * @param {Object|Array|String} actorData - data for the specified type
      */
     setActor(type: (typeof STATEMENT.ACTOR.AGENTTYPE)[keyof typeof STATEMENT.ACTOR.AGENTTYPE] | (typeof STATEMENT.ACTOR.GROUPTYPE)[keyof typeof STATEMENT.ACTOR.GROUPTYPE], actorData: any | any[] | string): void;
-    name: string;
     mbox: string;
     mbox_sha1sum: string;
     openid: string;
     account: any;
+    name: string;
     member: ActorStatement[];
     /**
      * Convert to xAPI Agent or Group object
