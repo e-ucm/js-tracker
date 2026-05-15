@@ -1120,6 +1120,7 @@ export class JSTracker {
      * @property {string} parent_activity_id
      * @property {string} registration_id
     * @property {string} parent_activity_type
+    * @property {string} [auth_token] - Optional auth token for OAuth0
      */
     trackerSettings: {
         generateSettingsFromURLParams: boolean;
@@ -1139,6 +1140,7 @@ export class JSTracker {
         parent_activity_id: string;
         registration_id: string;
         parent_activity_type: string;
+        auth_token: string;
     };
     /**
      * @typedef {Object} oauth1

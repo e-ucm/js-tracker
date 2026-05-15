@@ -49,6 +49,7 @@ export class JSTracker {
      * @property {string} parent_activity_id
      * @property {string} registration_id
     * @property {string} parent_activity_type
+    * @property {string} [auth_token] - Optional auth token for OAuth0
      */
     trackerSettings={
         generateSettingsFromURLParams:false,
@@ -67,7 +68,8 @@ export class JSTracker {
         debug:false,
         parent_activity_id:'',
         registration_id: '',
-        parent_activity_type:ALL.ACTIVITYTYPES.LESSON
+        parent_activity_type:ALL.ACTIVITYTYPES.LESSON,
+        auth_token: ''
     };
     /**
      * @typedef {Object} oauth1
@@ -139,6 +141,7 @@ export class JSTracker {
             }
         } else {
             this.tracker = new xAPITrackerAsset();
+            this.tracker.auth_token = this.trackerSettings.auth_token;
         }
         this.tracker.settings = this.trackerSettings;
         await this.tracker.login();
@@ -289,6 +292,9 @@ export class JSTracker {
             this.trackerSettings.oauth_type="OAuth1";
             this.oauth1.username = username;
             this.oauth1.password = password;
+        } else {
+            this.trackerSettings.oauth_type="OAuth0";
+            this.trackerSettings.auth_token = auth_token;
         }
         this.trackerSettings.batch_endpoint=result_uri;
         this.trackerSettings.platform=platform;
