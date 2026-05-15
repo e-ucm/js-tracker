@@ -126,7 +126,7 @@ export class JSTracker {
             }
         } else {
             this.tracker = new xAPITrackerAsset();
-            this.auth_token = this.trackerSettings.auth_token;
+            this.tracker.auth_token = this.trackerSettings.auth_token;
         }
         this.tracker.settings = this.trackerSettings;
         await this.tracker.login();

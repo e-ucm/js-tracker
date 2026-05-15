@@ -46,6 +46,7 @@ export class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string} [auth_token] - Optional auth token for OAuth0
      */
     trackerSettings: {
         generateSettingsFromURLParams: boolean;
@@ -61,6 +62,7 @@ export class JSTracker {
         backup_type: string;
         default_uri: string;
         max_retry_delay: any;
+        auth_token: any;
         debug: boolean;
     };
     /**
