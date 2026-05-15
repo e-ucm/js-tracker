@@ -37,6 +37,7 @@ export class JSTracker {
      * @property {string} default_uri
      * @property {number} max_retry_delay
      * @property {boolean} debug
+     * @property {string} [auth_token] - Optional auth token for OAuth0
      */
     trackerSettings={
         generateSettingsFromURLParams:false,
@@ -52,6 +53,7 @@ export class JSTracker {
         backup_type:"XAPI",
         default_uri:"mydefaulturi",
         max_retry_delay:ms("2min"),
+        auth_token:null,
         debug:false
     };
     /**
@@ -124,6 +126,7 @@ export class JSTracker {
             }
         } else {
             this.tracker = new xAPITrackerAsset();
+            this.auth_token = this.trackerSettings.auth_token;
         }
         this.tracker.settings = this.trackerSettings;
         await this.tracker.login();
@@ -274,6 +277,9 @@ export class JSTracker {
             this.trackerSettings.oauth_type="OAuth1";
             this.oauth1.username = username;
             this.oauth1.password = password;
+        } else {
+            this.trackerSettings.oauth_type="OAuth0";
+            this.trackerSettings.auth_token = auth_token;
         }
         this.trackerSettings.batch_endpoint=result_uri;
         this.trackerSettings.actor_homePage=actor_homePage;
