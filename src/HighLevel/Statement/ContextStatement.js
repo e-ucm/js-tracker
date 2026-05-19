@@ -18,6 +18,7 @@ export default class ContextStatement {
     constructor(base, platform, registrationId=null) {
         this.defaultURI = base;
         this.platform = platform;
+        this.contextActivities = {};
         if(registrationId != null) {
             this.registration=registrationId;
         } else {

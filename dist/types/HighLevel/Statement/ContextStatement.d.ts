@@ -29,6 +29,11 @@ export default class ContextStatement {
      */
     platform: string;
     /**
+     * Context Activities (parent, grouping, category, other)
+     * @type {Object}
+     */
+    contextActivities: any;
+    /**
      * Registration Id of the Context
      *
      * @type {string}
@@ -45,11 +50,6 @@ export default class ContextStatement {
      * @type {Object}
      */
     extensions: any;
-    /**
-     * Context Activities (parent, grouping, category, other)
-     * @type {Object}
-     */
-    contextActivities: any;
     /**
      * Add or set a context activity
      * @param {typeof STATEMENT.CONTEXT.ACTIVITIES[keyof typeof STATEMENT.CONTEXT.ACTIVITIES]} type
