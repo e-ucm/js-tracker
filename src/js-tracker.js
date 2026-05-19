@@ -648,7 +648,6 @@ export class SeriousGameTracker extends JSTracker {
     }
 
     async login() {
-        this.scormTracker = new ScormTracker(this.tracker, this.parent_activity_id, ALL.ACTIVITYTYPES.LESSON, this.tracker.context_without_parent);
         await super.login();
     }
 
@@ -665,6 +664,9 @@ export class SeriousGameTracker extends JSTracker {
 
     start() {
         super.start();
+        if(this.trackerSettings.activityId) {
+            this.scormTracker = new ScormTracker(this.tracker, this.trackerSettings.activityId, this.trackerSettings.parent_activity_type);
+        }
     }
 
     stop() {
@@ -676,6 +678,9 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {StatementBuilder} Promise that resolves when the start is recorded
      */
     initialized() {
+        if(!this.scormTracker) {
+            throw new Error("SCORM Tracker not initialized. Ensure start() has been called and trackerSettings include an activityId.");
+        }
         return this.scormTracker.initialized();
     }
 
@@ -684,6 +689,9 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {StatementBuilder} Promise that resolves when the pause is recorded
      */
     pause() {
+        if(!this.scormTracker) {
+            throw new Error("SCORM Tracker not initialized. Ensure start() has been called and trackerSettings include an activityId.");
+        }
         return this.scormTracker.suspended();
     }
 
@@ -692,6 +700,9 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {StatementBuilder} Promise that resolves when the resume is recorded
      */
     resumed() {
+        if(!this.scormTracker) {
+            throw new Error("SCORM Tracker not initialized. Ensure start() has been called and trackerSettings include an activityId.");
+        }
         return this.scormTracker.resumed();
     }
 
@@ -700,6 +711,9 @@ export class SeriousGameTracker extends JSTracker {
      * @returns {StatementBuilder} Promise that resolves when the finish is recorded
      */
     terminated() {
+        if(!this.scormTracker) {
+            throw new Error("SCORM Tracker not initialized. Ensure start() has been called and trackerSettings include an activityId.");
+        }
         return this.scormTracker.terminated();
     }
 
