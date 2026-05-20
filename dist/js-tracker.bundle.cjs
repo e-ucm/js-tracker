@@ -6178,15 +6178,17 @@ class JSTracker {
                 console.debug(maxRetryDelay);
             }
         } else {
-            result_uri = null;
             backup_type = "XAPI";
-            platform = null;
-            actor_name = null;
-            debug = false;
         }
 
         if (xAPIConfig.token_endpoint) {
             this.trackerSettings.oauth_type="OAuth2";
+            //if(!xAPIConfig.client_id || !xAPIConfig.grant_type || !xAPIConfig.token_endpoint) {
+            //    throw new Error("Missing required OAuth2 parameters in URL. Required: sso_token_endpoint, sso_client_id, sso_grant_type");
+            //}
+            //if(xAPIConfig.grant_type === "password" && (!xAPIConfig.username || !xAPIConfig.password)) {
+            //    throw new Error("Missing required OAuth2 parameters for password grant type. Required: sso_username, sso_password");
+            //}
             this.oauth2.client_id = xAPIConfig.client_id;
             this.oauth2.grant_type = xAPIConfig.grant_type;
             this.oauth2.login_hint = xAPIConfig.login_hint;
@@ -6202,15 +6204,33 @@ class JSTracker {
             this.trackerSettings.oauth_type="OAuth0";
             this.trackerSettings.auth_token = auth_token;
         }
-        this.trackerSettings.batch_endpoint=result_uri;
-        this.trackerSettings.platform=platform;
-        this.trackerSettings.actor_name=actor_name;
-        this.trackerSettings.backup_endpoint=backup_uri;
-        this.trackerSettings.backup_type=backup_type;
-        this.trackerSettings.debug=debug;
-        this.trackerSettings.batch_length=batchLength;
-        this.trackerSettings.batch_timeout=batchTimeout;
-        this.trackerSettings.max_retry_delay=maxRetryDelay;
+        if(result_uri !== undefined) {
+            this.trackerSettings.batch_endpoint=result_uri;
+        }
+        if(platform !== undefined) {
+            this.trackerSettings.platform=platform;
+        }
+        if(actor_name !== undefined) {
+            this.trackerSettings.actor_name=actor_name;
+        }
+        if(backup_uri !== undefined) {
+            this.trackerSettings.backup_endpoint=backup_uri;
+        }
+        if(backup_type !== undefined) {
+            this.trackerSettings.backup_type=backup_type;
+        }
+        if(debug !== undefined) {
+            this.trackerSettings.debug=debug;
+        }
+        if(batchLength !== undefined) {
+            this.trackerSettings.batch_length=batchLength;
+        }
+        if(batchTimeout !== undefined) {
+            this.trackerSettings.batch_timeout=batchTimeout;
+        }
+        if(maxRetryDelay !== undefined) {
+            this.trackerSettings.max_retry_delay=maxRetryDelay;
+        }
     }
 
     /**
