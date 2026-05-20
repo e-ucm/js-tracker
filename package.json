@@ -8,7 +8,7 @@
   "types": "dist/types/js-tracker.d.ts",
   "exports": {
     ".": {
-      "types": "./declarations.d.ts",
+      "types": "./dist/types/js-tracker.d.ts",
       "import": "./dist/js-tracker.bundle.js",
       "require": "./dist/js-tracker.bundle.cjs"
     }
