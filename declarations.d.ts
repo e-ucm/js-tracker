@@ -1,3 +1,3 @@
 declare module 'js-tracker' {
-    import { JSTracker, JSScormTracker, LRSTracker, SeriousGameTracker } from './src/js-tracker';
+    export { JSTracker, JSScormTracker, LRSTracker, SeriousGameTracker } from './src/js-tracker';
 }
