@@ -250,6 +250,7 @@ export default class xAPITrackerAsset {
                 this.retryDelay = null;
             }
         } catch (error) {
+            let rethrow = true;
             this.sendingInProgress = false;
             if (!error.response) {
                 // Network error or no response (e.g. ECONNREFUSED, DNS failure)
@@ -261,9 +262,15 @@ export default class xAPITrackerAsset {
                 const errorMessage = (error.response.data && error.response.data.message) || error.message;
 
                 switch (status) {
+                    case 400: // Bad Request
+                        console.error(`Bad Request: ${errorMessage}`);
+                        // Bad Request likely means there's an issue with the statement format or content
+                        // Log the error and skip this batch to avoid blocking future batches
+                        this.offset += batch.length; // Skip the problematic batch
                     case 401: // Unauthorized
                     case 403: // Forbidden
                         console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
+                        this.rethrow = false; // Don't rethrow since we're handling the retry logic here
                         this.#onOffline();
                         await this.refreshAuth();
                         await this.#sendBatch();
@@ -271,7 +278,6 @@ export default class xAPITrackerAsset {
                     default:
                         console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
                         this.#onOffline();
-                        break;
                 }
             }
 
@@ -280,6 +286,12 @@ export default class xAPITrackerAsset {
             }
             this.retryDelay = Math.min(this.retryDelay * 2, this.settings.max_retry_delay);
             this.timer = null;
+            if (this.offset < this.statementsToSend.length) {
+                this.#startTimer();
+            }
+            if(rethrow) {
+                throw error; // Rethrow to allow external handling if needed
+            }
         }
 
         if (this.offset < this.statementsToSend.length) {

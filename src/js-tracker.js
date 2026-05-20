@@ -174,9 +174,9 @@ export class JSTracker {
      * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
      * @returns {Promise<void>} Promise that resolves when flushing is complete
      */
-    flush({ withBackup = false } = {}) {
+    async flush({ withBackup = false } = {}) {
         if(this.tracker) {
-            return this.tracker.flush({ withBackup: withBackup });
+            return await this.tracker.flush({ withBackup: withBackup });
         }
     }
 
