@@ -3345,11 +3345,7 @@ class InteractionObjectStatement extends ObjectStatement {
             object.definition.interactionType = this.interactionType;
         }
         if (this.correctResponsesPattern) {
-            if (this.correctResponsesPattern.length === 1) {
-                object.definition.correctResponsesPattern = this.correctResponsesPattern[0];
-            } else {
-                object.definition.correctResponsesPattern = this.correctResponsesPattern;
-            }
+            object.definition.correctResponsesPattern = this.correctResponsesPattern;
         }
         // Use INTERACTIONCOMPONENTS mapping for dynamic property assignment
         const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
