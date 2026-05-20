@@ -208,7 +208,7 @@ export default class InteractionObjectStatement extends ObjectStatement {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
             if (xapiObj.definition.correctResponsesPattern) {
                 obj.correctResponsesPattern = [];
-                obj.addCorrectResponsesPattern(xapiObj.definition.correctResponsesPattern);
+                obj.addCorrectResponsesPattern([xapiObj.definition.correctResponsesPattern]);
             }
             // Use INTERACTIONCOMPONENTS mapping for dynamic property assignment
             const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
