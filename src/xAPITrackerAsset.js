@@ -267,6 +267,7 @@ export default class xAPITrackerAsset {
                         // Bad Request likely means there's an issue with the statement format or content
                         // Log the error and skip this batch to avoid blocking future batches
                         this.offset += batch.length; // Skip the problematic batch
+                        break;
                     case 401: // Unauthorized
                     case 403: // Forbidden
                         console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);

@@ -120,6 +120,7 @@ export default class xAPITrackerAsset {
      *
      */
     login(): Promise<void>;
+    rethrow: boolean;
     /**
      * Refreshes the authentication token
      * @returns {Promise<void>}

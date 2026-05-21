@@ -5252,7 +5252,7 @@ class InteractionObjectStatement extends ObjectStatement {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
             if (xapiObj.definition.correctResponsesPattern) {
                 obj.correctResponsesPattern = [];
-                obj.addCorrectResponsesPattern(xapiObj.definition.correctResponsesPattern);
+                obj.addCorrectResponsesPattern([xapiObj.definition.correctResponsesPattern]);
             }
             // Use INTERACTIONCOMPONENTS mapping for dynamic property assignment
             const componentsMap = STATEMENT.INTERACTIONOBJECT.INTERACTIONCOMPONENTS;
@@ -6479,9 +6479,16 @@ class xAPITrackerAsset {
                 const errorMessage = (error.response.data && error.response.data.message) || error.message;
 
                 switch (status) {
+                    case 400: // Bad Request
+                        console.error(`Bad Request: ${errorMessage}`);
+                        // Bad Request likely means there's an issue with the statement format or content
+                        // Log the error and skip this batch to avoid blocking future batches
+                        this.offset += batch.length; // Skip the problematic batch
+                        break;
                     case 401: // Unauthorized
                     case 403: // Forbidden
                         console.error(`${status === 401 ? 'Unauthorized' : 'Forbidden'}: ${errorMessage}`);
+                        this.rethrow = false; // Don't rethrow since we're handling the retry logic here
                         this.#onOffline();
                         await this.refreshAuth();
                         await this.#sendBatch();
@@ -6489,7 +6496,6 @@ class xAPITrackerAsset {
                     default:
                         console.error(`[TRACKER: Batch Processor] Batch upload returned status ${status} with message: ${errorMessage}`);
                         this.#onOffline();
-                        break;
                 }
             }
 
@@ -6498,6 +6504,12 @@ class xAPITrackerAsset {
             }
             this.retryDelay = Math.min(this.retryDelay * 2, this.settings.max_retry_delay);
             this.timer = null;
+            if (this.offset < this.statementsToSend.length) {
+                this.#startTimer();
+            }
+            {
+                throw error; // Rethrow to allow external handling if needed
+            }
         }
 
         if (this.offset < this.statementsToSend.length) {
@@ -7384,7 +7396,7 @@ class CompletableTracker {
      */
     progressed(progress) {
         return this.Tracker.trace(ALL.VERBS.PROGRESSED,this.Type,this.CompletableId)
-            .withResultExtension(SERIOUSGAMESPROFILE.RESULTEXTENSION.PROGRESS, progress);
+            .withResultExtension(ALL.RESULTEXTENSION.SERIOUSGAMESPROFILE_PROGRESS, progress);
     }
 
     /**
@@ -7924,9 +7936,9 @@ class JSTracker {
      * @param {boolean} [opts.withBackup=false] - Whether to also send to backup endpoint
      * @returns {Promise<void>} Promise that resolves when flushing is complete
      */
-    flush({ withBackup = false } = {}) {
+    async flush({ withBackup = false } = {}) {
         if(this.tracker) {
-            return this.tracker.flush({ withBackup: withBackup });
+            return await this.tracker.flush({ withBackup: withBackup });
         }
     }
 
