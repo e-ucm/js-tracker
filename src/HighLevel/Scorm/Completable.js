@@ -1,5 +1,6 @@
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
+import { SERIOUSGAMESPROFILE } from "../Statement/Ids/Profiles/Generated/index.js";
 import StatementBuilder from "../StatementBuilder/StatementBuilder.js";
 /**
  * Completable Tracker
@@ -77,7 +78,7 @@ export class CompletableTracker {
      */
     progressed(progress) {
         return this.Tracker.trace(ALL.VERBS.PROGRESSED,this.Type,this.CompletableId)
-            .withProgress(progress);
+            .withResultExtension(ALL.RESULTEXTENSION.SERIOUSGAMESPROFILE_PROGRESS, progress);
     }
 
     /**

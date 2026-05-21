@@ -141,7 +141,12 @@ function generateProfileFile(profileJson, fileName) {
 
   const pascal = toPascalCase(label.replace(/\.jsonld$/i, ""));
   const outputName = pascal.endsWith("Profile") ? `${pascal}.js` : `${pascal}Profile.js`;
-  return { outputName, content: lines.join("\n"), constName };
+  // Return groups as well for aggregation
+  return { outputName, content: lines.join("\n"), constName, groups };
+}
+
+function prefixObjectKeys(obj, prefix) {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [`${prefix}_${k}`, v]));
 }
 
 function generateAggregateFile(profiles) {
@@ -149,29 +154,41 @@ function generateAggregateFile(profiles) {
     .map(({ outputName, constName }) => `import { ${constName} } from './${outputName}';`)
     .join("\n");
 
+  // For each group, aggregate all keys (original and prefixed)
+  function aggregateWithPrefixedAndOriginal(profiles, group) {
+    // Map: key -> array of { constName, value }
+    const keyMap = new Map();
+    for (const profile of profiles) {
+      const { constName, groups } = profile;
+      if (!groups || !groups[group]) continue;
+      const groupObj = groups[group];
+      for (const [k, v] of Object.entries(groupObj)) {
+        if (!keyMap.has(k)) keyMap.set(k, []);
+        keyMap.get(k).push({ constName, value: JSON.stringify(v) });
+      }
+    }
+    // Build output: original keys (last one wins), and all prefixed keys
+    const lines = [];
+    for (const [k, arr] of keyMap.entries()) {
+      lines.push(`        ${k}: ${arr[arr.length - 1].value},`);
+      for (const { constName, value } of arr) {
+        lines.push(`        ${constName}_${k}: ${value},`);
+      }
+    }
+    return lines.join("\n");
+  }
+
+  // CATEGORYID is always unique per profile, so keep as before
   const categoryIds = profiles
     .map(({ constName }) => `        ${constName}: ${constName}.CATEGORYID,`)
     .join("\n");
 
-  const verbs = profiles
-    .map(({ constName }) => `        ...${constName}.VERBS,`)
-    .join("\n");
-
-  const activityTypes = profiles
-    .map(({ constName }) => `        ...${constName}.ACTIVITYTYPES,`)
-    .join("\n");
-
-  const activityExtensions = profiles
-    .map(({ constName }) => `        ...${constName}.ACTIVITYEXTENSION,`)
-    .join("\n");
-
-  const contextExtensions = profiles
-    .map(({ constName }) => `        ...${constName}.CONTEXTEXTENSION,`)
-    .join("\n");
-
-  const resultExtensions = profiles
-    .map(({ constName }) => `        ...${constName}.RESULTEXTENSION,`)
-    .join("\n");
+  // For the rest, use the new aggregation
+  const verbs = aggregateWithPrefixedAndOriginal(profiles, "VERBS");
+  const activityTypes = aggregateWithPrefixedAndOriginal(profiles, "ACTIVITYTYPES");
+  const activityExtensions = aggregateWithPrefixedAndOriginal(profiles, "ACTIVITYEXTENSION");
+  const contextExtensions = aggregateWithPrefixedAndOriginal(profiles, "CONTEXTEXTENSION");
+  const resultExtensions = aggregateWithPrefixedAndOriginal(profiles, "RESULTEXTENSION");
 
   return [
     "// Auto-generated from xapi-authored-profiles/Profile_Server_Profiles",

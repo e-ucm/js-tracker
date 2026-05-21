@@ -42,7 +42,7 @@ export default class xAPITrackerAsset {
         debug: boolean;
         parent_activity_id: string;
         registration_id: string;
-        parent_activity_type: string;
+        parent_activity_type: "http://adlnet.gov/expapi/activities/lesson";
     };
     /**
      * Authentication token for xAPI requests

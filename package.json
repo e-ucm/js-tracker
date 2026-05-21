@@ -1,6 +1,6 @@
 {
   "name": "js-tracker",
-  "version": "2.0.4-beta",
+  "version": "2.1.0-beta",
   "description": "Client Side xAPI-SG Tracker Asset written in JavaScript",
   "type": "module",
   "main": "dist/js-tracker.bundle.cjs",
@@ -17,7 +17,7 @@
   "author": "e-UCM Research Group",
   "license": "Apache-2.0",
   "scripts": {
-    "generate:profiles": "node scripts/generateProfiles.js",
+    "generate:profiles": "git submodule update --init --recursive && node scripts/generateProfiles.js",
     "build:types": "npx tsc --project tsconfig.json",
     "build:webpack": "webpack && rollup -c",
     "build": "npm run build:webpack && npm run build:types",
