@@ -711,7 +711,15 @@ class Statement {
         if(this.isUri(id)) {
             return id;
         } else {
-            return `${this.defaultURI}://${id}`;
+            if(this.isUri(this.defaultURI)) {
+                if(this.defaultURI.endsWith("/")) {
+                    return `${this.defaultURI}${id}`;
+                } else {
+                    return `${this.defaultURI}/${id}`;
+                }
+            } else {
+                return `${this.defaultURI}://${id}`;
+            }
         }
     }
     
