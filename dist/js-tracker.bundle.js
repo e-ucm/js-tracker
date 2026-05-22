@@ -335,10 +335,10 @@ class ResultStatement {
     /**
      * Constructor of the ResultStatement class
      * 
-     * @param {string} defautURI The default URI for the extensions
+     * @param {string} defaultURI The default URI for the extensions
      */
-    constructor(defautURI) {
-        this.defautURI = defautURI;
+    constructor(defaultURI) {
+        this.defaultURI = defaultURI;
         this.Score = null;
         this.Success = null;
         this.Completion = null;
@@ -352,7 +352,7 @@ class ResultStatement {
      * 
      * @type {string}
      */
-    defautURI;
+    defaultURI;
 
     /**
      * The Score of the Result
@@ -452,7 +452,15 @@ class ResultStatement {
         if(this.isUri(id)) {
             return id;
         } else {
-            return `${this.defautURI}://${id}`;
+            if(this.isUri(this.defaultURI)) {
+                if(this.defaultURI.endsWith("/")) {
+                    return `${this.defaultURI}${id}`;
+                } else {
+                    return `${this.defaultURI}/${id}`;
+                }
+            } else {
+                return `${this.defaultURI}://${id}`;
+            }
         }
     }
     
