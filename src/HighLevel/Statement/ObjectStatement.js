@@ -152,15 +152,32 @@ export default class ObjectStatement {
         const id = xapiObj.id;
         const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
         const obj = new ObjectStatement(id, type, baseURI);
-        for (const [lang, name] of Object.entries(xapiObj.definition?.name || {})) {
-            obj.setObjectDefinitionName(lang, name);
-        }
-        for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
-            obj.setObjectDefinitionDescription(lang, desc);
-        }
-        if (xapiObj.definition?.extensions) {
-            obj.setExtensions(xapiObj.definition.extensions);
-        }
+        obj.processObjectDefinitionProperties(xapiObj);
         return obj;
+    }
+
+    processObjectDefinitionProperties(xapiObj) {
+        if(xapiObj.definition) {
+            const xapiDefinition = xapiObj.definition;
+            if (xapiDefinition.name) {
+                // Handle name object with language keys
+                if (typeof xapiDefinition.name === 'object' && xapiDefinition.name !== null) {
+                    for (const [lang, name] of Object.entries(xapiDefinition.name)) {
+                        this.setObjectDefinitionName(lang, name);
+                    }
+                }
+            }
+            if (xapiDefinition.description) {
+                // Handle description object with language keys
+                if (typeof xapiDefinition.description === 'object' && xapiDefinition.description !== null) {
+                    for (const [lang, desc] of Object.entries(xapiDefinition.description)) {
+                        this.setObjectDefinitionDescription(lang, desc);
+                    }
+                }
+            }
+            if (xapiDefinition.extensions) {
+                this.setExtensions(xapiDefinition.extensions);
+            }
+        }
     }
 }

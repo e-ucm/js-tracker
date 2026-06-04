@@ -204,6 +204,7 @@ export default class InteractionObjectStatement extends ObjectStatement {
         const id = xapiObj.id;
         const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
         const obj = new InteractionObjectStatement(id, type, baseURI);
+        obj.processObjectDefinitionProperties(xapiObj);
         if (xapiObj.definition) {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
             if (xapiObj.definition.correctResponsesPattern) {
