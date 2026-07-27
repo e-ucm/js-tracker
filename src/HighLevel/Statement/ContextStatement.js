@@ -66,6 +66,13 @@ export default class ContextStatement {
      * @type {string}
      */
     platform;
+    
+    /** 
+     * Language of the Context
+     * 
+     * @type {string}
+     */
+    language;
 
     /** 
      * Extensions of the Context
@@ -131,7 +138,12 @@ export default class ContextStatement {
             contextActivities: serializedContextActivities,
             ...(this.extensions ? { extensions: this.extensions } : {}),
             ...(this.platform ? { platform: this.platform } : {}),
+            ...(this.language ? { language: this.language } : {})
         };
+    }
+
+    setLanguage(language) {
+        this.language = language;
     }
 
     /**
@@ -171,6 +183,15 @@ export default class ContextStatement {
         if(this.contextActivities) {
             cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
         }
+        if(this.language) {
+            cloned.language = this.language;
+        }
+        if(this.platform) {
+            cloned.platform = this.platform;
+        }
+        if(this.registration) {
+            cloned.registration = this.registration;
+        }
         if(this.extensions) {  
             cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
         }
@@ -192,16 +213,20 @@ export default class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj, baseURI, platform = null) {
+    static fromXAPI(xapiObj, baseURI, platform = null, language = null) {
         if (!xapiObj) return null;
         const base = baseURI;
         if(xapiObj.platform) {
             platform = xapiObj.platform;
         }
+        if(xapiObj.language) {
+            language = xapiObj.language;
+        }
         const registrationId = xapiObj.registration;
         const ctx = new ContextStatement(base,platform, registrationId);
         if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
         if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
+        if (language) ctx.language = language;
         return ctx;
     }
 }
