@@ -3,6 +3,7 @@ import LRSStatement from "../Statement/LRSStatement.js";
 import StatementBuilder from "./StatementBuilder.js";
 import { STATEMENT } from "../Statement/Ids/Statements.js";
 import { ALL } from "../Statement/Ids/Profiles/Generated/All.js";
+import Statement from "../Statement/Statement.js";
 
 export default class LRSStatementBuilder extends StatementBuilder {
     /**
@@ -131,7 +132,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @return {LRSStatementBuilder} This builder instance for chaining
      * */
     withStored(stored) {
-        this.statement.stored = stored ? (stored instanceof Date ? stored : new Date(stored)) : undefined;
+        this.statement.stored = stored ? (stored instanceof Date ? stored.toISOString() : (Statement.isIsoDate(stored) ? stored : new Date().toISOString())) : undefined;
         return this;
     }
 
@@ -172,7 +173,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @returns {StatementBuilder} This builder instance for chaining
      */
     withTimestamp(timestamp) {
-        this.statement.timestamp = timestamp instanceof Date ? timestamp : new Date(timestamp);
+        this.statement.timestamp = timestamp ? (timestamp instanceof Date ? timestamp.toISOString() : (Statement.isIsoDate(timestamp) ? timestamp : new Date().toISOString())) : undefined;
         return this;
     }
 
