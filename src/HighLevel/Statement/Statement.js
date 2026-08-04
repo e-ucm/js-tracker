@@ -32,7 +32,6 @@ export default class Statement {
         } else {
             this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
         }
-        this.timestamp = new Date().toISOString();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
@@ -141,18 +140,6 @@ export default class Statement {
     }
 
     /**
-     * Check if a string is a valid ISO date
-     * @param {string} str
-     * @returns {boolean}
-     */
-    static isIsoDate(str) {
-        if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
-        const d = new Date(str); 
-        return !isNaN(d.getTime()) && d.toISOString()===str; // valid date 
-    }
-
-
-    /**
      * Create a Statement from an xAPI object
      * @param {Object} xapiObj
      * @param {string} baseURI default URI for the statement construction (optional)
@@ -183,7 +170,7 @@ export default class Statement {
         stmt.object = object;
         stmt.context = context;
         stmt.result = result;
-        stmt.timestamp = Statement.isIsoDate(xapiObj.timestamp) ? xapiObj.timestamp : new Date().toISOString();
+        stmt.timestamp = xapiObj.timestamp;
         stmt.version = xapiObj.version || "1.0.3";
         stmt.defaultURI = baseURI;
         stmt.attachments = Array.isArray(xapiObj.attachments)
