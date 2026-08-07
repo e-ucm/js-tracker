@@ -128,11 +128,11 @@ export default class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Add or set the stored timestamp of the statement
-     * @param {Date|string} stored - The stored timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} stored - The stored timestamp to set as an Date object or null (set to now)
      * @return {LRSStatementBuilder} This builder instance for chaining
      * */
-    withStored(stored) {
-        this.statement.stored = stored ? (stored instanceof Date ? stored.toISOString() : (Statement.isIsoDate(stored) ? stored : new Date().toISOString())) : undefined;
+    withStored(stored = new Date()) {
+        this.statement.stored = stored ? stored.toISOString() : undefined;
         return this;
     }
 
@@ -169,11 +169,11 @@ export default class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Sets the timestamp of the statement
-     * @param {Date|string} timestamp - The timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} timestamp - The timestamp to set as an Date object or null (set to now)
      * @returns {StatementBuilder} This builder instance for chaining
      */
-    withTimestamp(timestamp) {
-        this.statement.timestamp = timestamp ? (timestamp instanceof Date ? timestamp.toISOString() : (Statement.isIsoDate(timestamp) ? timestamp : new Date().toISOString())) : undefined;
+    withTimestamp(timestamp = new Date()) {
+        this.statement.timestamp = timestamp ? timestamp.toISOString() : undefined;
         return this;
     }
 
