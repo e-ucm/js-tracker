@@ -132,7 +132,7 @@ export default class LRSStatementBuilder extends StatementBuilder {
      * @return {LRSStatementBuilder} This builder instance for chaining
      * */
     withStored(stored = new Date()) {
-        this.statement.stored = stored ? stored.toISOString() : undefined;
+        this.statement.stored = stored instanceof Date ? stored.toISOString() : undefined;
         return this;
     }
 
