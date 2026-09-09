@@ -59,10 +59,10 @@ export class AlternativeTracker {
  * the list of types possible for the alternative object
  */
 export const ALTERNATIVETYPE = Object.freeze({
-    QUESTION: 0,
-    MENU: 1,
-    DIALOG: 2,
-    PATH: 3,
-    ARENA: 4,
-    ALTERNATIVE: 5
+    QUESTION: ALL.ACTIVITYTYPES.QUESTION,
+    MENU: ALL.ACTIVITYTYPES.MENU,
+    DIALOG: ALL.ACTIVITYTYPES.DIALOG_TREE,
+    PATH: "https://w3id.org/xapi/seriousgames/activity-types/path",     // WARN: Not in profile server
+    ARENA: "https://w3id.org/xapi/seriousgames/activity-types/arena",   // WARN: Not in profile server
+    ALTERNATIVE: "https://w3id.org/xapi/seriousgames/activity-types/alternative" // WARN: Not in profile server
 });

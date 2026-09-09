@@ -50,3 +50,15 @@ export class AccessibleTracker {
         return this.Tracker.trace(ALL.VERBS.SKIPPED,this.Type,this.AccessibleId);
     }
 }
+
+/**
+ * the list of types possible for the alternative object
+ */
+export const ACCESSIBLETYPE = Object.freeze({
+    SCREEN: ALL.ACTIVITYTYPES.SCREEN,
+    AREA: ALL.ACTIVITYTYPES.AREA,
+    ZONE: ALL.ACTIVITYTYPES.ZONE,
+    CUTSCENE: ALL.ACTIVITYTYPES.CUTSCENE,
+    INVENTORY: "https://w3id.org/xapi/seriousgames/custom-types/inventory", // WARN: Not in profile server
+    ACCESSIBLE: "https://w3id.org/xapi/seriousgames/activity-types/accessible"  // WARN: Not in profile server
+});

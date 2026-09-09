@@ -41,12 +41,12 @@ export class AlternativeTracker {
  * the list of types possible for the alternative object
  */
 export const ALTERNATIVETYPE: Readonly<{
-    QUESTION: 0;
-    MENU: 1;
-    DIALOG: 2;
-    PATH: 3;
-    ARENA: 4;
-    ALTERNATIVE: 5;
+    QUESTION: "http://adlnet.gov/expapi/activities/question";
+    MENU: "https://w3id.org/xapi/seriousgames/activity-types/menu";
+    DIALOG: "https://w3id.org/xapi/seriousgames/activity-types/dialog-tree";
+    PATH: "https://w3id.org/xapi/seriousgames/activity-types/path";
+    ARENA: "https://w3id.org/xapi/seriousgames/activity-types/arena";
+    ALTERNATIVE: "https://w3id.org/xapi/seriousgames/activity-types/alternative";
 }>;
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import StatementBuilder from "../StatementBuilder/StatementBuilder.js";

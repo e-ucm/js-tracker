@@ -4,6 +4,7 @@ var XAPI = require('@xapi/xapi');
 var uuid = require('uuid');
 var axios = require('axios');
 var ms = require('ms');
+var jwtDecode = require('jwt-decode');
 
 function _interopNamespaceDefault(e) {
     var n = Object.create(null);
@@ -4366,16 +4367,33 @@ class ObjectStatement {
         const id = xapiObj.id;
         const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
         const obj = new ObjectStatement(id, type, baseURI);
-        for (const [lang, name] of Object.entries(xapiObj.definition?.name || {})) {
-            obj.setObjectDefinitionName(lang, name);
-        }
-        for (const [lang, desc] of Object.entries(xapiObj.definition?.description || {})) {
-            obj.setObjectDefinitionDescription(lang, desc);
-        }
-        if (xapiObj.definition?.extensions) {
-            obj.setExtensions(xapiObj.definition.extensions);
-        }
+        obj.processObjectDefinitionProperties(xapiObj);
         return obj;
+    }
+
+    processObjectDefinitionProperties(xapiObj) {
+        if(xapiObj.definition) {
+            const xapiDefinition = xapiObj.definition;
+            if (xapiDefinition.name) {
+                // Handle name object with language keys
+                if (typeof xapiDefinition.name === 'object' && xapiDefinition.name !== null) {
+                    for (const [lang, name] of Object.entries(xapiDefinition.name)) {
+                        this.setObjectDefinitionName(lang, name);
+                    }
+                }
+            }
+            if (xapiDefinition.description) {
+                // Handle description object with language keys
+                if (typeof xapiDefinition.description === 'object' && xapiDefinition.description !== null) {
+                    for (const [lang, desc] of Object.entries(xapiDefinition.description)) {
+                        this.setObjectDefinitionDescription(lang, desc);
+                    }
+                }
+            }
+            if (xapiDefinition.extensions) {
+                this.setExtensions(xapiDefinition.extensions);
+            }
+        }
     }
 }
 
@@ -4441,6 +4459,13 @@ class ContextStatement {
      * @type {string}
      */
     platform;
+    
+    /** 
+     * Language of the Context
+     * 
+     * @type {string}
+     */
+    language;
 
     /** 
      * Extensions of the Context
@@ -4506,7 +4531,12 @@ class ContextStatement {
             contextActivities: serializedContextActivities,
             ...(this.extensions ? { extensions: this.extensions } : {}),
             ...(this.platform ? { platform: this.platform } : {}),
+            ...(this.language ? { language: this.language } : {})
         };
+    }
+
+    setLanguage(language) {
+        this.language = language;
     }
 
     /**
@@ -4546,6 +4576,15 @@ class ContextStatement {
         if(this.contextActivities) {
             cloned.contextActivities = JSON.parse(JSON.stringify(this.contextActivities));
         }
+        if(this.language) {
+            cloned.language = this.language;
+        }
+        if(this.platform) {
+            cloned.platform = this.platform;
+        }
+        if(this.registration) {
+            cloned.registration = this.registration;
+        }
         if(this.extensions) {  
             cloned.extensions = JSON.parse(JSON.stringify(this.extensions));
         }
@@ -4567,16 +4606,20 @@ class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj, baseURI, platform = null) {
+    static fromXAPI(xapiObj, baseURI, platform = null, language = null) {
         if (!xapiObj) return null;
         const base = baseURI;
         if(xapiObj.platform) {
             platform = xapiObj.platform;
         }
+        if(xapiObj.language) {
+            language = xapiObj.language;
+        }
         const registrationId = xapiObj.registration;
         const ctx = new ContextStatement(base,platform, registrationId);
         if (xapiObj.contextActivities) ctx.contextActivities = xapiObj.contextActivities;
         if (xapiObj.extensions) ctx.extensions = xapiObj.extensions;
+        if (language) ctx.language = language;
         return ctx;
     }
 }
@@ -5269,6 +5312,7 @@ class InteractionObjectStatement extends ObjectStatement {
         const id = xapiObj.id;
         const type = xapiObj.definition && xapiObj.definition.type ? xapiObj.definition.type : undefined;
         const obj = new InteractionObjectStatement(id, type, baseURI);
+        obj.processObjectDefinitionProperties(xapiObj);
         if (xapiObj.definition) {
             if (xapiObj.definition.interactionType) obj.interactionType = xapiObj.definition.interactionType;
             if (xapiObj.definition.correctResponsesPattern) {
@@ -5443,7 +5487,6 @@ class Statement {
         } else {
             this.object = new ObjectStatement(objectId, objectType, this.defaultURI);
         }
-        this.timestamp = new Date();
         this.context = context;
         this.version = "1.0.3";
         this.result = new ResultStatement(this.defaultURI);
@@ -5492,7 +5535,7 @@ class Statement {
     object;
     /**
      * Timestamp of the statement
-     * @type {Date}
+     * @type {string}
      */
     timestamp;
     /**
@@ -5538,7 +5581,7 @@ class Statement {
             xapiTrace.context = this.context.toXAPI();
         }
         if(this.timestamp) {
-            xapiTrace.timestamp = this.timestamp.toISOString();
+            xapiTrace.timestamp = this.timestamp;
         }
         if(this.version) {
             xapiTrace.version = this.version;
@@ -5582,7 +5625,7 @@ class Statement {
         stmt.object = object;
         stmt.context = context;
         stmt.result = result;
-        stmt.timestamp = xapiObj.timestamp ? new Date(xapiObj.timestamp) : new Date();
+        stmt.timestamp = xapiObj.timestamp;
         stmt.version = xapiObj.version || "1.0.3";
         stmt.defaultURI = baseURI;
         stmt.attachments = Array.isArray(xapiObj.attachments)
@@ -5597,7 +5640,7 @@ class Statement {
      */
     toCSV() {
         var csv=[];
-        csv.push(this.timestamp.toISOString());
+        csv.push(this.timestamp);
         csv.push(this.verb.toCSV());
         csv.push(this.object.toCSV());
         var result='';
@@ -5624,11 +5667,11 @@ class LRSStatement extends Statement {
     constructor(actor, verbId, objectId, objectType, context, defaultURI) {
         super(actor, verbId, objectId, objectType, context, defaultURI);
         this.authority=new ActorStatement({});
-        this.stored = new Date();
+        this.stored = new Date().toISOString();
     }
 
     /**
-     * @param {Date} stored
+     * @param {string} stored
      */
     stored;
 
@@ -5646,7 +5689,7 @@ class LRSStatement extends Statement {
         return {
             ...super.toXAPI(),
             authority: this.authority.toXAPI(),
-            stored: this.stored.toISOString()
+            stored: this.stored
         };
     }
 
@@ -5668,7 +5711,7 @@ class LRSStatement extends Statement {
         // Initialize LRS-specific properties
         // Load authority from incoming xAPI object if present, otherwise create empty
         stmt.authority = xapiObj.authority ? ActorStatement.fromXAPI(xapiObj.authority) : new ActorStatement({});
-        stmt.stored = xapiObj.stored ? (xapiObj.stored instanceof Date ? xapiObj.stored : new Date(xapiObj.stored)) : new Date();
+        stmt.stored = xapiObj.stored ? xapiObj.stored : new Date().toISOString();
         
         return stmt;
     }
@@ -5679,7 +5722,7 @@ class LRSStatement extends Statement {
      * @returns {String}
      */
     toCSV() {
-        return `${super.toCSV()},${this.authority.toCSV()},${this.stored.toISOString()}`;
+        return `${super.toCSV()},${this.authority.toCSV()},${this.stored}`;
     }
 }
 
@@ -5842,6 +5885,26 @@ class StatementBuilder {
     this.statement.result.setExtensions(extensions);
     return this;
   }
+  /**
+   * Set context language to statement
+   * @param {string} language language of statement
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withContextLanguage(language) {
+    this.statement.context.setLanguage(language);
+    return this;
+  }
+  
+  /**
+   * Set context platform to statement
+   * @param {string} platform platform of statement
+   * @returns {StatementBuilder} Returns the current instance for chaining
+   */
+  withContextPlatform(platform) {
+    this.statement.context.setPlatform(platform);
+    return this;
+  }
+
   /**
    * Add context extension to statement
    * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key key of the context extension
@@ -6187,11 +6250,11 @@ class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Add or set the stored timestamp of the statement
-     * @param {Date|string} stored - The stored timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} stored - The stored timestamp to set as an Date object or null (set to now)
      * @return {LRSStatementBuilder} This builder instance for chaining
      * */
-    withStored(stored) {
-        this.statement.stored = stored ? (stored instanceof Date ? stored : new Date(stored)) : undefined;
+    withStored(stored = new Date()) {
+        this.statement.stored = stored instanceof Date ? stored.toISOString() : undefined;
         return this;
     }
 
@@ -6228,11 +6291,11 @@ class LRSStatementBuilder extends StatementBuilder {
 
     /**
      * Sets the timestamp of the statement
-     * @param {Date|string} timestamp - The timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} timestamp - The timestamp to set as an Date object or null (set to now)
      * @returns {StatementBuilder} This builder instance for chaining
      */
-    withTimestamp(timestamp) {
-        this.statement.timestamp = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    withTimestamp(timestamp = new Date()) {
+        this.statement.timestamp = timestamp ? timestamp.toISOString() : undefined;
         return this;
     }
 
@@ -6271,6 +6334,7 @@ class xAPITrackerAsset {
      * @property {number} batch_timeout
      * @property {string} platform
      * @property {string} actor_name
+     * @property {string} actor_homepage
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
      * @property {string} backup_type
@@ -6288,6 +6352,7 @@ class xAPITrackerAsset {
         batch_timeout:msFn$1("30sec"),
         platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
+        actor_homepage:"",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
         backup_type:"XAPI",
@@ -6408,7 +6473,9 @@ class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.platform}});
+        const actorName = this.settings.actor_name || this.getUsername() || '';
+        const homePage = this.settings.actor_homepage || this.settings.platform || '';
+        this.actor = new ActorStatement({account :{name: actorName, homePage: homePage}});
         if(this.settings.registration_id) {
             this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.settings.registration_id);
         } else {
@@ -6463,6 +6530,10 @@ class xAPITrackerAsset {
         } else {
             this.connected=false;
         }
+    }
+
+    getUsername()  {
+        return this.settings.actor_name || "";
     }
 
     /**
@@ -6792,6 +6863,10 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         super.refreshAuth();
     }
 
+    getUsername() {
+        return this.oauth1Settings.username;
+    }
+
     /**
      * Logs out the current session.
      * Delegates to the parent class implementation.
@@ -6802,378 +6877,673 @@ class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
 }
 
 /**
+ * OAuth 2.0 Authorization Error
+ * Matches XASU OAuth2AuthorizationError
+ */
+class OAuth2AuthorizationError extends Error {
+    constructor(error, errorDescription) {
+        super(errorDescription || error);
+        this.name = 'OAuth2AuthorizationError';
+        this.error = error;
+        this.errorDescription = errorDescription || '';
+    }
+}
+
+/**
+ * OAuth 2.0 Device Authorization Error
+ * Matches XASU OAuth2DeviceAuthorizationError
+ */
+class OAuth2DeviceAuthorizationError extends Error {
+    constructor(error, errorDescription) {
+        super(errorDescription || error);
+        this.name = 'OAuth2DeviceAuthorizationError';
+        this.error = error;
+        this.errorDescription = errorDescription || '';
+    }
+}
+
+/**
+ * OAuth 2.0 Device Authorization Response
+ * Matches XASU OAuth2DeviceAuthorization
+ */
+class OAuth2DeviceAuthorization {
+    device_code = null;
+    user_code = null;
+    verification_uri = null;
+    verification_uri_complete = null;
+    interval = 0;
+    expires_in = 0;
+
+    static fromJson(json) {
+        const obj = new OAuth2DeviceAuthorization();
+        obj.device_code = json.device_code || null;
+        obj.user_code = json.user_code || null;
+        obj.verification_uri = json.verification_uri || null;
+        obj.verification_uri_complete = json.verification_uri_complete || null;
+        obj.interval = json.interval || 0;
+        obj.expires_in = json.expires_in || 0;
+        return obj;
+    }
+}
+
+/**
+ * OAuth 2.0 Token
+ * Matches XASU OAuth2Token with normalized fields
+ */
+class OAuth2Token {
+    access_token = null;
+    token_type = null;
+    expires_in = 0;
+    refresh_token = null;
+    username = null;
+    client_id = null;
+    requestTime = null;
+
+    get expired() {
+        if (!this.requestTime || !this.expires_in) return true;
+        const expiredTime = new Date(this.requestTime.getTime() + this.expires_in * 1000);
+        return new Date() > expiredTime;
+    }
+
+    static fromJson(json) {
+        const obj = new OAuth2Token();
+        obj.access_token = json.access_token || null;
+        obj.token_type = json.token_type || json.tokenType || 'Bearer';
+        obj.expires_in = json.expires_in || json.expiresIn || 0;
+        obj.refresh_token = json.refresh_token || json.refreshToken || null;
+        obj.username = json.username || json.user_name || null;
+        obj.requestTime = new Date();
+        return obj;
+    }
+}
+
+/**
  * A class that implements OAuth 2.0 protocol for authentication and token management.
- * Supports various grant types including password and refresh_token flows.
+ * Supports various grant types including password, refresh_token, and device_code flows.
+ * closely modeled after XASU OAuth2DeviceProtocol (C#)
  */
 class OAuth2Protocol {
-  /**
-   * Error message template for missing required fields.
-   * @type {string}
-   */
-  fieldMissingMessage;
+    static FIELD_MISSING_MESSAGE = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
+    static UNSUPPORTED_GRANT_TYPE_MESSAGE = 'Grant type "{0}" not supported. Please use "password", "refresh_token", or "urn:ietf:params:oauth:grant-type:device_code" type.';
+    static UNSUPPORTED_PKCE_METHOD_MESSAGE = 'Code challenge (PKCE) method "{0}" not supported. Please use "S256" method or disable it.';
 
-  /**
-   * Error message template for unsupported grant types.
-   * @type {string}
-   */
-  unsupportedGrantTypeMessage;
+    static DEVICE_AUTHORIZATION_ENDPOINT_FIELD = 'device_authorization_endpoint';
+    static TOKEN_ENDPOINT_FIELD = 'token_endpoint';
+    static CLIENT_ID_FIELD = 'client_id';
+    static SCOPE_FIELD = 'scope';
+    static GRANT_TYPE_FIELD = 'grant_type';
+    static POLL_INTERVAL_FIELD = 'poll_interval';
+    static MAX_POLL_ATTEMPTS_FIELD = 'max_poll_attempts';
 
-  /**
-   * Error message template for unsupported PKCE methods.
-   * @type {string}
-   */
-  unsupportedCodeChallengeMethodMessage;
+    deviceAuthorizationEndpoint = null;
+    tokenEndpoint = null;
+    grantType = null;
+    username = null;
+    password = null;
+    clientId = null;
+    scope = null;
+    state = null;
+    login_hint = null;
+    codeChallengeMethod = null;
 
-  /**
-   * The authorization endpoint URL.
-   * @type {string|null}
-   */
-  authEndpoint = null;
+    deviceCode = null;
+    userCode = null;
+    verificationUri = null;
+    verificationUriComplete = null;
+    interval = null;
+    maxPollAttempts = null;
+    expiresIn = null;
+    pollInterval = null;
 
-  /**
-   * The token endpoint URL.
-   * @type {string|null}
-   */
-  tokenEndpoint = null;
+    token = null;
+    tokenRefreshInProgress = false;
+    onAuthorizationInfoUpdate = null;
+    onDeviceAuthorizationInfo = null;
 
-  /**
-   * The OAuth2 grant type being used.
-   * @type {string|null}
-   */
-  grantType = null;
+    #config = null;
 
-  /**
-   * The username for authentication.
-   * @type {string|null}
-   */
-  username = null;
+    constructor(config) {
+        this.#config = config;
+        this.tokenEndpoint = this.#getRequiredValue(config, OAuth2Protocol.TOKEN_ENDPOINT_FIELD);
+        this.grantType = this.#getRequiredValue(config, OAuth2Protocol.GRANT_TYPE_FIELD).toLowerCase();
+        this.clientId = this.#getRequiredValue(config, OAuth2Protocol.CLIENT_ID_FIELD);
+        this.scope = config[OAuth2Protocol.SCOPE_FIELD] || null;
+        this.state = config.state || null;
+        this.pollInterval = parseInt(config[OAuth2Protocol.POLL_INTERVAL_FIELD], 10) || null;
+        this.maxPollAttempts = parseInt(config[OAuth2Protocol.MAX_POLL_ATTEMPTS_FIELD], 10) || null;
 
-  /**
-   * The password for authentication.
-   * @type {string|null}
-   */
-  password = null;
+        if (config.code_challenge_method) {
+            const method = config.code_challenge_method.toUpperCase();
+            if (method === 'S256') {
+                this.codeChallengeMethod = 'S256';
+            } else {
+                throw new OAuth2AuthorizationError(
+                    'unsupported_code_challenge_method',
+                    OAuth2Protocol.UNSUPPORTED_PKCE_METHOD_MESSAGE.replace('{0}', method)
+                );
+            }
+        }
 
-  /**
-   * The client identifier.
-   * @type {string|null}
-   */
-  clientId = null;
-
-  /**
-   * The requested scope of access.
-   * @type {string|null}
-   */
-  scope = null;
-
-  /**
-   * The state parameter for CSRF protection.
-   * @type {string|null}
-   */
-  state = null;
-
-  /**
-   * The login hint for authentication.
-   * @type {string|null}
-   */
-  login_hint = null;
-
-  /**
-   * The PKCE code challenge method.
-   * @type {string|null}
-   */
-  codeChallengeMethod = null;
-
-  /**
-   * The current authentication token.
-   * @typedef {Object|null} token
-   * @property {string} access_token
-   * @property {string} refresh_token
-   */
-  token=null;
-
-  /**
-   * Flag indicating if a token refresh is currently in progress.
-   * @type {boolean}
-   */
-  tokenRefreshInProgress = false;
-
-  /**
-   * Callback function for token updates.
-   * @type {Function|null}
-   */
-  onAuthorizationInfoUpdate = null;
-
-  /**
-   * Creates an instance of OAuth2Protocol.
-   * Initializes error messages and default property values.
-   * @param {Object} config - Configuration object containing OAuth2 parameters
-   * @param {string} config.token_endpoint - The token endpoint URL
-   * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-   * @param {string} config.client_id - The client ID
-   * @param {string} [config.scope] - Optional scope
-   * @param {string} [config.state] - Optional state
-   * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-   * @param {string} [config.username] - Username for password grant type
-   * @param {string} [config.password] - Password for password grant type
-   * @param {string} [config.login_hint] - Login hint for password grant type
-   */
-  constructor(config) {
-    this.fieldMissingMessage = 'Field "{0}" required for "OAuth 2.0" authentication is missing!';
-    this.unsupportedGrantTypeMessage = 'Grant type "{0}" not supported. Please use either "code" type or "password" type.';
-    this.unsupportedCodeChallengeMethodMessage = 'Code challenge (PKCE) method "{0}" not supported. Please use "S256" method or disable it.';
-    this.tokenEndpoint = this.#getRequiredValue(config, 'token_endpoint');
-    this.grantType = this.#getRequiredValue(config, 'grant_type').toLowerCase();
-    this.clientId = this.#getRequiredValue(config, 'client_id');
-    this.scope = config.scope || null;
-    this.state = config.state || null;
-
-    // Parse PKCE
-    if (config.code_challenge_method) {
-      const codeChallengeMethodString = config.code_challenge_method.toUpperCase();
-      if (codeChallengeMethodString === 'S256') {
-        this.codeChallengeMethod = 'S256';
-      } else {
-        throw new Error(this.unsupportedCodeChallengeMethodMessage.replace('{0}', codeChallengeMethodString));
-      }
+        switch (this.grantType) {
+            case 'password':
+                this.username = this.#getRequiredValue(config, 'username');
+                this.password = this.#getRequiredValue(config, 'password');
+                this.login_hint = this.#getRequiredValue(config, 'login_hint');
+                break;
+            case 'urn:ietf:params:oauth:grant-type:device_code':
+                this.deviceAuthorizationEndpoint = this.#getRequiredValue(config, OAuth2Protocol.DEVICE_AUTHORIZATION_ENDPOINT_FIELD);
+                break;
+            case 'refresh_token':
+                break;
+            default:
+                throw new OAuth2AuthorizationError(
+                    'unsupported_grant_type',
+                    OAuth2Protocol.UNSUPPORTED_GRANT_TYPE_MESSAGE.replace('{0}', this.grantType)
+                );
+        }
     }
 
-    switch (this.grantType) {
-      case "password":
-        this.username = this.#getRequiredValue(config, 'username');
-        this.password = this.#getRequiredValue(config, 'password');
-        this.login_hint = this.#getRequiredValue(config, 'login_hint');
-        break;
-      default:
-        throw new Error(this.unsupportedGrantTypeMessage.replace('{0}', this.grantType));
+    async getToken() {
+        console.log('[OAuth2] Starting');
+        switch (this.grantType) {
+            case 'refresh_token':
+                this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+                break;
+            case 'password':
+                this.token = await this.#doResourceOwnedPasswordCredentialsFlow(
+                    this.tokenEndpoint,
+                    this.clientId,
+                    this.username,
+                    this.password,
+                    this.login_hint,
+                    this.scope,
+                    this.state,
+                );
+                break;
+            case 'urn:ietf:params:oauth:grant-type:device_code':
+                await this.#doDeviceAuthorizationFlow();
+                break;
+            default:
+                throw new OAuth2AuthorizationError(
+                    'unsupported_grant_type',
+                    OAuth2Protocol.UNSUPPORTED_GRANT_TYPE_MESSAGE.replace('{0}', this.grantType)
+                );
+        }
+
+        if (this.token) {
+            console.log('[OAuth2] Token obtained: ' + this.token.access_token);
+        }
     }
-  }
 
-  /**
-   * Initializes the OAuth2 protocol with the provided configuration.
-   *
+    // ─── Device Authorization Flow (RFC 8628) ─────────────────────────────────
+    // Closely mirrors XASU OAuth2DeviceProtocol.Init()
 
-   * @returns {Promise<void>}
-   * @throws {Error} If required configuration values are missing or grant type is unsupported
-   */
-  async getToken() {
-    console.log("[OAuth2] Starting");
-    switch (this.grantType) {
-      case "refresh_token":
-        this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
-        break;
-      case "password":
-        this.token = await this.#doResourceOwnedPasswordCredentialsFlow(
-          this.tokenEndpoint,
-          this.clientId,
-          this.username,
-          this.password,
-          this.login_hint,
-          this.scope,
-          this.state,
+    async #doDeviceAuthorizationFlow() {
+        console.log('[OAuth2Device] Starting');
+
+        if (!OAuth2Protocol.#isValidHttpUrl(this.deviceAuthorizationEndpoint)) {
+            const msg = 'The device authorization endpoint is not a valid URL. Received: ' + this.deviceAuthorizationEndpoint;
+            console.error('[OAuth2Device] ' + msg);
+            throw new OAuth2AuthorizationError('invalid_device_authorization_endpoint', msg);
+        }
+
+        if (!OAuth2Protocol.#isValidHttpUrl(this.tokenEndpoint)) {
+            const msg = 'The token endpoint is not a valid URL. Received: ' + this.tokenEndpoint;
+            console.error('[OAuth2Device] ' + msg);
+            throw new OAuth2AuthorizationError('invalid_token_endpoint', msg);
+        }
+
+        // Step 1: Request device and user codes
+        const deviceAuth = await this.#doDeviceAuthorizationRequest(this.deviceAuthorizationEndpoint, this.clientId, this.scope);
+
+        console.log('[OAuth2Device] User code: ' + deviceAuth.user_code);
+
+        // Step 2: Open verification URL in browser for user to approve
+        const verificationUrl = deviceAuth.verification_uri_complete
+            || deviceAuth.verification_uri;
+
+        if (!OAuth2Protocol.#isValidHttpUrl(verificationUrl)) {
+            const msg = 'The device authorization server did not provide a valid verification URL.';
+            console.error('[OAuth2Device] ' + msg);
+            throw new OAuth2AuthorizationError('invalid_verification_uri', msg);
+        }
+
+        if (typeof window !== 'undefined' && window.open) {
+            window.open(verificationUrl, '_blank');
+        }
+
+        console.log('[OAuth2Device] Opened verification URL: ' + verificationUrl);
+
+        if (this.onDeviceAuthorizationInfo) {
+            this.onDeviceAuthorizationInfo({
+                user_code: deviceAuth.user_code,
+                verification_uri: deviceAuth.verification_uri,
+                verification_uri_complete: deviceAuth.verification_uri_complete,
+                expires_in: deviceAuth.expires_in,
+                interval: deviceAuth.interval
+            });
+        }
+
+        // Step 3: Poll the token endpoint until approved
+        let interval = deviceAuth.interval > 0 ? deviceAuth.interval : 5;
+        let maxAttempts = deviceAuth.expires_in > 0
+            ? Math.floor(deviceAuth.expires_in / interval) + 1
+            : 60;
+
+        if (this.pollInterval && this.pollInterval > 0) {
+            interval = this.pollInterval;
+        }
+        if (this.maxPollAttempts && this.maxPollAttempts > 0) {
+            maxAttempts = this.maxPollAttempts;
+        }
+
+        console.log('[OAuth2Device] Polling token endpoint every ' + interval + 's for up to ' + maxAttempts + ' attempts.');
+
+        this.token = await this.#pollForToken(this.tokenEndpoint, this.clientId, deviceAuth.device_code, interval, maxAttempts);
+
+        if (this.token) {
+            this.token.client_id = this.clientId;
+            console.log('[OAuth2Device] Token obtained: ' + this.token.access_token);
+            if (this.token.username) {
+                console.log('[OAuth2Device] Username found: ' + this.token.username);
+            }
+            if (this.onAuthorizationInfoUpdate) {
+                this.onAuthorizationInfoUpdate(this.token);
+            }
+        }
+    }
+
+    /**
+     * Requests a device code from the device authorization endpoint.
+     * Closely mirrors XASU OAuth2DeviceProtocol.DoDeviceAuthorizationRequest()
+     *
+     * @param {string} endpoint - The device authorization endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} [scope] - Optional scope
+     * @returns {Promise<OAuth2DeviceAuthorization>} The device authorization response
+     * @throws {OAuth2AuthorizationError} If the request fails
+     */
+    async #doDeviceAuthorizationRequest(endpoint, clientId, scope) {
+        const form = { client_id: clientId };
+        if (scope) {
+            form.scope = scope;
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(form),
+            });
+
+            const responseBody = await response.text();
+
+            if (response.status < 200 || response.status >= 300) {
+                throw OAuth2Protocol.#buildDeviceAuthorizationError(response.status, responseBody, endpoint);
+            }
+
+            let json;
+            try {
+                json = JSON.parse(responseBody);
+            } catch (e) {
+                throw new OAuth2AuthorizationError('invalid_response', 'Failed to parse device authorization response.');
+            }
+
+            const deviceAuth = OAuth2DeviceAuthorization.fromJson(json);
+
+            if (!deviceAuth.device_code || !deviceAuth.user_code ||
+                (!deviceAuth.verification_uri && !deviceAuth.verification_uri_complete)) {
+                throw new OAuth2AuthorizationError(
+                    'invalid_response',
+                    'The device authorization server response is missing required fields (device_code, user_code or verification_uri).'
+                );
+            }
+
+            return deviceAuth;
+        } catch (error) {
+            if (error instanceof OAuth2AuthorizationError) {
+                throw error;
+            }
+            // Network or other fetch error
+            if (error instanceof TypeError || error.name === 'TypeError') {
+                throw new OAuth2AuthorizationError(
+                    'network_error',
+                    'Device authorization request to "' + endpoint + '" failed: ' + error.message
+                );
+            }
+            throw new OAuth2AuthorizationError(
+                'request_failed',
+                'Device authorization request to "' + endpoint + '" failed: ' + error.message
+            );
+        }
+    }
+
+    /**
+     * Polls the token endpoint for an access token using the device code.
+     * Closely mirrors XASU OAuth2DeviceProtocol.PollForToken()
+     *
+     * @param {string} tokenUrl - The token endpoint URL
+     * @param {string} clientId - The client ID
+     * @param {string} deviceCode - The device code
+     * @param {number} interval - Polling interval in seconds
+     * @param {number} maxAttempts - Maximum number of poll attempts
+     * @returns {Promise<OAuth2Token>} The obtained token
+     * @throws {OAuth2AuthorizationError} If polling fails or times out
+     */
+    async #pollForToken(tokenUrl, clientId, deviceCode, interval, maxAttempts) {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await new Promise(resolve => setTimeout(resolve, interval * 1000));
+
+            const form = {
+                grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+                client_id: clientId,
+                device_code: deviceCode,
+            };
+
+            console.log(
+                '[OAuth2Device] Poll attempt ' + (attempt + 1) + '/' + maxAttempts +
+                ': POST ' + tokenUrl +
+                ' (client_id=' + clientId + ', device_code=' + deviceCode + ')'
+            );
+
+            let responseBody;
+            let responseStatus;
+
+            try {
+                const response = await fetch(tokenUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(form),
+                });
+
+                responseStatus = response.status;
+                responseBody = await response.text();
+            } catch (error) {
+                // Network error during token poll (will retry), mirrors XASU NetworkException handling
+                console.log('[OAuth2Device] Network error during token poll (will retry): ' + error.message);
+                continue;
+            }
+
+            console.log('[OAuth2Device] Poll response (' + responseStatus + '): ' + responseBody);
+
+            if (responseStatus < 200 || responseStatus >= 300) {
+                let error = null;
+                try {
+                    const json = JSON.parse(responseBody);
+                    error = json.error
+                        ? new OAuth2DeviceAuthorizationError(json.error, json.error_description)
+                        : null;
+                } catch (e) {
+                    // parse failed, error stays null
+                }
+
+                if (error && error.error) {
+                    switch (error.error) {
+                        case 'authorization_pending':
+                            console.log('[OAuth2Device] Waiting for user authorization...');
+                            continue;
+
+                        case 'slow_down':
+                            console.log('[OAuth2Device] Slow down: adding 5s to interval');
+                            interval += 5;
+                            continue;
+
+                        case 'expired_token':
+                            throw new OAuth2AuthorizationError(
+                                'expired_token',
+                                'The device code has expired. Please restart the authorization flow.'
+                            );
+
+                        case 'access_denied':
+                            throw new OAuth2AuthorizationError(
+                                'access_denied',
+                                'The user denied the authorization request.'
+                            );
+
+                        default:
+                            throw error;
+                    }
+                }
+
+                throw new OAuth2AuthorizationError(
+                    'http_' + responseStatus,
+                    'Token request to "' + tokenUrl + '" failed with HTTP status ' + responseStatus + ': ' + responseBody
+                );
+            }
+
+            let tokenResponse;
+            try {
+                const json = JSON.parse(responseBody);
+                tokenResponse = OAuth2Token.fromJson(json);
+            } catch (e) {
+                throw new OAuth2AuthorizationError('invalid_response', 'Failed to parse token response.');
+            }
+
+            if (!tokenResponse || !tokenResponse.access_token) {
+                throw new OAuth2AuthorizationError(
+                    'invalid_response',
+                    'The token endpoint response is missing the access_token.'
+                );
+            }
+
+            tokenResponse.client_id = clientId;
+            console.log('[OAuth2Device] Token retrieved after ' + (attempt + 1) + ' attempt(s).');
+            return tokenResponse;
+        }
+
+        throw new OAuth2AuthorizationError(
+            'timeout',
+            'Device authorization timed out after ' + maxAttempts + ' attempts.'
         );
-        break;
-      default:
-        throw new Error(this.unsupportedGrantTypeMessage.replace('{0}', this.grantType));
     }
 
-    if (this.token) {
-      console.log("[OAuth2] Token obtained: " + this.token.access_token);
-    }
-  }
+    // ─── Password Grant Flow ──────────────────────────────────────────────────
 
-  /**
-   * Retrieves a required value from the configuration object.
-   *
-   * @param {Object} config - The configuration object
-   * @param {string} key - The key of the required value
-   * @returns {*} The value associated with the key
-   * @throws {Error} If the required value is missing
-   */
-  #getRequiredValue(config, key) {
-    if (!config[key]) {
-      throw new Error(this.fieldMissingMessage.replace('{0}', key));
-    }
-    return config[key];
-  }
-
-  /**
-   * Performs the Resource Owner Password Credentials flow.
-   *
-   * @param {string} tokenUrl - The token endpoint URL
-   * @param {string} clientId - The client ID
-   * @param {string} username - The username
-   * @param {string} password - The password
-   * @param {string} [scope] - Optional scope
-   * @param {string} [state] - Optional state
-   * @param {string} login_hint - The login hint
-   * @returns {Promise<Object>} The token response
-   */
-  async #doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
-    const form = {
-      username,
-      password,
-      login_hint
-    };
-    if(scope) {
-      form.scope = scope;
-    }
-    if(state) {
-      form.state = state;
-    }
-    return await this.#doTokenRequest(tokenUrl, clientId, "password", form);
-  }
-
-  /**
-   * Makes a token request to the OAuth2 token endpoint.
-   *
-   * @param {string} tokenUrl - The token endpoint URL
-   * @param {string} clientId - The client ID
-   * @param {string} grantType - The grant type
-   * @param {Object} otherParams - Additional parameters to include in the request
-   * @returns {Promise<Object>} The token response
-   * @throws {Error} If the token request fails
-   */
-  async #doTokenRequest(tokenUrl, clientId, grantType, otherParams) {
-    const form = {
-      grant_type: grantType,
-      client_id: clientId,
-      ...otherParams
-    };
-
-    try {
-      const response = await fetch(tokenUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(form),
-      });
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      if (error.response && error.response.data) {
-        throw new Error(error.response.data.error || 'Error during token request');
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  /**
-   * Performs a refresh token request.
-   *
-   * @param {string} tokenUrl - The token endpoint URL
-   * @param {string} clientId - The client ID
-   * @param {string} refreshToken - The refresh token
-   * @returns {Promise<Object>} The new token response
-   */
-  async #doRefreshToken(tokenUrl, clientId, refreshToken) {
-    return await this.#doTokenRequest(tokenUrl, clientId, "refresh_token", { refresh_token: refreshToken });
-  }
-
-  /**
-   * Refreshes the current access token using the refresh token.
-   *
-   * @returns {Promise<string>} The new access token
-   */
-  async refreshToken() {
-    if(this.tokenRefreshInProgress == false) {
-      try {
-        this.tokenRefreshInProgress = true;
-        this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
-        this.tokenRefreshInProgress = false;
-        return this.token.access_token;
-      } catch(error) {
-        this.tokenRefreshInProgress = false;
-        console.error(error);
-      }
-    } else {
-      while(this.tokenRefreshInProgress == true) {
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-  }
-
-  /**
-   * Checks if the current token has expired.
-   *
-   * @returns {boolean} True if the token has expired, false otherwise
-   */
-  hasTokenExpired() {
-    let expiredTime = new Date(this.token.requestTime.getTime() + this.token.expires_in*1000);
-    let now = new Date();
-    if(expiredTime > now) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  /**
-   * Updates the request with the current authorization token.
-   * Refreshes the token if it has expired.
-   *
-   * @param {Object} request - The request object to update
-   * @returns {Promise<void>}
-   */
-  async #updateParamsForAuth(request) {
-    if (this.hasTokenExpired()) {
-      this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
-      if (this.onAuthorizationInfoUpdate) {
-        this.onAuthorizationInfoUpdate(this.token);
-      }
+    async #doResourceOwnedPasswordCredentialsFlow(tokenUrl, clientId, username, password, login_hint, scope, state) {
+        const form = {
+            username,
+            password,
+            login_hint,
+        };
+        if (scope) {
+            form.scope = scope;
+        }
+        if (state) {
+            form.state = state;
+        }
+        return await this.#doTokenRequest(tokenUrl, clientId, 'password', form);
     }
 
-    request.headers = {
-      ...request.headers,
-      'Authorization': `${this.token.token_type.charAt(0).toUpperCase() + this.token.token_type.slice(1)} ${this.token.access_token}`
-    };
-  }
+    // ─── Token Requests ───────────────────────────────────────────────────────
 
-  /**
-   * Registers a callback function to be called when authorization information is updated.
-   *
-   * @param {Function} callback - The callback function to register
-   */
-  #registerAuthInfoUpdate(callback) {
-    if (callback) {
-      this.onAuthorizationInfoUpdate = callback;
-      if (this.token) {
-        callback(this.token);
-      }
+    async #doTokenRequest(tokenUrl, clientId, grantType, otherParams) {
+        const form = {
+            grant_type: grantType,
+            client_id: clientId,
+            ...otherParams,
+        };
+
+        try {
+            const response = await fetch(tokenUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(form),
+            });
+            const data = await response.json();
+            return OAuth2Token.fromJson(data);
+        } catch (error) {
+            if (error instanceof OAuth2AuthorizationError) {
+                throw error;
+            }
+            throw new OAuth2AuthorizationError(
+                'token_request_failed',
+                'Token request to "' + tokenUrl + '" failed: ' + error.message
+            );
+        }
     }
-  }
 
-  /**
-   * Logs out the current session by invalidating the refresh token.
-   *
-   * @returns {Promise<void>}
-   * @throws {Error} If the logout request fails
-   */
-  async logout() {
-    const form = {
-      grant_type: "refresh_token",
-      client_id: this.clientId,
-      refresh_token: this.token.refresh_token
-    };
-
-    try {
-      const response = await fetch(this.tokenEndpoint.replace("/token", "/logout"), {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(form),
-      });
-      const data = await response.json();
-      console.log(data);
-      console.log("[OAuth2] Logged out successfully");
-    } catch(error) {
-      if (error.response && error.response.data) {
-        throw new Error(error.response.data.error || '[OAuth2] Error during logout');
-      } else {
-        throw error;
-      }
+    async #doRefreshToken(tokenUrl, clientId, refreshToken) {
+        return await this.#doTokenRequest(tokenUrl, clientId, 'refresh_token', { refresh_token: refreshToken });
     }
-  }
+
+    async refreshToken() {
+        if (!this.tokenRefreshInProgress) {
+            try {
+                this.tokenRefreshInProgress = true;
+                this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+                this.tokenRefreshInProgress = false;
+                return this.token.access_token;
+            } catch (error) {
+                this.tokenRefreshInProgress = false;
+                console.error(error);
+            }
+        } else {
+            while (this.tokenRefreshInProgress) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+    }
+
+    // ─── Auth Update ──────────────────────────────────────────────────────────
+
+    hasTokenExpired() {
+        if (!this.token) return true;
+        return this.token.expired;
+    }
+
+    async #updateParamsForAuth(request) {
+        if (this.hasTokenExpired()) {
+            this.token = await this.#doRefreshToken(this.tokenEndpoint, this.clientId, this.token.refresh_token);
+            if (this.onAuthorizationInfoUpdate) {
+                this.onAuthorizationInfoUpdate(this.token);
+            }
+        }
+
+        const tokenType = this.token.token_type
+            ? this.token.token_type.charAt(0).toUpperCase() + this.token.token_type.slice(1).toLowerCase()
+            : 'Bearer';
+
+        request.headers = {
+            ...request.headers,
+            'Authorization': tokenType + ' ' + this.token.access_token,
+        };
+    }
+
+    #registerAuthInfoUpdate(callback) {
+        if (callback) {
+            this.onAuthorizationInfoUpdate = callback;
+            if (this.token) {
+                callback(this.token);
+            }
+        }
+    }
+
+    // ─── Logout ───────────────────────────────────────────────────────────────
+
+    async logout() {
+        const form = {
+            grant_type: 'refresh_token',
+            client_id: this.clientId,
+            refresh_token: this.token.refresh_token,
+        };
+
+        try {
+            const response = await fetch(this.tokenEndpoint.replace('/token', '/logout'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(form),
+            });
+            const data = await response.json();
+            console.log(data);
+            console.log('[OAuth2] Logged out successfully');
+        } catch (error) {
+            if (error instanceof OAuth2AuthorizationError) {
+                throw error;
+            }
+            throw new OAuth2AuthorizationError(
+                'logout_failed',
+                '[OAuth2] Error during logout: ' + error.message
+            );
+        }
+    }
+
+    // ─── Error Handling ───────────────────────────────────────────────────────
+
+    unauthorized(errorMessage) {
+        this.token = null;
+        console.error('[OAuth2Device] Unauthorized: ' + errorMessage);
+    }
+
+    forbidden(errorMessage) {
+        this.token = null;
+        console.error('[OAuth2Device] Forbidden: ' + errorMessage);
+    }
+
+    // ─── Utility Methods ──────────────────────────────────────────────────────
+
+    #getRequiredValue(config, key) {
+        if (!config[key]) {
+            throw new OAuth2AuthorizationError(
+                'missing_field',
+                OAuth2Protocol.FIELD_MISSING_MESSAGE.replace('{0}', key)
+            );
+        }
+        return config[key];
+    }
+
+    /**
+     * Validates that a URL is a valid HTTP or HTTPS URL.
+     * Mirrors XASU OAuth2DeviceProtocol.IsValidHttpUrl()
+     *
+     * @param {string} url - The URL to validate
+     * @returns {boolean} True if the URL is valid
+     */
+    static #isValidHttpUrl(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * Builds a device authorization error from an HTTP response.
+     * Mirrors XASU OAuth2DeviceProtocol.BuildDeviceAuthorizationError()
+     *
+     * @param {number} status - HTTP status code
+     * @param {string} body - Response body
+     * @param {string} url - Request URL
+     * @returns {OAuth2AuthorizationError} The constructed error
+     */
+    static #buildDeviceAuthorizationError(status, body, url) {
+        let error = null;
+        try {
+            const json = JSON.parse(body);
+            if (json.error) {
+                error = new OAuth2AuthorizationError(json.error, json.error_description || body);
+            }
+        } catch (e) {
+            // parse failed
+        }
+
+        if (error && error.error) {
+            return error;
+        }
+
+        return new OAuth2AuthorizationError(
+            'http_' + status,
+            'Device authorization request to "' + url + '" failed with HTTP status ' + status + ': ' + body
+        );
+    }
 }
+
+/**
+ * @typedef {import("jwt-decode").JwtPayload & { preferred_username?: string }} OAuth2DecodedToken
+ */
 
 /**
  * A specialized tracker asset that implements OAuth2 authentication.
@@ -7186,25 +7556,30 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      * @property {string} token_endpoint
      * @property {string} grant_type
      * @property {string} client_id
-     * @property {string} scope
+     * @property {string} [scope]
      * @property {string} [state]
      * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
+     * @property {string} [username]
+     * @property {string} [password]
+     * @property {string} [login_hint]
+     * @property {string} [device_authorization_endpoint]
+     * @property {number} [poll_interval]
+     * @property {number} [max_poll_attempts]
      */
     oauth2Settings = {
-        token_endpoint:        "https://…/token",
-        client_id:             "my_client_id",
-        grant_type:            "password",
-        scope:                 "openid profile",
-        state:                 "",
-        code_challenge_method: "",
-        username:              "alice@example.com",
-        password:              "supersecret",
-        login_hint:            "alice@example.com"
+        token_endpoint:                 "https://.../token",
+        client_id:                      "my_client_id",
+        grant_type:                     "password",
+        scope:                          "openid profile",
+        state:                          "",
+        code_challenge_method:          "",
+        username:                       "alice@example.com",
+        password:                       "supersecret",
+        login_hint:                     "alice@example.com",
+        device_authorization_endpoint:  "",
+        poll_interval:                  null,
+        max_poll_attempts:              null,
     };
-
 
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -7213,9 +7588,17 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     oauth2 = null;
 
     /**
-     * Creates an instance of xAPITrackerAssetOAuth2.
-
+     * Callback for device authorization info (user_code, verification_uri, etc.)
+     * @type {Function|null}
      */
+    onDeviceAuthorizationInfo = null;
+
+    /**
+     * Callback for token updates
+     * @type {Function|null}
+     */
+    onAuthorizationInfoUpdate = null;
+
     constructor() {
         super();
         this.oauth2 = null;
@@ -7229,66 +7612,54 @@ class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     }
 
     async login() {
-        if(!this.online) {
-            // Fetch token after object construction
+        if (!this.online) {
             await this.#initAuth();
         }
     }
 
-    /**
-     * Retrieves an OAuth2 access token.
-     *
-     * @returns {Promise<string|null>} The access token or null if failed
-     */
-    async #getToken() {
-        try {
-            this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
-            await this.oauth2.getToken();
-            return this.oauth2.token.access_token; // Return the access token
-        } catch(e) {
-            console.error(e);
-            return null;
-        }
-    }
-
-    /**
-     * Initializes authentication by obtaining and setting the OAuth2 token.
-     *
-     * @returns {Promise<void>}
-     */
     async #initAuth() {
-        const oAuth2Token = await this.#getToken();
-        if(oAuth2Token !== null) {
-            this.auth_token = "Bearer " + oAuth2Token;
+        this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
+
+        if (this.onDeviceAuthorizationInfo) {
+            this.oauth2.onDeviceAuthorizationInfo = this.onDeviceAuthorizationInfo;
+        }
+
+        if (this.onAuthorizationInfoUpdate) {
+            this.oauth2.onAuthorizationInfoUpdate = this.onAuthorizationInfoUpdate;
+        }
+
+        await this.oauth2.getToken();
+        const oAuth2Token = this.oauth2.token;
+
+        if (oAuth2Token !== null && oAuth2Token.access_token) {
+            this.auth_token = "Bearer " + oAuth2Token.access_token;
             console.debug(this.auth_token);
-            // Now that we have the token, update the authorization in the super class
             return super.login();
         }
     }
 
-    /**
-     * Refreshes the OAuth2 authentication token.
-     *
-     * @returns {Promise<void>}
-     */
+    getUsername() {
+        const oAuth2Token = this.oauth2.token;
+
+        if (oAuth2Token !== null && oAuth2Token.access_token) {
+            /** @type {OAuth2DecodedToken} */
+            const decoded = jwtDecode.jwtDecode(oAuth2Token.access_token);
+            const username = decoded.preferred_username;
+            return username;
+        }
+    }
+
     async refreshAuth() {
         const oAuth2Token = await this.oauth2.refreshToken();
-        if(oAuth2Token) {
+        if (oAuth2Token) {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
-            // Now that we have the token, update the authorization in the super class
             super.login();
         }
     }
 
-    /**
-     * Logs out the current session by invalidating the token.
-     *
-     * @returns {Promise<void>}
-     */
     async logout() {
         await this.oauth2.logout();
-        // logout
         super.logout();
     }
 }
@@ -7340,6 +7711,18 @@ class AccessibleTracker {
         return this.Tracker.trace(ALL.VERBS.SKIPPED,this.Type,this.AccessibleId);
     }
 }
+
+/**
+ * the list of types possible for the alternative object
+ */
+const ACCESSIBLETYPE = Object.freeze({
+    SCREEN: ALL.ACTIVITYTYPES.SCREEN,
+    AREA: ALL.ACTIVITYTYPES.AREA,
+    ZONE: ALL.ACTIVITYTYPES.ZONE,
+    CUTSCENE: ALL.ACTIVITYTYPES.CUTSCENE,
+    INVENTORY: "https://w3id.org/xapi/seriousgames/custom-types/inventory", // WARN: Not in profile server
+    ACCESSIBLE: "https://w3id.org/xapi/seriousgames/activity-types/accessible"  // WARN: Not in profile server
+});
 
 /**
  * Completable Tracker
@@ -7451,6 +7834,23 @@ class CompletableTracker {
     }
 }
 
+/**
+ * the list of types possible for the completable object
+ */
+const COMPLETABLETYPE = Object.freeze({
+    GAME: ALL.ACTIVITYTYPES.GAME,
+    LEVEL: ALL.ACTIVITYTYPES.LEVEL,
+    QUEST: ALL.ACTIVITYTYPES.QUEST,
+    SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session", //
+    STAGE: "https://w3id.org/xapi/seriousgames/activity-types/stage",
+    COMBAT: "https://w3id.org/xapi/seriousgames/activity-types/combat",
+    STORYNODE: "https://w3id.org/xapi/seriousgames/activity-types/story-node",
+    RACE: "https://w3id.org/xapi/seriousgames/activity-types/race",
+    COMPLETABLE: "https://w3id.org/xapi/seriousgames/activity-types/completable",
+    DIALOGNODE: "https://w3id.org/xapi/seriousgames/activity-types/dialog-node",
+    DIALOGFRAGMENT: "https://w3id.org/xapi/seriousgames/activity-types/dialog-fragment"
+});
+
 const SERIOUSGAMEPROFILE = Object.freeze({
     CATEGORYID:  'https://w3id.org/xapi/seriousgame',
     VERBS: {
@@ -7553,6 +7953,18 @@ class AlternativeTracker {
 }
 
 /**
+ * the list of types possible for the alternative object
+ */
+const ALTERNATIVETYPE = Object.freeze({
+    QUESTION: ALL.ACTIVITYTYPES.QUESTION,
+    MENU: ALL.ACTIVITYTYPES.MENU,
+    DIALOG: ALL.ACTIVITYTYPES.DIALOG_TREE,
+    PATH: "https://w3id.org/xapi/seriousgames/activity-types/path",     // WARN: Not in profile server
+    ARENA: "https://w3id.org/xapi/seriousgames/activity-types/arena",   // WARN: Not in profile server
+    ALTERNATIVE: "https://w3id.org/xapi/seriousgames/activity-types/alternative" // WARN: Not in profile server
+});
+
+/**
  * Game Object Tracker
  */
 class GameObjectTracker {
@@ -7599,6 +8011,16 @@ class GameObjectTracker {
         return this.Tracker.trace(ALL.VERBS.USED,this.Type,this.GameobjectId);
     }
 }
+
+/**
+ * the list of types possible for the gameobject object
+ */
+const GAMEOBJECTTYPE = Object.freeze({
+    ENEMY: ALL.ACTIVITYTYPES.ENEMY,
+    NPC: ALL.ACTIVITYTYPES.NON_PLAYER_CHARACTER,
+    ITEM: ALL.ACTIVITYTYPES.ITEM,
+    GAMEOBJECT: "https://w3id.org/xapi/seriousgames/activity-types/game-object", // WARN: Not in profile server
+});
 
 /**
  * Scorm Tracker
@@ -7852,7 +8274,8 @@ class JSTracker {
         parent_activity_id:'',
         registration_id: '',
         parent_activity_type:ALL.ACTIVITYTYPES.LESSON,
-        auth_token: ''
+        auth_token: '',
+        actor_homepage:''
     };
     /**
      * @typedef {Object} oauth1
@@ -7864,28 +8287,34 @@ class JSTracker {
         password:"supersecret"
     };
 
-    /**
+/**
      * @typedef {Object} oauth2
      * @property {string} token_endpoint
      * @property {string} grant_type
      * @property {string} client_id
-     * @property {string} scope
+     * @property {string} [scope]
      * @property {string} [state]
      * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
+     * @property {string} [username]
+     * @property {string} [password]
+     * @property {string} [login_hint]
+     * @property {string} [device_authorization_endpoint] - Device authorization endpoint for device_code grant
+     * @property {number} [poll_interval] - Polling interval in seconds for device flow
+     * @property {number} [max_poll_attempts] - Maximum poll attempts for device flow
      */
     oauth2 = {
-        token_endpoint:        "https://…/token",
-        client_id:             "my_client_id",
-        grant_type:            "password",
-        scope:                 "openid profile",
-        state:                 "",
-        code_challenge_method: "",
-        username:              "alice@example.com",
-        password:              "supersecret",
-        login_hint:            "alice@example.com"
+        token_endpoint:                 "https://.../token",
+        client_id:                      "my_client_id",
+        grant_type:                     "password",
+        scope:                          "openid profile",
+        state:                          "",
+        code_challenge_method:          "",
+        username:                       "alice@example.com",
+        password:                       "supersecret",
+        login_hint:                     "alice@example.com",
+        device_authorization_endpoint:  "",
+        poll_interval:                  null,
+        max_poll_attempts:              null,
     };
 
     /**
@@ -7969,7 +8398,7 @@ class JSTracker {
     generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_name, platform, strDebug, debug;
+        let result_uri, backup_uri, backup_type, actor_name, platform, actor_homepage, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -7984,6 +8413,7 @@ class JSTracker {
             // ACTOR DATA
             platform = urlParams.get('platform');
             actor_name = urlParams.get('actor_user');
+            actor_homepage = urlParams.get('actor_homepage');
 
             // SSO OAUTH 2.0 DATA
             const sso_token_endpoint = urlParams.get('sso_token_endpoint');
@@ -8017,6 +8447,20 @@ class JSTracker {
                 if (sso_username) {
                     xAPIConfig.password = sso_username;
                 }
+            }
+            
+            // SSO OAUTH 2.0 DEVICE AUTHORIZATION DATA
+            const sso_device_authorization_endpoint = urlParams.get('sso_device_authorization_endpoint');
+            if (sso_device_authorization_endpoint) {
+                xAPIConfig.device_authorization_endpoint = sso_device_authorization_endpoint;
+            }
+            const sso_poll_interval = urlParams.get('sso_poll_interval');
+            if (sso_poll_interval) {
+                xAPIConfig.poll_interval = parseInt(sso_poll_interval, 10);
+            }
+            const sso_max_poll_attempts = urlParams.get('sso_max_poll_attempts');
+            if (sso_max_poll_attempts) {
+                xAPIConfig.max_poll_attempts = parseInt(sso_max_poll_attempts, 10);
             }
 
             // OAUTH 1.0 DATA
@@ -8066,6 +8510,9 @@ class JSTracker {
             //if(xAPIConfig.grant_type === "password" && (!xAPIConfig.username || !xAPIConfig.password)) {
             //    throw new Error("Missing required OAuth2 parameters for password grant type. Required: sso_username, sso_password");
             //}
+            //if(xAPIConfig.grant_type === "urn:ietf:params:oauth:grant-type:device_code" && !xAPIConfig.device_authorization_endpoint) {
+            //    throw new Error("Missing required OAuth2 parameters for device_code grant type. Required: sso_device_authorization_endpoint");
+            //}
             this.oauth2.client_id = xAPIConfig.client_id;
             this.oauth2.grant_type = xAPIConfig.grant_type;
             this.oauth2.login_hint = xAPIConfig.login_hint;
@@ -8073,6 +8520,9 @@ class JSTracker {
             this.oauth2.password = xAPIConfig.password;
             this.oauth2.scope = xAPIConfig.scope;
             this.oauth2.token_endpoint = xAPIConfig.token_endpoint;
+            this.oauth2.device_authorization_endpoint = xAPIConfig.device_authorization_endpoint;
+            this.oauth2.poll_interval = xAPIConfig.poll_interval;
+            this.oauth2.max_poll_attempts = xAPIConfig.max_poll_attempts;
         } else if (username && password) {
             this.trackerSettings.oauth_type="OAuth1";
             this.oauth1.username = username;
@@ -8089,6 +8539,9 @@ class JSTracker {
         }
         if(actor_name !== undefined) {
             this.trackerSettings.actor_name=actor_name;
+        }
+        if(actor_homepage !== undefined) {
+            this.trackerSettings.actor_homepage=actor_homepage;
         }
         if(backup_uri !== undefined) {
             this.trackerSettings.backup_endpoint=backup_uri;
@@ -8425,6 +8878,10 @@ class SeriousGameTracker extends JSTracker {
     SERIOUSGAMEPROFILE = SERIOUSGAMESPROFILE;
     STATEMENT_BUILDER_IDS = STATEMENT;
     ALL = ALL;
+    ACCESSIBLETYPE=ACCESSIBLETYPE;
+    ALTERNATIVETYPE=ALTERNATIVETYPE;
+    COMPLETABLETYPE=COMPLETABLETYPE;
+    GAMEOBJECTTYPE=GAMEOBJECTTYPE;
 
     /**
      * SCORM tracker instance

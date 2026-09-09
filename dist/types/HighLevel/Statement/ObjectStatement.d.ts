@@ -89,5 +89,6 @@ export default class ObjectStatement {
      * @returns {String}
      */
     toCSV(): string;
+    processObjectDefinitionProperties(xapiObj: any): void;
 }
 import { ALL } from "./Ids/Profiles/Generated/index.js";

@@ -76,10 +76,10 @@ export default class LRSStatementBuilder extends StatementBuilder {
     withAutorityOpenID(openid: string): LRSStatementBuilder;
     /**
      * Add or set the stored timestamp of the statement
-     * @param {Date|string} stored - The stored timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} stored - The stored timestamp to set as an Date object or null (set to now)
      * @return {LRSStatementBuilder} This builder instance for chaining
      * */
-    withStored(stored: Date | string): LRSStatementBuilder;
+    withStored(stored?: Date | null): LRSStatementBuilder;
     /**
      * Add or set an actor to the statement
      * @param {string} type - The type of the actor
@@ -101,10 +101,10 @@ export default class LRSStatementBuilder extends StatementBuilder {
     withVersion(version: string): StatementBuilder;
     /**
      * Sets the timestamp of the statement
-     * @param {Date|string} timestamp - The timestamp to set (can be a Date object or an ISO 8601 string)
+     * @param {Date|null} timestamp - The timestamp to set as an Date object or null (set to now)
      * @returns {StatementBuilder} This builder instance for chaining
      */
-    withTimestamp(timestamp: Date | string): StatementBuilder;
+    withTimestamp(timestamp?: Date | null): StatementBuilder;
     /**
      * Sends the built statement to the LRS
      * @returns {Promise<void>} Promise that resolves when the statement has been sent

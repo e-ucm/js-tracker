@@ -101,6 +101,18 @@ export default class StatementBuilder {
        */
     withResultExtensions(extensions?: any): this;
     /**
+     * Set context language to statement
+     * @param {string} language language of statement
+     * @returns {StatementBuilder} Returns the current instance for chaining
+     */
+    withContextLanguage(language: string): StatementBuilder;
+    /**
+     * Set context platform to statement
+     * @param {string} platform platform of statement
+     * @returns {StatementBuilder} Returns the current instance for chaining
+     */
+    withContextPlatform(platform: string): StatementBuilder;
+    /**
      * Add context extension to statement
      * @param {typeof ALL.CONTEXTEXTENSION[keyof typeof ALL.CONTEXTEXTENSION]|string} key key of the context extension
      * @param {*} value value of the context extension

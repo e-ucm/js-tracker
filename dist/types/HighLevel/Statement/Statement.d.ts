@@ -51,11 +51,6 @@ export default class Statement {
      */
     object: ObjectStatement;
     /**
-     * Timestamp of the statement
-     * @type {Date}
-     */
-    timestamp: Date;
-    /**
      * Context of the statement
      * @type {ContextStatement}
      */
@@ -75,6 +70,11 @@ export default class Statement {
      * @type {AttachmentStatement[]}
      */
     attachments: AttachmentStatement[];
+    /**
+     * Timestamp of the statement
+     * @type {string}
+     */
+    timestamp: string;
     /**
      * Convert to xAPI format
      * @returns {Object}

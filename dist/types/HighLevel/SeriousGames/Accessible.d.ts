@@ -35,5 +35,16 @@ export class AccessibleTracker {
      */
     skipped(): StatementBuilder;
 }
+/**
+ * the list of types possible for the alternative object
+ */
+export const ACCESSIBLETYPE: Readonly<{
+    SCREEN: "https://w3id.org/xapi/seriousgames/activity-types/screen";
+    AREA: "https://w3id.org/xapi/seriousgames/activity-types/area";
+    ZONE: "https://w3id.org/xapi/seriousgames/activity-types/zone";
+    CUTSCENE: "https://w3id.org/xapi/seriousgames/activity-types/cutscene";
+    INVENTORY: "https://w3id.org/xapi/seriousgames/custom-types/inventory";
+    ACCESSIBLE: "https://w3id.org/xapi/seriousgames/activity-types/accessible";
+}>;
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import StatementBuilder from "../StatementBuilder/StatementBuilder.js";

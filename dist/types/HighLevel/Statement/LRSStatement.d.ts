@@ -25,9 +25,9 @@ export default class LRSStatement extends Statement {
      **/
     authority: ActorStatement;
     /**
-     * @param {Date} stored
+     * @param {string} stored
      */
-    stored: Date;
+    stored: string;
 }
 import Statement from "./Statement.js";
 import ActorStatement from "./ActorStatement.js";

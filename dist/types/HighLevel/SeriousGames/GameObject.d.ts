@@ -40,10 +40,10 @@ export class GameObjectTracker {
  * the list of types possible for the gameobject object
  */
 export const GAMEOBJECTTYPE: Readonly<{
-    ENEMY: 0;
-    NPC: 1;
-    ITEM: 2;
-    GAMEOBJECT: 3;
+    ENEMY: "https://w3id.org/xapi/seriousgames/activity-types/enemy";
+    NPC: "https://w3id.org/xapi/seriousgames/activity-types/non-player-character";
+    ITEM: "https://w3id.org/xapi/seriousgames/activity-types/item";
+    GAMEOBJECT: "https://w3id.org/xapi/seriousgames/activity-types/game-object";
 }>;
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import StatementBuilder from "../StatementBuilder/StatementBuilder.js";

@@ -56,8 +56,8 @@ export class GameObjectTracker {
  * the list of types possible for the gameobject object
  */
 export const GAMEOBJECTTYPE = Object.freeze({
-    ENEMY: 0,
-    NPC: 1,
-    ITEM: 2,
-    GAMEOBJECT: 3,
+    ENEMY: ALL.ACTIVITYTYPES.ENEMY,
+    NPC: ALL.ACTIVITYTYPES.NON_PLAYER_CHARACTER,
+    ITEM: ALL.ACTIVITYTYPES.ITEM,
+    GAMEOBJECT: "https://w3id.org/xapi/seriousgames/activity-types/game-object", // WARN: Not in profile server
 });

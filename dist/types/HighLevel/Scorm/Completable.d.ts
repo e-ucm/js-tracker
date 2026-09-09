@@ -54,5 +54,21 @@ export class CompletableTracker {
      */
     completed(success: boolean, completion: boolean, score: number): StatementBuilder;
 }
+/**
+ * the list of types possible for the completable object
+ */
+export const COMPLETABLETYPE: Readonly<{
+    GAME: "http://activitystrea.ms/game";
+    LEVEL: "https://w3id.org/xapi/seriousgames/activity-types/level";
+    QUEST: "https://w3id.org/xapi/seriousgames/activity-types/quest";
+    SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session";
+    STAGE: "https://w3id.org/xapi/seriousgames/activity-types/stage";
+    COMBAT: "https://w3id.org/xapi/seriousgames/activity-types/combat";
+    STORYNODE: "https://w3id.org/xapi/seriousgames/activity-types/story-node";
+    RACE: "https://w3id.org/xapi/seriousgames/activity-types/race";
+    COMPLETABLE: "https://w3id.org/xapi/seriousgames/activity-types/completable";
+    DIALOGNODE: "https://w3id.org/xapi/seriousgames/activity-types/dialog-node";
+    DIALOGFRAGMENT: "https://w3id.org/xapi/seriousgames/activity-types/dialog-fragment";
+}>;
 import xAPITrackerAsset from "../../xAPITrackerAsset.js";
 import StatementBuilder from "../StatementBuilder/StatementBuilder.js";

@@ -8,7 +8,7 @@ export default class ContextStatement {
      * @param {string} baseURI - Optional base URI to resolve relative IDs
      * @returns {ContextStatement}
      */
-    static fromXAPI(xapiObj: any, baseURI: string, platform?: any): ContextStatement;
+    static fromXAPI(xapiObj: any, baseURI: string, platform?: any, language?: any): ContextStatement;
     /**
      * Constructor of the ContextStatement class
      *
@@ -45,6 +45,12 @@ export default class ContextStatement {
      */
     addCategory(categoryId: (typeof ALL.CATEGORYID)[keyof typeof ALL.CATEGORYID]): void;
     /**
+     * Language of the Context
+     *
+     * @type {string}
+     */
+    language: string;
+    /**
      * Extensions of the Context
      *
      * @type {Object}
@@ -63,6 +69,7 @@ export default class ContextStatement {
      * @returns {Object}
      */
     toXAPI(): any;
+    setLanguage(language: any): void;
     /**
      * Set the extensions of the Context
      * @param {Object} ext extensions object
