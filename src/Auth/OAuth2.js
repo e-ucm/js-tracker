@@ -1,5 +1,10 @@
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
 import OAuth2Protocol from "./OAuth2Protocol.js";
+import { jwtDecode } from "jwt-decode";
+
+/**
+ * @typedef {import("jwt-decode").JwtPayload & { preferred_username?: string }} OAuth2DecodedToken
+ */
 
 /**
  * A specialized tracker asset that implements OAuth2 authentication.
@@ -12,25 +17,30 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      * @property {string} token_endpoint
      * @property {string} grant_type
      * @property {string} client_id
-     * @property {string} scope
+     * @property {string} [scope]
      * @property {string} [state]
      * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
+     * @property {string} [username]
+     * @property {string} [password]
+     * @property {string} [login_hint]
+     * @property {string} [device_authorization_endpoint]
+     * @property {number} [poll_interval]
+     * @property {number} [max_poll_attempts]
      */
     oauth2Settings = {
-        token_endpoint:        "https://…/token",
-        client_id:             "my_client_id",
-        grant_type:            "password",
-        scope:                 "openid profile",
-        state:                 "",
-        code_challenge_method: "",
-        username:              "alice@example.com",
-        password:              "supersecret",
-        login_hint:            "alice@example.com"
+        token_endpoint:                 "https://.../token",
+        client_id:                      "my_client_id",
+        grant_type:                     "password",
+        scope:                          "openid profile",
+        state:                          "",
+        code_challenge_method:          "",
+        username:                       "alice@example.com",
+        password:                       "supersecret",
+        login_hint:                     "alice@example.com",
+        device_authorization_endpoint:  "",
+        poll_interval:                  null,
+        max_poll_attempts:              null,
     };
-
 
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -39,9 +49,17 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     oauth2 = null;
 
     /**
-     * Creates an instance of xAPITrackerAssetOAuth2.
-
+     * Callback for device authorization info (user_code, verification_uri, etc.)
+     * @type {Function|null}
      */
+    onDeviceAuthorizationInfo = null;
+
+    /**
+     * Callback for token updates
+     * @type {Function|null}
+     */
+    onAuthorizationInfoUpdate = null;
+
     constructor() {
         super();
         this.oauth2 = null;
@@ -55,66 +73,54 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     }
 
     async login() {
-        if(!this.online) {
-            // Fetch token after object construction
+        if (!this.online) {
             await this.#initAuth();
         }
     }
 
-    /**
-     * Retrieves an OAuth2 access token.
-     *
-     * @returns {Promise<string|null>} The access token or null if failed
-     */
-    async #getToken() {
-        try {
-            this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
-            await this.oauth2.getToken();
-            return this.oauth2.token.access_token; // Return the access token
-        } catch(e) {
-            console.error(e);
-            return null;
-        }
-    }
-
-    /**
-     * Initializes authentication by obtaining and setting the OAuth2 token.
-     *
-     * @returns {Promise<void>}
-     */
     async #initAuth() {
-        const oAuth2Token = await this.#getToken();
-        if(oAuth2Token !== null) {
-            this.auth_token = "Bearer " + oAuth2Token;
+        this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
+
+        if (this.onDeviceAuthorizationInfo) {
+            this.oauth2.onDeviceAuthorizationInfo = this.onDeviceAuthorizationInfo;
+        }
+
+        if (this.onAuthorizationInfoUpdate) {
+            this.oauth2.onAuthorizationInfoUpdate = this.onAuthorizationInfoUpdate;
+        }
+
+        await this.oauth2.getToken();
+        const oAuth2Token = this.oauth2.token;
+
+        if (oAuth2Token !== null && oAuth2Token.access_token) {
+            this.auth_token = "Bearer " + oAuth2Token.access_token;
             console.debug(this.auth_token);
-            // Now that we have the token, update the authorization in the super class
             return super.login();
         }
     }
 
-    /**
-     * Refreshes the OAuth2 authentication token.
-     *
-     * @returns {Promise<void>}
-     */
+    getUsername() {
+        const oAuth2Token = this.oauth2.token;
+
+        if (oAuth2Token !== null && oAuth2Token.access_token) {
+            /** @type {OAuth2DecodedToken} */
+            const decoded = jwtDecode(oAuth2Token.access_token);
+            const username = decoded.preferred_username;
+            return username;
+        }
+    }
+
     async refreshAuth() {
         const oAuth2Token = await this.oauth2.refreshToken();
-        if(oAuth2Token) {
+        if (oAuth2Token) {
             this.auth_token = "Bearer " + oAuth2Token;
             console.debug(this.auth_token);
-            // Now that we have the token, update the authorization in the super class
             super.login();
         }
     }
 
-    /**
-     * Logs out the current session by invalidating the token.
-     *
-     * @returns {Promise<void>}
-     */
     async logout() {
         await this.oauth2.logout();
-        // logout
         super.logout();
     }
 }

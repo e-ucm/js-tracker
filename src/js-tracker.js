@@ -1,10 +1,12 @@
 import xAPITrackerAsset from './xAPITrackerAsset.js';
 import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
-import { AccessibleTracker } from './HighLevel/SeriousGames/Accessible.js';
-import { CompletableTracker } from './HighLevel/Scorm/Completable.js';
-import { AlternativeTracker } from './HighLevel/SeriousGames/Alternative.js';
-import { GameObjectTracker } from './HighLevel/SeriousGames/GameObject.js';
+import OAuth2Protocol from './Auth/OAuth2Protocol.js';
+import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/SeriousGames/Accessible.js';
+import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Scorm/Completable.js';
+import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/SeriousGames/Alternative.js';
+import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/SeriousGames/GameObject.js';;
+
 import { ScormTracker } from './HighLevel/Scorm/SCORM.js';
 import StatementBuilder from './HighLevel/StatementBuilder/StatementBuilder.js';
 import * as ms from "ms";
@@ -69,7 +71,8 @@ export class JSTracker {
         parent_activity_id:'',
         registration_id: '',
         parent_activity_type:ALL.ACTIVITYTYPES.LESSON,
-        auth_token: ''
+        auth_token: '',
+        actor_homepage:''
     };
     /**
      * @typedef {Object} oauth1
@@ -81,28 +84,34 @@ export class JSTracker {
         password:"supersecret"
     };
 
-    /**
+/**
      * @typedef {Object} oauth2
      * @property {string} token_endpoint
      * @property {string} grant_type
      * @property {string} client_id
-     * @property {string} scope
+     * @property {string} [scope]
      * @property {string} [state]
      * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
+     * @property {string} [username]
+     * @property {string} [password]
+     * @property {string} [login_hint]
+     * @property {string} [device_authorization_endpoint] - Device authorization endpoint for device_code grant
+     * @property {number} [poll_interval] - Polling interval in seconds for device flow
+     * @property {number} [max_poll_attempts] - Maximum poll attempts for device flow
      */
     oauth2 = {
-        token_endpoint:        "https://…/token",
-        client_id:             "my_client_id",
-        grant_type:            "password",
-        scope:                 "openid profile",
-        state:                 "",
-        code_challenge_method: "",
-        username:              "alice@example.com",
-        password:              "supersecret",
-        login_hint:            "alice@example.com"
+        token_endpoint:                 "https://.../token",
+        client_id:                      "my_client_id",
+        grant_type:                     "password",
+        scope:                          "openid profile",
+        state:                          "",
+        code_challenge_method:          "",
+        username:                       "alice@example.com",
+        password:                       "supersecret",
+        login_hint:                     "alice@example.com",
+        device_authorization_endpoint:  "",
+        poll_interval:                  null,
+        max_poll_attempts:              null,
     };
 
     /**
@@ -186,7 +195,7 @@ export class JSTracker {
     generateXAPITrackerFromURLParams() {
         const xAPIConfig = {};
         const urlParams = new URLSearchParams(window.location.search);
-        let result_uri, backup_uri, backup_type, actor_name, platform, strDebug, debug;
+        let result_uri, backup_uri, backup_type, actor_name, platform, actor_homepage, strDebug, debug;
         let username, password, auth_token;
         let batchLength, batchTimeout, maxRetryDelay;
 
@@ -201,6 +210,7 @@ export class JSTracker {
             // ACTOR DATA
             platform = urlParams.get('platform');
             actor_name = urlParams.get('actor_user');
+            actor_homepage = urlParams.get('actor_homepage');
 
             // SSO OAUTH 2.0 DATA
             const sso_token_endpoint = urlParams.get('sso_token_endpoint');
@@ -234,6 +244,20 @@ export class JSTracker {
                 if (sso_username) {
                     xAPIConfig.password = sso_username;
                 }
+            }
+            
+            // SSO OAUTH 2.0 DEVICE AUTHORIZATION DATA
+            const sso_device_authorization_endpoint = urlParams.get('sso_device_authorization_endpoint');
+            if (sso_device_authorization_endpoint) {
+                xAPIConfig.device_authorization_endpoint = sso_device_authorization_endpoint;
+            }
+            const sso_poll_interval = urlParams.get('sso_poll_interval');
+            if (sso_poll_interval) {
+                xAPIConfig.poll_interval = parseInt(sso_poll_interval, 10);
+            }
+            const sso_max_poll_attempts = urlParams.get('sso_max_poll_attempts');
+            if (sso_max_poll_attempts) {
+                xAPIConfig.max_poll_attempts = parseInt(sso_max_poll_attempts, 10);
             }
 
             // OAUTH 1.0 DATA
@@ -283,6 +307,9 @@ export class JSTracker {
             //if(xAPIConfig.grant_type === "password" && (!xAPIConfig.username || !xAPIConfig.password)) {
             //    throw new Error("Missing required OAuth2 parameters for password grant type. Required: sso_username, sso_password");
             //}
+            //if(xAPIConfig.grant_type === "urn:ietf:params:oauth:grant-type:device_code" && !xAPIConfig.device_authorization_endpoint) {
+            //    throw new Error("Missing required OAuth2 parameters for device_code grant type. Required: sso_device_authorization_endpoint");
+            //}
             this.oauth2.client_id = xAPIConfig.client_id;
             this.oauth2.grant_type = xAPIConfig.grant_type;
             this.oauth2.login_hint = xAPIConfig.login_hint;
@@ -290,6 +317,9 @@ export class JSTracker {
             this.oauth2.password = xAPIConfig.password;
             this.oauth2.scope = xAPIConfig.scope;
             this.oauth2.token_endpoint = xAPIConfig.token_endpoint;
+            this.oauth2.device_authorization_endpoint = xAPIConfig.device_authorization_endpoint;
+            this.oauth2.poll_interval = xAPIConfig.poll_interval;
+            this.oauth2.max_poll_attempts = xAPIConfig.max_poll_attempts;
         } else if (username && password) {
             this.trackerSettings.oauth_type="OAuth1";
             this.oauth1.username = username;
@@ -306,6 +336,9 @@ export class JSTracker {
         }
         if(actor_name !== undefined) {
             this.trackerSettings.actor_name=actor_name;
+        }
+        if(actor_homepage !== undefined) {
+            this.trackerSettings.actor_homepage=actor_homepage;
         }
         if(backup_uri !== undefined) {
             this.trackerSettings.backup_endpoint=backup_uri;
@@ -642,6 +675,10 @@ export class SeriousGameTracker extends JSTracker {
     SERIOUSGAMEPROFILE = SERIOUSGAMESPROFILE;
     STATEMENT_BUILDER_IDS = STATEMENT;
     ALL = ALL;
+    ACCESSIBLETYPE=ACCESSIBLETYPE;
+    ALTERNATIVETYPE=ALTERNATIVETYPE;
+    COMPLETABLETYPE=COMPLETABLETYPE;
+    GAMEOBJECTTYPE=GAMEOBJECTTYPE;
 
     /**
      * SCORM tracker instance

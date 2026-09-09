@@ -1,4 +1,7 @@
 /**
+ * @typedef {import("jwt-decode").JwtPayload & { preferred_username?: string }} OAuth2DecodedToken
+ */
+/**
  * A specialized tracker asset that implements OAuth2 authentication.
  * Extends the base xAPITrackerAsset with OAuth2 capabilities.
  */
@@ -8,12 +11,15 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      * @property {string} token_endpoint
      * @property {string} grant_type
      * @property {string} client_id
-     * @property {string} scope
+     * @property {string} [scope]
      * @property {string} [state]
      * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
+     * @property {string} [username]
+     * @property {string} [password]
+     * @property {string} [login_hint]
+     * @property {string} [device_authorization_endpoint]
+     * @property {number} [poll_interval]
+     * @property {number} [max_poll_attempts]
      */
     oauth2Settings: {
         token_endpoint: string;
@@ -25,6 +31,9 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
         username: string;
         password: string;
         login_hint: string;
+        device_authorization_endpoint: string;
+        poll_interval: any;
+        max_poll_attempts: any;
     };
     /**
      * Instance of OAuth2Protocol handling authentication
@@ -32,12 +41,20 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
      */
     oauth2: OAuth2Protocol | null;
     /**
-     * Logs out the current session by invalidating the token.
-     *
-     * @returns {Promise<void>}
+     * Callback for device authorization info (user_code, verification_uri, etc.)
+     * @type {Function|null}
      */
+    onDeviceAuthorizationInfo: Function | null;
+    /**
+     * Callback for token updates
+     * @type {Function|null}
+     */
+    onAuthorizationInfoUpdate: Function | null;
     logout(): Promise<void>;
     #private;
 }
+export type OAuth2DecodedToken = import("jwt-decode").JwtPayload & {
+    preferred_username?: string;
+};
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
 import OAuth2Protocol from "./OAuth2Protocol.js";

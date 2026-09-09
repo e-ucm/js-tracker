@@ -46,6 +46,10 @@ export default class xAPITrackerAssetOAuth1 extends xAPITrackerAsset {
         super.refreshAuth();
     }
 
+    getUsername() {
+        return this.oauth1Settings.username;
+    }
+
     /**
      * Logs out the current session.
      * Delegates to the parent class implementation.

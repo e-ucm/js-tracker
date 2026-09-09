@@ -1,141 +1,111 @@
 /**
+ * OAuth 2.0 Authorization Error
+ * Matches XASU OAuth2AuthorizationError
+ */
+export class OAuth2AuthorizationError extends Error {
+    constructor(error: any, errorDescription: any);
+    error: any;
+    errorDescription: any;
+}
+/**
+ * OAuth 2.0 Device Authorization Error
+ * Matches XASU OAuth2DeviceAuthorizationError
+ */
+export class OAuth2DeviceAuthorizationError extends Error {
+    constructor(error: any, errorDescription: any);
+    error: any;
+    errorDescription: any;
+}
+/**
+ * OAuth 2.0 Device Authorization Response
+ * Matches XASU OAuth2DeviceAuthorization
+ */
+export class OAuth2DeviceAuthorization {
+    static fromJson(json: any): OAuth2DeviceAuthorization;
+    device_code: any;
+    user_code: any;
+    verification_uri: any;
+    verification_uri_complete: any;
+    interval: number;
+    expires_in: number;
+}
+/**
+ * OAuth 2.0 Token
+ * Matches XASU OAuth2Token with normalized fields
+ */
+export class OAuth2Token {
+    static fromJson(json: any): OAuth2Token;
+    access_token: any;
+    token_type: any;
+    expires_in: number;
+    refresh_token: any;
+    username: any;
+    client_id: any;
+    requestTime: any;
+    get expired(): boolean;
+}
+/**
  * A class that implements OAuth 2.0 protocol for authentication and token management.
- * Supports various grant types including password and refresh_token flows.
+ * Supports various grant types including password, refresh_token, and device_code flows.
+ * closely modeled after XASU OAuth2DeviceProtocol (C#)
  */
 export default class OAuth2Protocol {
+    static FIELD_MISSING_MESSAGE: string;
+    static UNSUPPORTED_GRANT_TYPE_MESSAGE: string;
+    static UNSUPPORTED_PKCE_METHOD_MESSAGE: string;
+    static DEVICE_AUTHORIZATION_ENDPOINT_FIELD: string;
+    static TOKEN_ENDPOINT_FIELD: string;
+    static CLIENT_ID_FIELD: string;
+    static SCOPE_FIELD: string;
+    static GRANT_TYPE_FIELD: string;
+    static POLL_INTERVAL_FIELD: string;
+    static MAX_POLL_ATTEMPTS_FIELD: string;
     /**
-     * Creates an instance of OAuth2Protocol.
-     * Initializes error messages and default property values.
-     * @param {Object} config - Configuration object containing OAuth2 parameters
-     * @param {string} config.token_endpoint - The token endpoint URL
-     * @param {string} config.grant_type - The grant type (password, refresh_token, etc.)
-     * @param {string} config.client_id - The client ID
-     * @param {string} [config.scope] - Optional scope
-     * @param {string} [config.state] - Optional state
-     * @param {string} [config.code_challenge_method] - Optional PKCE code challenge method
-     * @param {string} [config.username] - Username for password grant type
-     * @param {string} [config.password] - Password for password grant type
-     * @param {string} [config.login_hint] - Login hint for password grant type
+     * Validates that a URL is a valid HTTP or HTTPS URL.
+     * Mirrors XASU OAuth2DeviceProtocol.IsValidHttpUrl()
+     *
+     * @param {string} url - The URL to validate
+     * @returns {boolean} True if the URL is valid
      */
-    constructor(config: {
-        token_endpoint: string;
-        grant_type: string;
-        client_id: string;
-        scope?: string;
-        state?: string;
-        code_challenge_method?: string;
-        username?: string;
-        password?: string;
-        login_hint?: string;
-    });
+    static "__#private@#isValidHttpUrl"(url: string): boolean;
     /**
-     * Error message template for missing required fields.
-     * @type {string}
+     * Builds a device authorization error from an HTTP response.
+     * Mirrors XASU OAuth2DeviceProtocol.BuildDeviceAuthorizationError()
+     *
+     * @param {number} status - HTTP status code
+     * @param {string} body - Response body
+     * @param {string} url - Request URL
+     * @returns {OAuth2AuthorizationError} The constructed error
      */
-    fieldMissingMessage: string;
-    /**
-     * Error message template for unsupported grant types.
-     * @type {string}
-     */
-    unsupportedGrantTypeMessage: string;
-    /**
-     * Error message template for unsupported PKCE methods.
-     * @type {string}
-     */
-    unsupportedCodeChallengeMethodMessage: string;
-    /**
-     * The authorization endpoint URL.
-     * @type {string|null}
-     */
-    authEndpoint: string | null;
-    /**
-     * The token endpoint URL.
-     * @type {string|null}
-     */
-    tokenEndpoint: string | null;
-    /**
-     * The OAuth2 grant type being used.
-     * @type {string|null}
-     */
-    grantType: string | null;
-    /**
-     * The username for authentication.
-     * @type {string|null}
-     */
-    username: string | null;
-    /**
-     * The password for authentication.
-     * @type {string|null}
-     */
-    password: string | null;
-    /**
-     * The client identifier.
-     * @type {string|null}
-     */
-    clientId: string | null;
-    /**
-     * The requested scope of access.
-     * @type {string|null}
-     */
-    scope: string | null;
-    /**
-     * The state parameter for CSRF protection.
-     * @type {string|null}
-     */
-    state: string | null;
-    /**
-     * The login hint for authentication.
-     * @type {string|null}
-     */
-    login_hint: string | null;
-    /**
-     * The PKCE code challenge method.
-     * @type {string|null}
-     */
-    codeChallengeMethod: string | null;
-    /**
-     * The current authentication token.
-     * @typedef {Object|null} token
-     * @property {string} access_token
-     * @property {string} refresh_token
-     */
+    static "__#private@#buildDeviceAuthorizationError"(status: number, body: string, url: string): OAuth2AuthorizationError;
+    constructor(config: any);
+    deviceAuthorizationEndpoint: any;
+    tokenEndpoint: any;
+    grantType: any;
+    username: any;
+    password: any;
+    clientId: any;
+    scope: any;
+    state: any;
+    login_hint: any;
+    codeChallengeMethod: any;
+    deviceCode: any;
+    userCode: any;
+    verificationUri: any;
+    verificationUriComplete: any;
+    interval: any;
+    maxPollAttempts: any;
+    expiresIn: any;
+    pollInterval: any;
     token: any;
-    /**
-     * Flag indicating if a token refresh is currently in progress.
-     * @type {boolean}
-     */
     tokenRefreshInProgress: boolean;
-    /**
-     * Callback function for token updates.
-     * @type {Function|null}
-     */
-    onAuthorizationInfoUpdate: Function | null;
-    /**
-     * Initializes the OAuth2 protocol with the provided configuration.
-     *
-  
-     * @returns {Promise<void>}
-     * @throws {Error} If required configuration values are missing or grant type is unsupported
-     */
+    onAuthorizationInfoUpdate: any;
+    onDeviceAuthorizationInfo: any;
     getToken(): Promise<void>;
-    /**
-     * Refreshes the current access token using the refresh token.
-     *
-     * @returns {Promise<string>} The new access token
-     */
-    refreshToken(): Promise<string>;
-    /**
-     * Checks if the current token has expired.
-     *
-     * @returns {boolean} True if the token has expired, false otherwise
-     */
-    hasTokenExpired(): boolean;
-    /**
-     * Logs out the current session by invalidating the refresh token.
-     *
-     * @returns {Promise<void>}
-     * @throws {Error} If the logout request fails
-     */
+    refreshToken(): Promise<any>;
+    hasTokenExpired(): any;
     logout(): Promise<void>;
+    unauthorized(errorMessage: any): void;
+    forbidden(errorMessage: any): void;
     #private;
 }

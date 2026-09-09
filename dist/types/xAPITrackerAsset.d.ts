@@ -17,6 +17,7 @@ export default class xAPITrackerAsset {
      * @property {number} batch_timeout
      * @property {string} platform
      * @property {string} actor_name
+     * @property {string} actor_homepage
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
      * @property {string} backup_type
@@ -34,6 +35,7 @@ export default class xAPITrackerAsset {
         batch_timeout: any;
         platform: string;
         actor_name: string;
+        actor_homepage: string;
         backup_mode: boolean;
         backup_endpoint: string;
         backup_type: string;
@@ -120,6 +122,7 @@ export default class xAPITrackerAsset {
      *
      */
     login(): Promise<void>;
+    getUsername(): string;
     rethrow: boolean;
     /**
      * Refreshes the authentication token

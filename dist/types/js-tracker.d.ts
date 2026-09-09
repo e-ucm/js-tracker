@@ -2280,6 +2280,7 @@ export class JSTracker {
         registration_id: string;
         parent_activity_type: "http://adlnet.gov/expapi/activities/lesson";
         auth_token: string;
+        actor_homepage: string;
     };
     /**
      * @typedef {Object} oauth1
@@ -2291,17 +2292,20 @@ export class JSTracker {
         password: string;
     };
     /**
-     * @typedef {Object} oauth2
-     * @property {string} token_endpoint
-     * @property {string} grant_type
-     * @property {string} client_id
-     * @property {string} scope
-     * @property {string} [state]
-     * @property {string} [code_challenge_method]
-     * @property {string} username
-     * @property {string} password
-     * @property {string} login_hint
-     */
+         * @typedef {Object} oauth2
+         * @property {string} token_endpoint
+         * @property {string} grant_type
+         * @property {string} client_id
+         * @property {string} [scope]
+         * @property {string} [state]
+         * @property {string} [code_challenge_method]
+         * @property {string} [username]
+         * @property {string} [password]
+         * @property {string} [login_hint]
+         * @property {string} [device_authorization_endpoint] - Device authorization endpoint for device_code grant
+         * @property {number} [poll_interval] - Polling interval in seconds for device flow
+         * @property {number} [max_poll_attempts] - Maximum poll attempts for device flow
+         */
     oauth2: {
         token_endpoint: string;
         client_id: string;
@@ -2312,6 +2316,9 @@ export class JSTracker {
         username: string;
         password: string;
         login_hint: string;
+        device_authorization_endpoint: string;
+        poll_interval: any;
+        max_poll_attempts: any;
     };
     /**
      *
@@ -2485,6 +2492,41 @@ export class SeriousGameTracker extends JSTracker {
             POSITION: string;
             PROGRESS: string;
         };
+    }>;
+    ACCESSIBLETYPE: Readonly<{
+        SCREEN: "https://w3id.org/xapi/seriousgames/activity-types/screen";
+        AREA: "https://w3id.org/xapi/seriousgames/activity-types/area";
+        ZONE: "https://w3id.org/xapi/seriousgames/activity-types/zone";
+        CUTSCENE: "https://w3id.org/xapi/seriousgames/activity-types/cutscene";
+        INVENTORY: "https://w3id.org/xapi/seriousgames/custom-types/inventory";
+        ACCESSIBLE: "https://w3id.org/xapi/seriousgames/activity-types/accessible";
+    }>;
+    ALTERNATIVETYPE: Readonly<{
+        QUESTION: "http://adlnet.gov/expapi/activities/question";
+        MENU: "https://w3id.org/xapi/seriousgames/activity-types/menu";
+        DIALOG: "https://w3id.org/xapi/seriousgames/activity-types/dialog-tree";
+        PATH: "https://w3id.org/xapi/seriousgames/activity-types/path";
+        ARENA: "https://w3id.org/xapi/seriousgames/activity-types/arena";
+        ALTERNATIVE: "https://w3id.org/xapi/seriousgames/activity-types/alternative";
+    }>;
+    COMPLETABLETYPE: Readonly<{
+        GAME: "http://activitystrea.ms/game";
+        LEVEL: "https://w3id.org/xapi/seriousgames/activity-types/level";
+        QUEST: "https://w3id.org/xapi/seriousgames/activity-types/quest";
+        SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session";
+        STAGE: "https://w3id.org/xapi/seriousgames/activity-types/stage";
+        COMBAT: "https://w3id.org/xapi/seriousgames/activity-types/combat";
+        STORYNODE: "https://w3id.org/xapi/seriousgames/activity-types/story-node";
+        RACE: "https://w3id.org/xapi/seriousgames/activity-types/race";
+        COMPLETABLE: "https://w3id.org/xapi/seriousgames/activity-types/completable";
+        DIALOGNODE: "https://w3id.org/xapi/seriousgames/activity-types/dialog-node";
+        DIALOGFRAGMENT: "https://w3id.org/xapi/seriousgames/activity-types/dialog-fragment";
+    }>;
+    GAMEOBJECTTYPE: Readonly<{
+        ENEMY: "https://w3id.org/xapi/seriousgames/activity-types/enemy";
+        NPC: "https://w3id.org/xapi/seriousgames/activity-types/non-player-character";
+        ITEM: "https://w3id.org/xapi/seriousgames/activity-types/item";
+        GAMEOBJECT: "https://w3id.org/xapi/seriousgames/activity-types/game-object";
     }>;
     /**
      * SCORM tracker instance

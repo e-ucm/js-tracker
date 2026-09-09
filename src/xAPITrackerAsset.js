@@ -32,6 +32,7 @@ export default class xAPITrackerAsset {
      * @property {number} batch_timeout
      * @property {string} platform
      * @property {string} actor_name
+     * @property {string} actor_homepage
      * @property {boolean} backup_mode
      * @property {string} backup_endpoint
      * @property {string} backup_type
@@ -49,6 +50,7 @@ export default class xAPITrackerAsset {
         batch_timeout:msFn("30sec"),
         platform:"http://myhomepage.com",
         actor_name:"my_default_actor",
+        actor_homepage:"",
         backup_mode:false,
         backup_endpoint:"http://myurl.com/backup-endpoint",
         backup_type:"XAPI",
@@ -169,7 +171,9 @@ export default class xAPITrackerAsset {
 
     start() {
         this.started = true;
-        this.actor = new ActorStatement({account :{name: this.settings.actor_name, homePage: this.settings.platform}});
+        const actorName = this.settings.actor_name || this.getUsername() || '';
+        const homePage = this.settings.actor_homepage || this.settings.platform || '';
+        this.actor = new ActorStatement({account :{name: actorName, homePage: homePage}});
         if(this.settings.registration_id) {
             this.context = new ContextStatement(this.settings.default_uri, this.settings.platform, this.settings.registration_id);
         } else {
@@ -224,6 +228,10 @@ export default class xAPITrackerAsset {
         } else {
             this.connected=false;
         }
+    }
+
+    getUsername()  {
+        return this.settings.actor_name || "";
     }
 
     /**
