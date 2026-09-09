@@ -1,6 +1,7 @@
 import xAPITrackerAsset from "../xAPITrackerAsset.js";
 import OAuth2Protocol from "./OAuth2Protocol.js";
 import { jwtDecode } from "jwt-decode";
+import { showDeviceFallbackUI } from "./OAuth2DeviceFallbackUI.js";
 
 /**
  * @typedef {import("jwt-decode").JwtPayload & { preferred_username?: string }} OAuth2DecodedToken
@@ -81,8 +82,18 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
     async #initAuth() {
         this.oauth2 = new OAuth2Protocol(this.oauth2Settings);
 
+        /** @type {{ dismiss: () => void } | null} */
+        let fallbackUI = null;
+
         if (this.onDeviceAuthorizationInfo) {
             this.oauth2.onDeviceAuthorizationInfo = this.onDeviceAuthorizationInfo;
+        } else {
+            this.oauth2.onDeviceAuthorizationInfo = (info) => {
+                if (info.popupBlocked) {
+                    console.warn('[OAuth2Device] Browser blocked the auto-open popup. Showing fallback UI with code ' + info.user_code + '.');
+                }
+                fallbackUI = showDeviceFallbackUI(info);
+            };
         }
 
         if (this.onAuthorizationInfoUpdate) {
@@ -91,6 +102,10 @@ export default class xAPITrackerAssetOAuth2 extends xAPITrackerAsset {
 
         await this.oauth2.getToken();
         const oAuth2Token = this.oauth2.token;
+
+        if (fallbackUI && typeof fallbackUI.dismiss === 'function') {
+            fallbackUI.dismiss();
+        }
 
         if (oAuth2Token !== null && oAuth2Token.access_token) {
             this.auth_token = "Bearer " + oAuth2Token.access_token;

@@ -230,11 +230,25 @@ export default class OAuth2Protocol {
             throw new OAuth2AuthorizationError('invalid_verification_uri', msg);
         }
 
-        if (typeof window !== 'undefined' && window.open) {
-            window.open(verificationUrl, '_blank');
+        let popupBlocked = false;
+        try {
+            if (typeof window !== 'undefined' && window.open) {
+                const popup = window.open(verificationUrl, '_blank');
+                if (popup == null) {
+                    popupBlocked = true;
+                }
+            } else {
+                popupBlocked = true;
+            }
+        } catch (e) {
+            popupBlocked = true;
         }
 
-        console.log('[OAuth2Device] Opened verification URL: ' + verificationUrl);
+        if (popupBlocked) {
+            console.warn('[OAuth2Device] Popup blocked by the browser. User must manually open ' + verificationUrl + ' and enter code ' + deviceAuth.user_code + '.');
+        } else {
+            console.log('[OAuth2Device] Opened verification URL: ' + verificationUrl);
+        }
 
         if (this.onDeviceAuthorizationInfo) {
             this.onDeviceAuthorizationInfo({
@@ -242,7 +256,8 @@ export default class OAuth2Protocol {
                 verification_uri: deviceAuth.verification_uri,
                 verification_uri_complete: deviceAuth.verification_uri_complete,
                 expires_in: deviceAuth.expires_in,
-                interval: deviceAuth.interval
+                interval: deviceAuth.interval,
+                popupBlocked: popupBlocked
             });
         }
 

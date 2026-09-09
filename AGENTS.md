@@ -49,6 +49,12 @@ tracker.gameObject("healthPotion", tracker.SERIOUSGAMEPROFILE.ACTIVITYTYPES.ITEM
 - OAuth1: Basic username/password authentication
 - OAuth2: Token-based authentication with grant types
 
+#### OAuth2 Device Mode (`urn:ietf:params:oauth:grant-type:device_code`)
+- `login()` requests a device code, then attempts to auto-open the `verification_uri_complete` in a new browser tab.
+- Because the flow runs asynchronously (after `await fetch`), browsers may block the popup. The `onDeviceAuthorizationInfo` callback on `xAPITrackerAssetOAuth2` receives a payload that includes `user_code`, `verification_uri`, `verification_uri_complete`, and a `popupBlocked` boolean.
+- Host games should render a manual fallback (e.g. a button that opens `verification_uri_complete` from a real click gesture) whenever `popupBlocked` is `true`.
+- `getUsername()` decodes `preferred_username` from the access token JWT.
+
 ## Build and Test Commands
 - `npm run build` - Build the project (webpack + types)
 - `npm run test` - Run linting and tests
