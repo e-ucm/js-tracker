@@ -95,7 +95,6 @@ export default class OAuth2Protocol {
     verificationUriComplete: any;
     interval: any;
     maxPollAttempts: any;
-    expiresIn: any;
     pollInterval: any;
     token: any;
     tokenRefreshInProgress: boolean;

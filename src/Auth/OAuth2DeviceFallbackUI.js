@@ -91,19 +91,6 @@ const CSS = `
 #xapi-device-fallback-overlay .xapi-device-card button.xapi-device-btn:active {
   background: #003d7a;
 }
-#xapi-device-fallback-overlay .xapi-device-card .xapi-device-close {
-  display: block;
-  margin: 12px auto 0;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #888;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-#xapi-device-fallback-overlay .xapi-device-card .xapi-device-close:hover {
-  color: #333;
-}
 #xapi-device-fallback-overlay .xapi-device-card .xapi-device-expiry {
   margin-top: 12px;
   font-size: 12px;
@@ -126,8 +113,23 @@ function removeStyles() {
     if (style) style.remove();
 }
 
+let activeOverlay = null;
+let activeHandle = null;
+
+function dismiss() {
+    if (activeOverlay && activeOverlay.parentNode) {
+        activeOverlay.parentNode.removeChild(activeOverlay);
+    }
+    activeOverlay = null;
+    if (!document.getElementById('xapi-device-fallback-overlay')) {
+        removeStyles();
+    }
+}
+
 /**
  * Shows the device authorization fallback UI.
+ * If the UI is already shown (e.g. a new device code was pulled after
+ * the previous one expired), it updates the existing overlay in place.
  *
  * @param {object} info - The device authorization info object
  * @param {string} info.user_code - The code the user must enter
@@ -144,10 +146,16 @@ export function showDeviceFallbackUI(info) {
 
     injectStyles();
 
-    const verificationUrl = info.verification_uri_complete || info.verification_uri;
+    if (!activeOverlay || !activeOverlay.parentNode) {
+        activeOverlay = document.createElement('div');
+        activeOverlay.id = 'xapi-device-fallback-overlay';
 
-    const overlay = document.createElement('div');
-    overlay.id = 'xapi-device-fallback-overlay';
+        document.body.appendChild(activeOverlay);
+
+        activeHandle = { dismiss };
+    }
+
+    const verificationUrl = info.verification_uri_complete || info.verification_uri;
 
     let expiryText = '';
     if (info.expires_in && info.expires_in > 0) {
@@ -158,7 +166,7 @@ export function showDeviceFallbackUI(info) {
             : 'Code expires in ' + secs + 's';
     }
 
-    overlay.innerHTML = `
+    activeOverlay.innerHTML = `
       <div class="xapi-device-card">
         <h2>Sign In</h2>
         <p>Scan the code below on another device:</p>
@@ -168,46 +176,22 @@ export function showDeviceFallbackUI(info) {
         <a class="xapi-device-url" href="${escapeHtml(verificationUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(verificationUrl)}</a>
         <button class="xapi-device-btn" type="button">Open Verification Page</button>
         ${expiryText ? '<div class="xapi-device-expiry">' + escapeHtml(expiryText) + '</div>' : ''}
-        <button class="xapi-device-close" type="button">Close</button>
       </div>
     `;
 
-    const qrCanvas = overlay.querySelector('.xapi-device-qr');
+    const qrCanvas = activeOverlay.querySelector('.xapi-device-qr');
     QRCode.toCanvas(qrCanvas, verificationUrl, { width: 200, margin: 1 })
         .catch(function (error) {
             console.error('[OAuth2Device] Failed to render QR code: ' + error.message);
-            const card = overlay.querySelector('.xapi-device-card');
+            const card = activeOverlay.querySelector('.xapi-device-card');
             if (card) card.removeChild(qrCanvas);
         });
 
-    const btn = overlay.querySelector('.xapi-device-btn');
-    btn.addEventListener('click', function () {
+    activeOverlay.querySelector('.xapi-device-btn').addEventListener('click', function () {
         window.open(verificationUrl, '_blank', 'noopener,noreferrer');
     });
 
-    const closeBtn = overlay.querySelector('.xapi-device-close');
-    closeBtn.addEventListener('click', function () {
-        dismiss();
-    });
-
-    overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) {
-            dismiss();
-        }
-    });
-
-    function dismiss() {
-        if (overlay.parentNode) {
-            overlay.parentNode.removeChild(overlay);
-        }
-        if (!document.getElementById('xapi-device-fallback-overlay')) {
-            removeStyles();
-        }
-    }
-
-    document.body.appendChild(overlay);
-
-    return { dismiss };
+    return activeHandle;
 }
 
 function escapeHtml(str) {

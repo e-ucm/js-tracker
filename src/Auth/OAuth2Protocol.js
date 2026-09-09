@@ -112,9 +112,8 @@ export default class OAuth2Protocol {
     userCode = null;
     verificationUri = null;
     verificationUriComplete = null;
-    interval = null;
+interval = null;
     maxPollAttempts = null;
-    expiresIn = null;
     pollInterval = null;
 
     token = null;
@@ -215,6 +214,46 @@ export default class OAuth2Protocol {
             throw new OAuth2AuthorizationError('invalid_token_endpoint', msg);
         }
 
+        const maxRetries = this.maxPollAttempts > 0 ? this.maxPollAttempts : 0;
+        const retryInterval = this.pollInterval > 0 ? this.pollInterval : 5;
+
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            if (attempt > 0) {
+                console.warn('[OAuth2Device] Device code expired or timed out. Waiting ' + retryInterval + 's before requesting a new device code (retry ' + attempt + '/' + maxRetries + ').');
+                await new Promise(resolve => setTimeout(resolve, retryInterval * 1000));
+            }
+
+            try {
+                return await this.#doDeviceAuthorizationFlowOnce();
+            } catch (error) {
+                const retryable = error instanceof OAuth2AuthorizationError
+                    && (error.error === 'expired_token' || error.error === 'timeout');
+
+                if (retryable && attempt < maxRetries) {
+                    lastError = error;
+                    console.warn('[OAuth2Device] ' + error.error + ': requesting a new device code.');
+                    continue;
+                }
+
+                throw error;
+            }
+        }
+
+        throw lastError || new OAuth2AuthorizationError(
+            'timeout',
+            'Device authorization failed after ' + (maxRetries + 1) + ' attempts.'
+        );
+    }
+
+    /**
+     * Runs a single device authorization attempt: requests a device code,
+     * notifies the host application, and polls the token endpoint.
+     *
+     * @returns {Promise<void>}
+     */
+    async #doDeviceAuthorizationFlowOnce() {
         // Step 1: Request device and user codes
         const deviceAuth = await this.#doDeviceAuthorizationRequest(this.deviceAuthorizationEndpoint, this.clientId, this.scope);
 
@@ -262,17 +301,10 @@ export default class OAuth2Protocol {
         }
 
         // Step 3: Poll the token endpoint until approved
-        let interval = deviceAuth.interval > 0 ? deviceAuth.interval : 5;
-        let maxAttempts = deviceAuth.expires_in > 0
+        const interval = deviceAuth.interval > 0 ? deviceAuth.interval : 5;
+        const maxAttempts = deviceAuth.expires_in > 0
             ? Math.floor(deviceAuth.expires_in / interval) + 1
             : 60;
-
-        if (this.pollInterval && this.pollInterval > 0) {
-            interval = this.pollInterval;
-        }
-        if (this.maxPollAttempts && this.maxPollAttempts > 0) {
-            maxAttempts = this.maxPollAttempts;
-        }
 
         console.log('[OAuth2Device] Polling token endpoint every ' + interval + 's for up to ' + maxAttempts + ' attempts.');
 

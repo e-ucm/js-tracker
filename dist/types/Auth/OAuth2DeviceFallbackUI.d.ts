@@ -1,5 +1,7 @@
 /**
  * Shows the device authorization fallback UI.
+ * If the UI is already shown (e.g. a new device code was pulled after
+ * the previous one expired), it updates the existing overlay in place.
  *
  * @param {object} info - The device authorization info object
  * @param {string} info.user_code - The code the user must enter

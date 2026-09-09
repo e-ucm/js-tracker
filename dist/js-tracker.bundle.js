@@ -6970,9 +6970,8 @@ class OAuth2Protocol {
     userCode = null;
     verificationUri = null;
     verificationUriComplete = null;
-    interval = null;
+interval = null;
     maxPollAttempts = null;
-    expiresIn = null;
     pollInterval = null;
 
     token = null;
@@ -7073,6 +7072,46 @@ class OAuth2Protocol {
             throw new OAuth2AuthorizationError('invalid_token_endpoint', msg);
         }
 
+        const maxRetries = this.maxPollAttempts > 0 ? this.maxPollAttempts : 0;
+        const retryInterval = this.pollInterval > 0 ? this.pollInterval : 5;
+
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            if (attempt > 0) {
+                console.warn('[OAuth2Device] Device code expired or timed out. Waiting ' + retryInterval + 's before requesting a new device code (retry ' + attempt + '/' + maxRetries + ').');
+                await new Promise(resolve => setTimeout(resolve, retryInterval * 1000));
+            }
+
+            try {
+                return await this.#doDeviceAuthorizationFlowOnce();
+            } catch (error) {
+                const retryable = error instanceof OAuth2AuthorizationError
+                    && (error.error === 'expired_token' || error.error === 'timeout');
+
+                if (retryable && attempt < maxRetries) {
+                    lastError = error;
+                    console.warn('[OAuth2Device] ' + error.error + ': requesting a new device code.');
+                    continue;
+                }
+
+                throw error;
+            }
+        }
+
+        throw lastError || new OAuth2AuthorizationError(
+            'timeout',
+            'Device authorization failed after ' + (maxRetries + 1) + ' attempts.'
+        );
+    }
+
+    /**
+     * Runs a single device authorization attempt: requests a device code,
+     * notifies the host application, and polls the token endpoint.
+     *
+     * @returns {Promise<void>}
+     */
+    async #doDeviceAuthorizationFlowOnce() {
         // Step 1: Request device and user codes
         const deviceAuth = await this.#doDeviceAuthorizationRequest(this.deviceAuthorizationEndpoint, this.clientId, this.scope);
 
@@ -7120,17 +7159,10 @@ class OAuth2Protocol {
         }
 
         // Step 3: Poll the token endpoint until approved
-        let interval = deviceAuth.interval > 0 ? deviceAuth.interval : 5;
-        let maxAttempts = deviceAuth.expires_in > 0
+        const interval = deviceAuth.interval > 0 ? deviceAuth.interval : 5;
+        const maxAttempts = deviceAuth.expires_in > 0
             ? Math.floor(deviceAuth.expires_in / interval) + 1
             : 60;
-
-        if (this.pollInterval && this.pollInterval > 0) {
-            interval = this.pollInterval;
-        }
-        if (this.maxPollAttempts && this.maxPollAttempts > 0) {
-            maxAttempts = this.maxPollAttempts;
-        }
 
         console.log('[OAuth2Device] Polling token endpoint every ' + interval + 's for up to ' + maxAttempts + ' attempts.');
 
@@ -7628,19 +7660,6 @@ const CSS = `
 #xapi-device-fallback-overlay .xapi-device-card button.xapi-device-btn:active {
   background: #003d7a;
 }
-#xapi-device-fallback-overlay .xapi-device-card .xapi-device-close {
-  display: block;
-  margin: 12px auto 0;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #888;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-#xapi-device-fallback-overlay .xapi-device-card .xapi-device-close:hover {
-  color: #333;
-}
 #xapi-device-fallback-overlay .xapi-device-card .xapi-device-expiry {
   margin-top: 12px;
   font-size: 12px;
@@ -7663,8 +7682,23 @@ function removeStyles() {
     if (style) style.remove();
 }
 
+let activeOverlay = null;
+let activeHandle = null;
+
+function dismiss() {
+    if (activeOverlay && activeOverlay.parentNode) {
+        activeOverlay.parentNode.removeChild(activeOverlay);
+    }
+    activeOverlay = null;
+    if (!document.getElementById('xapi-device-fallback-overlay')) {
+        removeStyles();
+    }
+}
+
 /**
  * Shows the device authorization fallback UI.
+ * If the UI is already shown (e.g. a new device code was pulled after
+ * the previous one expired), it updates the existing overlay in place.
  *
  * @param {object} info - The device authorization info object
  * @param {string} info.user_code - The code the user must enter
@@ -7681,10 +7715,16 @@ function showDeviceFallbackUI(info) {
 
     injectStyles();
 
-    const verificationUrl = info.verification_uri_complete || info.verification_uri;
+    if (!activeOverlay || !activeOverlay.parentNode) {
+        activeOverlay = document.createElement('div');
+        activeOverlay.id = 'xapi-device-fallback-overlay';
 
-    const overlay = document.createElement('div');
-    overlay.id = 'xapi-device-fallback-overlay';
+        document.body.appendChild(activeOverlay);
+
+        activeHandle = { dismiss };
+    }
+
+    const verificationUrl = info.verification_uri_complete || info.verification_uri;
 
     let expiryText = '';
     if (info.expires_in && info.expires_in > 0) {
@@ -7695,7 +7735,7 @@ function showDeviceFallbackUI(info) {
             : 'Code expires in ' + secs + 's';
     }
 
-    overlay.innerHTML = `
+    activeOverlay.innerHTML = `
       <div class="xapi-device-card">
         <h2>Sign In</h2>
         <p>Scan the code below on another device:</p>
@@ -7705,46 +7745,22 @@ function showDeviceFallbackUI(info) {
         <a class="xapi-device-url" href="${escapeHtml(verificationUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(verificationUrl)}</a>
         <button class="xapi-device-btn" type="button">Open Verification Page</button>
         ${expiryText ? '<div class="xapi-device-expiry">' + escapeHtml(expiryText) + '</div>' : ''}
-        <button class="xapi-device-close" type="button">Close</button>
       </div>
     `;
 
-    const qrCanvas = overlay.querySelector('.xapi-device-qr');
+    const qrCanvas = activeOverlay.querySelector('.xapi-device-qr');
     QRCode.toCanvas(qrCanvas, verificationUrl, { width: 200, margin: 1 })
         .catch(function (error) {
             console.error('[OAuth2Device] Failed to render QR code: ' + error.message);
-            const card = overlay.querySelector('.xapi-device-card');
+            const card = activeOverlay.querySelector('.xapi-device-card');
             if (card) card.removeChild(qrCanvas);
         });
 
-    const btn = overlay.querySelector('.xapi-device-btn');
-    btn.addEventListener('click', function () {
+    activeOverlay.querySelector('.xapi-device-btn').addEventListener('click', function () {
         window.open(verificationUrl, '_blank', 'noopener,noreferrer');
     });
 
-    const closeBtn = overlay.querySelector('.xapi-device-close');
-    closeBtn.addEventListener('click', function () {
-        dismiss();
-    });
-
-    overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) {
-            dismiss();
-        }
-    });
-
-    function dismiss() {
-        if (overlay.parentNode) {
-            overlay.parentNode.removeChild(overlay);
-        }
-        if (!document.getElementById('xapi-device-fallback-overlay')) {
-            removeStyles();
-        }
-    }
-
-    document.body.appendChild(overlay);
-
-    return { dismiss };
+    return activeHandle;
 }
 
 function escapeHtml(str) {
