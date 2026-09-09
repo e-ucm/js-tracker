@@ -1,11 +1,13 @@
 /**
  * Default fallback UI for OAuth2 Device Authorization Flow.
- * Renders a modal overlay with the user code and a button to open the
+ * Renders a modal overlay with the user code, a QR code and a button to open the
  * verification URL when the browser blocks the automatic popup.
  *
  * Designed for game host applications: lightweight, no dependencies,
  * injects its own styles, and removes itself once the token is obtained.
  */
+
+import QRCode from 'qrcode';
 
 const STYLE_ID = 'xapi-oauth2-device-fallback-style';
 
@@ -56,6 +58,13 @@ const CSS = `
 }
 #xapi-device-fallback-overlay .xapi-device-card .xapi-device-code:hover {
   background: #e8e8f0;
+}
+#xapi-device-fallback-overlay .xapi-device-qr {
+  margin: 0 auto;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
 }
 #xapi-device-fallback-overlay .xapi-device-card .xapi-device-url {
   display: block;
@@ -152,7 +161,9 @@ export function showDeviceFallbackUI(info) {
     overlay.innerHTML = `
       <div class="xapi-device-card">
         <h2>Sign In</h2>
-        <p>Open the link below on another device and enter this code:</p>
+        <p>Scan the code below on another device:</p>
+        <canvas class="xapi-device-qr"></canvas>
+        <p>Or open the link below and enter this code:</p>
         <div class="xapi-device-code" title="Click to select">${escapeHtml(info.user_code)}</div>
         <a class="xapi-device-url" href="${escapeHtml(verificationUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(verificationUrl)}</a>
         <button class="xapi-device-btn" type="button">Open Verification Page</button>
@@ -160,6 +171,14 @@ export function showDeviceFallbackUI(info) {
         <button class="xapi-device-close" type="button">Close</button>
       </div>
     `;
+
+    const qrCanvas = overlay.querySelector('.xapi-device-qr');
+    QRCode.toCanvas(qrCanvas, verificationUrl, { width: 200, margin: 1 })
+        .catch(function (error) {
+            console.error('[OAuth2Device] Failed to render QR code: ' + error.message);
+            const card = overlay.querySelector('.xapi-device-card');
+            if (card) card.removeChild(qrCanvas);
+        });
 
     const btn = overlay.querySelector('.xapi-device-btn');
     btn.addEventListener('click', function () {
