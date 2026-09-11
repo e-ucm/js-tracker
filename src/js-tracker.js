@@ -3,7 +3,7 @@ import xAPITrackerAssetOAuth1 from './Auth/OAuth1.js';
 import xAPITrackerAssetOAuth2 from './Auth/OAuth2.js';
 import OAuth2Protocol from './Auth/OAuth2Protocol.js';
 import { AccessibleTracker, ACCESSIBLETYPE } from './HighLevel/SeriousGames/Accessible.js';
-import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/Scorm/Completable.js';
+import { CompletableTracker, COMPLETABLETYPE } from './HighLevel/SeriousGames/Completable.js';
 import { AlternativeTracker, ALTERNATIVETYPE } from './HighLevel/SeriousGames/Alternative.js';
 import { GameObjectTracker, GAMEOBJECTTYPE } from './HighLevel/SeriousGames/GameObject.js';;
 

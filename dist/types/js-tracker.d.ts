@@ -2510,7 +2510,7 @@ export class SeriousGameTracker extends JSTracker {
         ALTERNATIVE: "https://w3id.org/xapi/seriousgames/activity-types/alternative";
     }>;
     COMPLETABLETYPE: Readonly<{
-        GAME: "http://activitystrea.ms/game";
+        GAME: "https://w3id.org/xapi/seriousgames/activity-types/serious-game";
         LEVEL: "https://w3id.org/xapi/seriousgames/activity-types/level";
         QUEST: "https://w3id.org/xapi/seriousgames/activity-types/quest";
         SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session";
@@ -2599,6 +2599,6 @@ import StatementBuilder from './HighLevel/StatementBuilder/StatementBuilder.js';
 import { ScormTracker } from './HighLevel/Scorm/SCORM.js';
 import LRSStatementBuilder from './HighLevel/StatementBuilder/LRSStatementBuilder.js';
 import { GameObjectTracker } from './HighLevel/SeriousGames/GameObject.js';
-import { CompletableTracker } from './HighLevel/Scorm/Completable.js';
+import { CompletableTracker } from './HighLevel/SeriousGames/Completable.js';
 import { AlternativeTracker } from './HighLevel/SeriousGames/Alternative.js';
 import { AccessibleTracker } from './HighLevel/SeriousGames/Accessible.js';

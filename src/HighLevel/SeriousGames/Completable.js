@@ -116,15 +116,15 @@ export class CompletableTracker {
  * the list of types possible for the completable object
  */
 export const COMPLETABLETYPE = Object.freeze({
-    GAME: ALL.ACTIVITYTYPES.GAME,
+    GAME: ALL.ACTIVITYTYPES.SERIOUS_GAME,
     LEVEL: ALL.ACTIVITYTYPES.LEVEL,
     QUEST: ALL.ACTIVITYTYPES.QUEST,
-    SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session", //
-    STAGE: "https://w3id.org/xapi/seriousgames/activity-types/stage",
-    COMBAT: "https://w3id.org/xapi/seriousgames/activity-types/combat",
-    STORYNODE: "https://w3id.org/xapi/seriousgames/activity-types/story-node",
-    RACE: "https://w3id.org/xapi/seriousgames/activity-types/race",
-    COMPLETABLE: "https://w3id.org/xapi/seriousgames/activity-types/completable",
-    DIALOGNODE: "https://w3id.org/xapi/seriousgames/activity-types/dialog-node",
-    DIALOGFRAGMENT: "https://w3id.org/xapi/seriousgames/activity-types/dialog-fragment"
+    SESSION: "https://w3id.org/xapi/seriousgames/activity-types/session",   // WARN: Not in profile server
+    STAGE: "https://w3id.org/xapi/seriousgames/activity-types/stage",       // WARN: Not in profile server
+    COMBAT: "https://w3id.org/xapi/seriousgames/activity-types/combat",     // WARN: Not in profile server
+    STORYNODE: "https://w3id.org/xapi/seriousgames/activity-types/story-node", // WARN: Not in profile server
+    RACE: "https://w3id.org/xapi/seriousgames/activity-types/race",         // WARN: Not in profile server
+    COMPLETABLE: "https://w3id.org/xapi/seriousgames/activity-types/completable",   // WARN: Not in profile server
+    DIALOGNODE: "https://w3id.org/xapi/seriousgames/activity-types/dialog-node",    // WARN: Not in profile server
+    DIALOGFRAGMENT: "https://w3id.org/xapi/seriousgames/activity-types/dialog-fragment" // WARN: Not in profile server
 });
