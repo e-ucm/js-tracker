@@ -6442,7 +6442,11 @@ class xAPITrackerAsset {
             this.auth_token = null;
          }
     }
-
+    
+    isLoggedIn() {
+        return this.connected && this.auth_token != null;
+    }
+    
     /**
      * Event handler called when the client goes offline
      */
@@ -8023,9 +8027,9 @@ class CompletableTracker {
         var addInitializedTime = true;
         if(this.IsInitialized) {
             if (this.Tracker.settings.debug) {
-                throw new Error("The initialized statement for the specified id has already been sent!");
+                throw new Error(`The initialized statement for the specified id ${this.CompletableId} has already been sent!`);
             } else {
-                console.warn("The initialized statement for the specified id has already been sent!");
+                console.warn(`The initialized statement for the specified id ${this.CompletableId} has already been sent!`);
                 addInitializedTime = false;
             }
         }
@@ -8060,9 +8064,9 @@ class CompletableTracker {
 
         if(!this.IsInitialized) {
             if (this.Tracker.settings.debug) {
-                throw new Error("You need to send a initialized statement before sending an Completed statement!");
+                throw new Error(`You need to send a initialized statement before sending an Completed statement for the specified id ${this.CompletableId}!`);
             } else {
-                console.warn("You need to send a initialized statement before sending an Completed statement!");
+                console.warn(`You need to send a initialized statement before sending an Completed statement for the specified id ${this.CompletableId}!`);
                 return;
             }
         }
@@ -8475,6 +8479,12 @@ class JSTracker {
      * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
      */
     tracker;
+
+    /**
+     * Indicates if the tracker has been started
+     * @type {boolean}
+     */
+    Started = false;
     
     /**
      * Settings of JSTracker
@@ -8602,6 +8612,14 @@ class JSTracker {
         await this.tracker.login();
     }
 
+    isStarted() {
+        return this.Started;
+    }
+
+    isLoggedIn() {
+        return this.tracker && this.tracker.isLoggedIn();
+    }
+    
     start() {
         if(!this.tracker) {
             this.tracker = new xAPITrackerAsset();
@@ -8613,7 +8631,7 @@ class JSTracker {
 
     stop() {
         this.tracker.stop();
-        this.started = false;
+        this.Started = false;
     };
 
     logout() {

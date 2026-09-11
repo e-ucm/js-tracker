@@ -115,6 +115,7 @@ export default class xAPITrackerAsset {
      * Logs out the current session by clearing the authentication token
      */
     logout(): void;
+    isLoggedIn(): boolean;
     start(): void;
     stop(): void;
     /**

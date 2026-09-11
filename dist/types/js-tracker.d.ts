@@ -2239,6 +2239,11 @@ export class JSTracker {
      */
     tracker: xAPITrackerAssetOAuth2 | xAPITrackerAssetOAuth1 | xAPITrackerAsset;
     /**
+     * Indicates if the tracker has been started
+     * @type {boolean}
+     */
+    Started: boolean;
+    /**
      * Settings of JSTracker
      * @typedef {Object} trackerSettings
      * @property {boolean} generateSettingsFromURLParams
@@ -2325,10 +2330,10 @@ export class JSTracker {
      * @returns {Promise<void>}
      */
     login(): Promise<void>;
+    isStarted(): boolean;
+    isLoggedIn(): boolean;
     start(): void;
-    Started: boolean;
     stop(): void;
-    started: boolean;
     logout(): void;
     /**
      * Flushes the statement queue

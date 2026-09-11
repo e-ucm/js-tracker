@@ -160,7 +160,11 @@ export default class xAPITrackerAsset {
             this.auth_token = null;
          }
     }
-
+    
+    isLoggedIn() {
+        return this.connected && this.auth_token != null;
+    }
+    
     /**
      * Event handler called when the client goes offline
      */

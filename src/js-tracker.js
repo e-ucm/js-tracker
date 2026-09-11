@@ -29,6 +29,12 @@ export class JSTracker {
      * @type {xAPITrackerAssetOAuth2|xAPITrackerAssetOAuth1|xAPITrackerAsset}
      */
     tracker;
+
+    /**
+     * Indicates if the tracker has been started
+     * @type {boolean}
+     */
+    Started = false;
     
     /**
      * Settings of JSTracker
@@ -156,6 +162,14 @@ export class JSTracker {
         await this.tracker.login();
     }
 
+    isStarted() {
+        return this.Started;
+    }
+
+    isLoggedIn() {
+        return this.tracker && this.tracker.isLoggedIn();
+    }
+    
     start() {
         if(!this.tracker) {
             this.tracker = new xAPITrackerAsset();
@@ -167,7 +181,7 @@ export class JSTracker {
 
     stop() {
         this.tracker.stop();
-        this.started = false;
+        this.Started = false;
     };
 
     logout() {

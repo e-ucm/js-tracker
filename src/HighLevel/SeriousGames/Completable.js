@@ -58,9 +58,9 @@ export class CompletableTracker {
         var addInitializedTime = true;
         if(this.IsInitialized) {
             if (this.Tracker.settings.debug) {
-                throw new Error("The initialized statement for the specified id has already been sent!");
+                throw new Error(`The initialized statement for the specified id ${this.CompletableId} has already been sent!`);
             } else {
-                console.warn("The initialized statement for the specified id has already been sent!");
+                console.warn(`The initialized statement for the specified id ${this.CompletableId} has already been sent!`);
                 addInitializedTime = false;
             }
         }
@@ -95,9 +95,9 @@ export class CompletableTracker {
 
         if(!this.IsInitialized) {
             if (this.Tracker.settings.debug) {
-                throw new Error("You need to send a initialized statement before sending an Completed statement!");
+                throw new Error(`You need to send a initialized statement before sending an Completed statement for the specified id ${this.CompletableId}!`);
             } else {
-                console.warn("You need to send a initialized statement before sending an Completed statement!");
+                console.warn(`You need to send a initialized statement before sending an Completed statement for the specified id ${this.CompletableId}!`);
                 return;
             }
         }
